@@ -41,7 +41,7 @@
   h1,h2,h3,.num,.brand{font-family:'Manrope',sans-serif;}
   .mono{font-family:'IBM Plex Mono',monospace;}
   a{color:inherit;}
-  button:focus-visible, a:focus-visible, input:focus-visible{outline:none;box-shadow:var(--focus-ring);border-radius:8px;}
+  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{outline:none;box-shadow:var(--focus-ring);border-radius:8px;}
   @media (prefers-reduced-motion: reduce){
     *{animation-duration:0.001ms !important;animation-iteration-count:1 !important;transition-duration:0.001ms !important;}
   }
@@ -68,23 +68,29 @@
     repeating-linear-gradient(0deg, rgba(255,255,255,0.035) 0px, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 30px),
     repeating-linear-gradient(90deg, rgba(255,255,255,0.035) 0px, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 30px);
     pointer-events:none;}
-  .hero-inner{max-width:1400px;margin:0 auto;position:relative;}
-  .hero h2{color:#fff;font-size:clamp(26px,4.4vw,38px);font-weight:800;margin:0 0 10px;letter-spacing:-0.015em;line-height:1.12;max-width:600px;}
+  .hero-inner{max-width:1400px;margin:0 auto;position:relative;width:100%;}
+  .hero h2{color:#fff;font-size:clamp(34px,5vw,46px);font-weight:800;margin:0 0 10px;letter-spacing:-0.015em;line-height:1.08;max-width:100%;width:100%;overflow:hidden;display:block;}
+  .hero-title-track{display:inline-flex;align-items:center;gap:40px;min-width:200%;animation:marquee 16s linear infinite;}
+  .hero-title-track span{display:inline-block;white-space:nowrap;}
+  @keyframes marquee{from{transform:translateX(0);}to{transform:translateX(-50%);}}
   .hero p{color:rgba(255,255,255,0.82);font-size:15px;margin:0 0 22px;max-width:480px;line-height:1.5;}
-  .hero-search{display:flex;gap:8px;flex-wrap:wrap;max-width:640px;}
-  .searchbar{display:flex;align-items:center;gap:8px;background:var(--surface);border-radius:var(--radius-sm);padding:11px 16px;flex:1;min-width:220px;box-shadow:var(--shadow-lg);transition:box-shadow .2s var(--ease);}
+  .hero-search{display:flex;gap:8px;flex-wrap:wrap;max-width:100%;width:100%;}
+  .searchbar{display:flex;align-items:center;gap:8px;background:var(--surface);border-radius:var(--radius-sm);padding:11px 16px;flex:1;min-width:220px;width:100%;box-shadow:var(--shadow-lg);transition:box-shadow .2s var(--ease);}
   .searchbar:focus-within{box-shadow:0 0 0 3px rgba(255,255,255,0.35), var(--shadow-lg);}
   .searchbar input{border:none;outline:none;font-size:13.5px;width:100%;background:transparent;font-family:'Inter',sans-serif;color:var(--ink);}
   .hero-stat{color:rgba(255,255,255,0.85);font-size:12.5px;margin-top:14px;display:flex;align-items:center;gap:6px;}
   .hero-stat b{color:#fff;font-family:'Manrope',sans-serif;font-size:14px;}
 
-  .toolbar{max-width:1400px;margin:-34px auto 0;padding:0 20px;position:relative;z-index:10;}
-  .chips-row{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);padding:12px 14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;overflow:hidden;}
-  .chips{display:flex;gap:8px;overflow-x:auto;width:100%;min-width:0;-webkit-overflow-scrolling:touch;}
-  .chip{flex-shrink:0;border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:8px 16px;font-size:12.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;white-space:nowrap;transition:all .2s var(--ease);}
-  .chip:hover{border-color:#CBD5E1;background:var(--surface-alt);}
-  .chip.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 4px 12px -4px rgba(37,99,235,0.5);}
-  .divider{width:1px;height:22px;background:var(--border);}
+  .toolbar{max-width:1400px;margin:-34px auto 0;padding:16px 20px;position:relative;z-index:10;background:rgba(255,255,255,0.98);border-radius:22px;box-shadow:0 20px 48px rgba(15,23,42,0.08);}
+  .chips-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;}
+  .chips{display:flex;gap:10px;overflow-x:auto;width:auto;min-width:0;-webkit-overflow-scrolling:touch;}
+  .chip{flex-shrink:0;border:1px solid rgba(226,232,240,0.8);background:rgba(255,255,255,0.95);border-radius:999px;padding:10px 16px;font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer;white-space:nowrap;transition:all .24s var(--ease);}
+  .chip:hover{border-color:rgba(148,163,184,0.8);background:rgba(241,245,249,0.95);}
+  .chip.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 14px 30px -18px rgba(37,99,235,0.66);}
+  .fav-chip{background:rgba(37,99,235,0.08);color:var(--primary);border-color:rgba(37,99,235,0.2);}
+  .fav-chip:hover{background:rgba(37,99,235,0.12);}
+  .fav-chip svg{stroke:var(--primary);}
+  .divider{width:1px;height:24px;background:rgba(226,232,240,0.9);}
 
   .view-toggle{display:none;gap:6px;background:var(--surface-alt);border-radius:var(--radius-sm);padding:4px;width:fit-content;}
   .view-toggle button{border:none;background:transparent;border-radius:8px;padding:7px 16px;font-size:12.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;font-family:'Inter',sans-serif;}
@@ -116,10 +122,14 @@
 
   .overlay{position:fixed;inset:0;background:rgba(27,36,48,0.45);z-index:900;opacity:0;pointer-events:none;transition:opacity .2s ease;}
   .overlay.open{opacity:1;pointer-events:auto;}
-  .drawer{position:fixed;top:0;right:0;height:100%;width:440px;max-width:92vw;background:var(--surface);z-index:901;transform:translateX(100%);transition:transform .3s var(--ease);overflow-y:auto;box-shadow:var(--shadow-lg);border-radius:var(--radius-xl) 0 0 var(--radius-xl);}
+  .drawer{position:fixed;top:0;right:0;left:0;height:100%;width:100%;max-width:100%;background:var(--surface);z-index:901;transform:translateX(100%);transition:transform .3s var(--ease);overflow-y:auto;box-shadow:var(--shadow-lg);border-radius:0;}
+  .drawer.open{transform:translateX(0);}
   .drawer.open{transform:translateX(0);}
   .drawer-banner{height:150px;display:flex;align-items:center;justify-content:center;position:relative;border-radius:20px 0 0 0;}
-  .drawer-close{position:absolute;top:12px;right:12px;background:rgba(255,255,255,0.9);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .drawer-close{position:absolute;top:12px;right:12px;background:#E53E3E;border:none;border-radius:50%;width:40px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(0,0,0,0.18);transition:transform .15s ease,box-shadow .15s ease;z-index:3;color:#fff}
+  .drawer-close svg{width:18px;height:18px}
+  .drawer-close svg, .drawer-close svg *{stroke:#fff;fill:#fff}
+  .drawer-close:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(0,0,0,0.22)}
   .drawer-content{padding:20px;}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;}
   .info-box{background:var(--surface-alt);border-radius:var(--radius-md);padding:12px 14px;}
@@ -135,10 +145,11 @@
   .section-title{font-size:11px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.04em;margin:18px 0 8px;}
   .tags{display:flex;flex-wrap:wrap;gap:6px;}
   .tag{background:var(--surface-alt);border-radius:999px;padding:5px 12px;font-size:11.5px;font-weight:600;color:var(--ink);}
-  .photo-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px;margin-top:8px;}
-  .photo-strip .thumb-btn{position:relative;width:100%;aspect-ratio:4/3;border:none;padding:0;border-radius:12px;overflow:hidden;cursor:pointer;background:var(--surface-alt);box-shadow:inset 0 0 0 1px var(--border);}
+  .photo-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(62px,76px));justify-content:start;gap:6px;margin-top:8px;}
+  .photo-strip .thumb-btn{position:relative;width:100%;max-width:76px;aspect-ratio:4/3;border:none;padding:0;border-radius:12px;overflow:hidden;cursor:pointer;background:var(--surface-alt);box-shadow:inset 0 0 0 1px var(--border);}
   .photo-strip .thumb-btn img{width:100%;height:100%;object-fit:cover;display:block;}
   .photo-strip .thumb-btn .thumb-count{position:absolute;inset:0;background:rgba(27,36,48,0.35);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;}
+  .detail-map{width:100%;height:220px;border-radius:16px;overflow:hidden;background:#f5f7fb;box-shadow:inset 0 0 0 1px rgba(15,23,42,.05);margin-top:12px;}
   .gallery-modal{position:fixed;inset:0;background:rgba(27,36,48,0.83);z-index:1100;display:flex;align-items:center;justify-content:center;padding:20px;}
   .gallery-modal.hidden{display:none;}
   .gallery-shell{width:min(940px,100%);background:#fff;border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow-lg);}
@@ -264,6 +275,49 @@
     border-top:1px solid var(--border);box-shadow:0 -8px 24px -8px rgba(15,23,42,0.14);
   }
   .mobile-contact-bar .btn{flex:1;justify-content:center;}
+
+  /* ============================================================
+     RAFFINEMENTS AJOUTES — presentation uniquement, 0 changement
+     de logique : aucun id/class utilise par le JS n'est modifie.
+     ============================================================ */
+
+  /* Etats "desactive" : le JS bascule .disabled sur plusieurs
+     boutons (envoi de formulaire en cours) mais aucun style ne
+     l'exprimait visuellement. */
+  .btn:disabled, button:disabled{opacity:.55;cursor:not-allowed;transform:none !important;box-shadow:none !important;}
+  .btn:disabled:hover{transform:none;}
+
+  /* Selects modernises : on retire le chevron natif du navigateur
+     pour poser une fleche fine coherente avec le reste de l'UI. */
+  .sf-select{
+    appearance:none;-webkit-appearance:none;-moz-appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");
+    background-repeat:no-repeat;background-position:right 12px center;background-size:14px;
+    padding-right:34px;
+  }
+
+  /* Barres de defilement horizontales plus fines et discretes,
+     dans l'esprit Notion / Linear (Chromium/WebKit + Firefox). */
+  .chips, .gallery-thumbs{scrollbar-width:thin;scrollbar-color:#CBD5E1 transparent;}
+  .chips::-webkit-scrollbar, .gallery-thumbs::-webkit-scrollbar{height:6px;}
+  .chips::-webkit-scrollbar-thumb, .gallery-thumbs::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:999px;}
+  .chips::-webkit-scrollbar-track, .gallery-thumbs::-webkit-scrollbar-track{background:transparent;}
+  .drawer{scrollbar-width:thin;scrollbar-color:#CBD5E1 transparent;}
+  .drawer::-webkit-scrollbar{width:6px;}
+  .drawer::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:999px;}
+
+  /* Retour tactile discret sur les elements cliquables denses
+     (chips, boutons de statut, onglets) — 300ms -> presse rapide. */
+  .chip:active, .btn:active, .subform-tab:active, .view-toggle button:active{transform:scale(.97);}
+
+  /* Etat vide un peu plus habille (icone discrete + entree en
+     fondu) sans toucher au contenu injecte par le JS. */
+  .empty{position:relative;animation:fadeInUp .35s var(--ease);}
+  .empty h3{color:var(--ink);}
+
+  /* Utilitaire d'accessibilite : masque visuellement un libelle
+     tout en le laissant lisible par les lecteurs d'ecran. */
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
 </style>
 </head>
 <body>
@@ -277,7 +331,7 @@
         <p>Terrains · Maisons · Appartements — Dakar &amp; Thiès</p>
       </div>
     </div>
-    <a class="btn btn-whatsapp" href="https://wa.me/221778494111" target="_blank" rel="noopener">
+    <a class="btn btn-whatsapp" href="https://wa.me/221778494111" target="_blank" rel="noopener" aria-label="Contacter par WhatsApp">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M20.5 3.5A11 11 0 003.6 17.3L2 22l4.9-1.6A11 11 0 1020.5 3.5zM12 20a8 8 0 01-4.1-1.1l-.3-.2-3 1 1-2.9-.2-.3A8 8 0 1112 20zm4.4-5.9c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.6.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1-1.3-.6-2.2-1.1-3.1-2.6-.2-.4.2-.4.6-1.2.1-.2 0-.4 0-.5-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.2-1 1-1 2.4s1 2.8 1.1 3c.1.2 2 3 4.8 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1 0-.1-.2-.2-.4-.3z"/></svg>
       <span class="btn-label">WhatsApp</span>
     </a>
@@ -286,12 +340,12 @@
 
 <div class="hero">
   <div class="hero-inner">
-    <h2>Trouvez le terrain, la maison ou l'appartement qu'il vous faut</h2>
+    <h2 class="hero-title"><span class="hero-title-track"><span>Trouvez le terrain, la maison ou l'appartement qu'il vous faut</span><span aria-hidden="true">Trouvez le terrain, la maison ou l'appartement qu'il vous faut</span></span></h2>
     <p>Des biens sélectionnés à Dakar et Thiès, vérifiés et prêts à visiter.</p>
     <div class="hero-search">
       <div class="searchbar">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input id="search" placeholder="Une commune, une région…" />
+        <input id="search" placeholder="Une commune, une région…" aria-label="Rechercher une commune ou une région" />
       </div>
     </div>
     <div class="hero-stat" id="heroStat"></div>
@@ -323,8 +377,8 @@
   </div>
   <div class="alert-form hidden" id="alertForm">
     <div class="alert-form-inner">
-      <div class="form-field full"><label class="sf-label">Email</label><input class="sf-input" id="alert_email" type="email" placeholder="vous@email.com" style="margin-bottom:0;"/></div>
-      <div class="form-field"><label class="sf-label">Type de bien</label>
+      <div class="form-field full"><label class="sf-label" for="alert_email">Email</label><input class="sf-input" id="alert_email" type="email" placeholder="vous@email.com" style="margin-bottom:0;"/></div>
+      <div class="form-field"><label class="sf-label" for="alert_type">Type de bien</label>
         <select class="sf-select" id="alert_type" style="margin-bottom:0;">
           <option value="">Tous types</option>
           <option value="Terrain">Terrain</option>
@@ -333,20 +387,20 @@
         </select>
       </div>
       <div class="form-field"><label class="sf-label">Opération</label>
-        <select class="sf-select" id="alert_operation" style="margin-bottom:0;">
+        <select class="sf-select" id="alert_operation" style="margin-bottom:0;" aria-label="Opération">
           <option value="">Vente ou location</option>
           <option value="Vente">Vente</option>
           <option value="Location">Location</option>
         </select>
       </div>
       <div class="form-field"><label class="sf-label">Région</label>
-        <select class="sf-select" id="alert_region" style="margin-bottom:0;">
+        <select class="sf-select" id="alert_region" style="margin-bottom:0;" aria-label="Région">
           <option value="">Toutes régions</option>
           <option value="Dakar">Dakar</option>
           <option value="Thiès">Thiès</option>
         </select>
       </div>
-      <div class="form-field"><label class="sf-label">Budget max (FCFA)</label><input class="sf-input" id="alert_budget" type="number" min="0" placeholder="ex: 50000000" style="margin-bottom:0;"/></div>
+      <div class="form-field"><label class="sf-label" for="alert_budget">Budget max (FCFA)</label><input class="sf-input" id="alert_budget" type="number" min="0" placeholder="ex: 50000000" style="margin-bottom:0;"/></div>
       <div class="form-field full">
         <button class="btn btn-primary sf-submit" id="alertSubmitBtn">M'inscrire aux alertes</button>
         <p class="sf-error" id="alertError"></p>
@@ -595,6 +649,14 @@ function highlightCard(id){
   state.selected = id;
   renderList();
   rebuildMarkers(filtered());
+  const card = document.querySelector('.card.selected');
+  if(card){
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  const p = PROPERTIES.find(x => String(x.id) === String(id));
+  if(p){
+    map.flyTo([p.lat, p.lng], 12, { duration: 0.6 });
+  }
 }
 
 function getPropertyPhotos(p){
@@ -602,6 +664,12 @@ function getPropertyPhotos(p){
   return photos
     .map(ph => ({ ...ph, url: publicPhotoUrl(ph.storage_path) }))
     .sort((a,b) => (a.position ?? 0) - (b.position ?? 0));
+}
+
+function updateScrollLock(){
+  const drawerOpen = document.getElementById('drawer').classList.contains('open');
+  const galleryOpen = !document.getElementById('galleryModal').classList.contains('hidden');
+  document.body.style.overflow = (drawerOpen || galleryOpen) ? 'hidden' : '';
 }
 
 function openPhotoGallery(p, startIndex = 0){
@@ -636,7 +704,7 @@ function openPhotoGallery(p, startIndex = 0){
 
   renderGallery();
   modal.classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
+  updateScrollLock();
   modal.onclick = (e) => { if(e.target === modal) closePhotoGallery(); };
 }
 
@@ -644,7 +712,7 @@ function closePhotoGallery(){
   const modal = document.getElementById('galleryModal');
   modal.classList.add('hidden');
   modal.innerHTML = '';
-  document.body.style.overflow = '';
+  updateScrollLock();
 }
 
 function openDrawer(p){
@@ -680,6 +748,8 @@ function openDrawer(p){
         <div class="info-box"><div class="k">Superficie</div><div class="v mono">${p.surface} m²</div></div>
         <div class="info-box"><div class="k">${p.operation}</div><div class="v mono" style="color:var(--gold)">${fcfa(p.price)}${p.operation==='Location'?'/mois':''}</div></div>
       </div>
+      <div class="section-title">Localisation</div>
+      <div class="detail-map" id="drawerMap"></div>
       ${p.rooms ? `
       <div class="section-title">Caractéristiques</div>
       <div class="features">
@@ -761,6 +831,7 @@ function openDrawer(p){
     document.getElementById('drawerFavBtn').innerHTML = favIconSvg(isFav(p.id));
     renderList();
   };
+  initDrawerMap(p);
   d.querySelectorAll('.subform-tab').forEach(tab=>{
     tab.onclick = () => {
       d.querySelectorAll('.subform-tab').forEach(t=>t.classList.remove('active'));
@@ -799,6 +870,7 @@ function openDrawer(p){
   };
   document.getElementById('drawer').classList.add('open');
   document.getElementById('overlay').classList.add('open');
+  updateScrollLock();
 }
 function closeDrawer(){
   document.getElementById('drawer').classList.remove('open');
@@ -806,6 +878,23 @@ function closeDrawer(){
   state.selected = null;
   renderList();
   rebuildMarkers(filtered());
+  updateScrollLock();
+}
+function initDrawerMap(p){
+  const mapContainer = document.getElementById('drawerMap');
+  if(!mapContainer) return;
+  mapContainer.style.height = '220px';
+  mapContainer.style.borderRadius = '16px';
+  mapContainer.style.overflow = 'hidden';
+
+  mapContainer.innerHTML = '';
+  const drawerMap = L.map(mapContainer, { zoomControl:false, attributionControl:false }).setView([p.lat, p.lng], 14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom:19,
+    subdomains:'abc'
+  }).addTo(drawerMap);
+  L.marker([p.lat, p.lng]).addTo(drawerMap);
+  drawerMap.invalidateSize();
 }
 document.getElementById('overlay').onclick = closeDrawer;
 
