@@ -396,6 +396,9 @@ async function loadProperties(){
 }
 
 const fcfa = n => n.toLocaleString('fr-FR') + ' FCFA';
+function esc(s){
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 let state = { type:'Tous', status:'Tous', search:'', selected:null };
 let markers = {};
 
@@ -416,7 +419,7 @@ function markerIcon(p, selected){
 
 function popupContent(p){
   return `<div class="popup-card">
-    <div class="pt">${p.type} — ${p.commune}</div>
+    <div class="pt">${p.type} — ${esc(p.commune)}</div>
     <div class="pm">${p.surface} m²${p.rooms ? ' · '+p.rooms.chambres+' ch. · '+p.rooms.sdb+' sdb' : ''}</div>
     <div class="pp">${fcfa(p.price)}${p.operation==='Location'?' /mois':''}</div>
     <span class="pill" style="background:${STATUS_COLOR[p.status]}22;color:${STATUS_COLOR[p.status]};display:inline-block;margin-top:6px;">${p.status}</span><br/>
@@ -503,17 +506,17 @@ function renderList(){
       <div class="card-body">
         <div class="card-top">
           <div>
-            <div class="ref mono">${p.ref}</div>
-            <h3>${p.type} — ${p.commune}</h3>
+            <div class="ref mono">${esc(p.ref)}</div>
+            <h3>${p.type} — ${esc(p.commune)}</h3>
           </div>
           <span class="pill" style="background:${STATUS_COLOR[p.status]}22;color:${STATUS_COLOR[p.status]}">${p.status}</span>
         </div>
         <div class="card-meta">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <span>${p.region}</span>
+          <span>${esc(p.region)}</span>
           ${p.rooms ? `<span style="margin:0 2px;">·</span><span>${p.rooms.chambres} ch. · ${p.rooms.salons} salon${p.rooms.salons>1?'s':''} · ${p.rooms.sdb} sdb</span>` : ''}
         </div>
-        ${IS_ADMIN ? `<div class="card-meta" style="margin-top:3px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Ajouté par ${ownerLabel(p.owner_id)}</span></div>` : ''}
+        ${IS_ADMIN ? `<div class="card-meta" style="margin-top:3px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Ajouté par ${esc(ownerLabel(p.owner_id))}</span></div>` : ''}
         <div class="card-foot">
           <span class="surface-txt mono">${p.surface} m²</span>
           <span class="price mono">${fcfa(p.price)}${p.operation==='Location'?' /mois':''}</span>
@@ -603,11 +606,11 @@ function openDrawer(p){
       <span class="pill" style="position:absolute;left:16px;bottom:-13px;background:${STATUS_COLOR[p.status]};color:#fff;box-shadow:var(--shadow)">${p.status}</span>
     </div>
     <div class="drawer-content">
-      <div class="ref mono" style="margin-top:6px;">${p.ref}</div>
-      <h2 style="font-size:20px;margin:4px 0 2px;">${p.type} — ${p.commune}</h2>
-      <div class="card-meta"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>${p.commune}, région de ${p.region}</span></div>
-      ${IS_ADMIN ? `<div class="card-meta" style="margin-top:4px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Ajouté par <strong>${ownerLabel(p.owner_id)}</strong></span></div>` : ''}
-      <p style="font-size:13.5px;line-height:1.6;margin-top:14px;">${p.desc}</p>
+      <div class="ref mono" style="margin-top:6px;">${esc(p.ref)}</div>
+      <h2 style="font-size:20px;margin:4px 0 2px;">${p.type} — ${esc(p.commune)}</h2>
+      <div class="card-meta"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>${esc(p.commune)}, région de ${esc(p.region)}</span></div>
+      ${IS_ADMIN ? `<div class="card-meta" style="margin-top:4px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Ajouté par <strong>${esc(ownerLabel(p.owner_id))}</strong></span></div>` : ''}
+      <p style="font-size:13.5px;line-height:1.6;margin-top:14px;">${esc(p.desc)}</p>
       ${photos.length ? `
       <div class="section-title">Photos</div>
       <div class="photo-strip">
@@ -644,10 +647,10 @@ function openDrawer(p){
         </div>
         <div class="feature">
           <div class="fi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h1a2 2 0 002-2V2"/><path d="M5 9v13"/><path d="M18 2c-1.5 2-1.5 5 0 7v11"/></svg></div>
-          <div class="fv" style="font-size:11.5px;">${p.rooms.cuisine}</div><div class="fl">Cuisine</div>
+          <div class="fv" style="font-size:11.5px;">${esc(p.rooms.cuisine)}</div><div class="fl">Cuisine</div>
         </div>
       </div>
-      ${p.rooms.autres && p.rooms.autres.length ? `<div class="tags" style="margin-top:10px;">${p.rooms.autres.map(a=>`<span class="tag">${a}</span>`).join('')}</div>` : ''}
+      ${p.rooms.autres && p.rooms.autres.length ? `<div class="tags" style="margin-top:10px;">${p.rooms.autres.map(a=>`<span class="tag">${esc(a)}</span>`).join('')}</div>` : ''}
       ` : ''}
       <div style="display:flex;gap:8px;margin-top:16px;">
         <button class="btn btn-primary" id="editPropertyBtn" style="flex:1;justify-content:center;">Modifier</button>
@@ -670,7 +673,8 @@ function openDrawer(p){
 async function deleteProperty(prop){
   if(!confirm('Confirmer la suppression de ce bien ? Cette action est irréversible.')) return;
   if(prop.photos && prop.photos.length){
-    await db.storage.from('property-photos').remove(prop.photos.map(ph=>ph.storage_path));
+    const { error: rmErr } = await db.storage.from('property-photos').remove(prop.photos.map(ph=>ph.storage_path));
+    if(rmErr) console.error('Nettoyage Storage échoué (le bien sera quand même supprimé) :', rmErr);
   }
   const { error } = await db.from('properties').delete().eq('id', prop.id);
   if(error){
@@ -744,7 +748,7 @@ function renderRoomsSection(existingRooms){
     </div>
     <div class="form-field full">
       <label class="form-label">Équipements (séparés par des virgules)</label>
-      <input class="form-input" id="f_equip" value="${(r.autres||[]).join(', ')}" placeholder="Garage, Jardin clôturé"/>
+      <input class="form-input" id="f_equip" value="${esc((r.autres||[]).join(', '))}" placeholder="Garage, Jardin clôturé"/>
     </div>`;
 }
 
@@ -776,8 +780,11 @@ function renderPhotoGrid(){
       const ph = editingPhotos.find(x=>String(x.id)===String(id));
       if(!ph) return;
       b.disabled = true;
-      await db.storage.from('property-photos').remove([ph.storage_path]);
-      await db.from('property_photos').delete().eq('id', id);
+      const { error: rmErr } = await db.storage.from('property-photos').remove([ph.storage_path]);
+      if(rmErr){ alert("Suppression du fichier impossible : " + rmErr.message); b.disabled = false; return; }
+      const { error: delErr } = await db.from('property_photos').delete().eq('id', id);
+      if(delErr){ alert("Suppression de la fiche photo impossible : " + delErr.message); b.disabled = false; return; }
+      const wasCover = ph.is_cover;
       editingPhotos = editingPhotos.filter(x=>String(x.id)!==String(id));
       // Trier par position pour s'assurer que l'ordre est correct
       editingPhotos.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
@@ -787,6 +794,11 @@ function renderPhotoGrid(){
           await db.from('property_photos').update({ position: idx }).eq('id', editingPhotos[idx].id);
           editingPhotos[idx].position = idx;
         }
+      }
+      // Si la photo supprimée était la couverture, la première photo restante en hérite
+      if(wasCover && editingPhotos.length){
+        await db.from('property_photos').update({ is_cover:true }).eq('id', editingPhotos[0].id);
+        editingPhotos[0].is_cover = true;
       }
       renderPhotoGrid();
     };
@@ -895,7 +907,7 @@ function openForm(existing){
       </div>
 
       <div class="form-grid" style="margin-top:16px;">
-        <div class="form-field"><label class="form-label">Référence</label><input class="form-input" id="f_ref" value="${p.ref||''}" placeholder="TF-2024-XXXX"/></div>
+        <div class="form-field"><label class="form-label">Référence</label><input class="form-input" id="f_ref" value="${esc(p.ref||'')}" placeholder="TF-2024-XXXX"/></div>
         <div class="form-field"><label class="form-label">Type</label>
           <select class="form-select" id="f_type">${['Terrain','Maison','Appartement'].map(t=>`<option value="${t}" ${p.type===t?'selected':''}>${t}</option>`).join('')}</select>
         </div>
@@ -905,8 +917,8 @@ function openForm(existing){
         <div class="form-field"><label class="form-label">Statut</label>
           <select class="form-select" id="f_status">${(STATUS_OPTIONS[p.operation]||STATUS_OPTIONS.Vente).map(s=>`<option value="${s}" ${p.status===s?'selected':''}>${s}</option>`).join('')}</select>
         </div>
-        <div class="form-field"><label class="form-label">Commune</label><input class="form-input" id="f_commune" value="${p.commune||''}"/></div>
-        <div class="form-field"><label class="form-label">Région</label><input class="form-input" id="f_region" value="${p.region||''}"/></div>
+        <div class="form-field"><label class="form-label">Commune</label><input class="form-input" id="f_commune" value="${esc(p.commune||'')}"/></div>
+        <div class="form-field"><label class="form-label">Région</label><input class="form-input" id="f_region" value="${esc(p.region||'')}"/></div>
         <div class="form-field"><label class="form-label">Latitude</label><input class="form-input" id="f_lat" type="number" step="any" value="${p.lat??''}"/></div>
         <div class="form-field"><label class="form-label">Longitude</label><input class="form-input" id="f_lng" type="number" step="any" value="${p.lng??''}"/></div>
         <div class="form-field"><label class="form-label">Superficie (m²)</label><input class="form-input" id="f_surface" type="number" step="any" value="${p.surface??''}"/></div>
@@ -915,7 +927,7 @@ function openForm(existing){
 
       <div class="form-field full" style="margin-top:4px;">
         <label class="form-label">Description</label>
-        <textarea class="form-textarea" id="f_desc">${p.desc||''}</textarea>
+        <textarea class="form-textarea" id="f_desc">${esc(p.desc||'')}</textarea>
       </div>
 
       <div class="form-field full">
@@ -1133,10 +1145,10 @@ function renderInboxList(){
     if(!INBOX.messages.length){ el.innerHTML = '<div class="inbox-empty">Aucun message pour l’instant.</div>'; return; }
     el.innerHTML = INBOX.messages.map(m => `
       <div class="inbox-item ${!m.is_read?'unread':''}" data-id="${m.id}">
-        <div class="ii-top"><span class="ii-name">${m.name}</span><span class="ii-date">${fmtDate(m.created_at)}</span></div>
-        <div class="ii-contact">${m.contact}</div>
-        ${m.properties ? `<div class="ii-ref">Bien : ${m.properties.ref} — ${m.properties.type}, ${m.properties.commune}</div>` : ''}
-        <div class="ii-body">${m.message}</div>
+        <div class="ii-top"><span class="ii-name">${esc(m.name)}</span><span class="ii-date">${fmtDate(m.created_at)}</span></div>
+        <div class="ii-contact">${esc(m.contact)}</div>
+        ${m.properties ? `<div class="ii-ref">Bien : ${esc(m.properties.ref)} — ${m.properties.type}, ${esc(m.properties.commune)}</div>` : ''}
+        <div class="ii-body">${esc(m.message)}</div>
         <div class="ii-actions">
           <button data-action="toggle-read">${m.is_read?'Marquer non lu':'Marquer lu'}</button>
           <button data-action="delete">Supprimer</button>
@@ -1164,10 +1176,10 @@ function renderInboxList(){
     if(!INBOX.appointments.length){ el.innerHTML = '<div class="inbox-empty">Aucune demande de rendez-vous.</div>'; return; }
     el.innerHTML = INBOX.appointments.map(a => `
       <div class="inbox-item" data-id="${a.id}">
-        <div class="ii-top"><span class="ii-name">${a.name}</span><span class="ii-date">${fmtDate(a.created_at)}</span></div>
-        <div class="ii-contact">${a.contact}</div>
-        ${a.properties ? `<div class="ii-ref">Bien : ${a.properties.ref} — ${a.properties.type}, ${a.properties.commune}</div>` : ''}
-        <div class="ii-body">Le ${new Date(a.preferred_date).toLocaleDateString('fr-FR')} · ${a.preferred_time||''}${a.message ? ' — '+a.message : ''}</div>
+        <div class="ii-top"><span class="ii-name">${esc(a.name)}</span><span class="ii-date">${fmtDate(a.created_at)}</span></div>
+        <div class="ii-contact">${esc(a.contact)}</div>
+        ${a.properties ? `<div class="ii-ref">Bien : ${esc(a.properties.ref)} — ${a.properties.type}, ${esc(a.properties.commune)}</div>` : ''}
+        <div class="ii-body">Le ${new Date(a.preferred_date).toLocaleDateString('fr-FR')} · ${esc(a.preferred_time||'')}${a.message ? ' — '+esc(a.message) : ''}</div>
         <div class="ii-actions">
           <select data-action="status">
             <option value="En attente" ${a.status==='En attente'?'selected':''}>En attente</option>
@@ -1199,8 +1211,8 @@ function renderInboxList(){
     if(!INBOX.alerts.length){ el.innerHTML = '<div class="inbox-empty">Aucune inscription aux alertes.</div>'; return; }
     el.innerHTML = INBOX.alerts.map(a => `
       <div class="inbox-item" data-id="${a.id}">
-        <div class="ii-top"><span class="ii-name">${a.email}</span><span class="ii-date">${fmtDate(a.created_at)}</span></div>
-        <div class="ii-body">${[a.type, a.operation, a.region].filter(Boolean).join(' · ') || 'Tous types'}${a.budget_max ? ' · max ' + Number(a.budget_max).toLocaleString('fr-FR') + ' FCFA' : ''}</div>
+        <div class="ii-top"><span class="ii-name">${esc(a.email)}</span><span class="ii-date">${fmtDate(a.created_at)}</span></div>
+        <div class="ii-body">${esc([a.type, a.operation, a.region].filter(Boolean).join(' · ') || 'Tous types')}${a.budget_max ? ' · max ' + Number(a.budget_max).toLocaleString('fr-FR') + ' FCFA' : ''}</div>
         <div class="ii-actions"><button data-action="delete">Supprimer</button></div>
       </div>`).join('');
     el.querySelectorAll('[data-action="delete"]').forEach(btn=>{
