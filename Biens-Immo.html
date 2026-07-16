@@ -233,6 +233,15 @@
 
   footer{max-width:1400px;margin:0 auto;padding:24px 20px 40px;color:var(--ink-soft);font-size:12px;text-align:center;}
 
+  .mobile-contact-bar{
+    display:none;position:fixed;left:0;right:0;bottom:0;z-index:850;
+    gap:8px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+    background:rgba(255,255,255,0.96);backdrop-filter:blur(10px);
+    border-top:1px solid var(--border);box-shadow:0 -8px 24px -8px rgba(15,23,42,0.14);
+  }
+  .mobile-contact-bar .btn{flex:1;justify-content:center;}
+  .mobile-contact-bar .btn-icon-alert{flex:0 0 44px;padding:0;color:var(--primary);border-color:var(--border);}
+
   @media (max-width: 1023px){
     .panel-map{position:relative;top:0;height:min(58vh,460px);}
     .split{flex-direction:column;}
@@ -298,15 +307,6 @@
     .feature{flex:1 1 40%;}
     .sf-row2, .alert-form-inner{grid-template-columns:1fr;}
   }
-
-  .mobile-contact-bar{
-    display:none;position:fixed;left:0;right:0;bottom:0;z-index:850;
-    gap:8px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));
-    background:rgba(255,255,255,0.96);backdrop-filter:blur(10px);
-    border-top:1px solid var(--border);box-shadow:0 -8px 24px -8px rgba(15,23,42,0.14);
-  }
-  .mobile-contact-bar .btn{flex:1;justify-content:center;}
-  .mobile-contact-bar .btn-icon-alert{flex:0 0 44px;padding:0;color:var(--primary);border-color:var(--border);}
 
   /* ============================================================
      RAFFINEMENTS AJOUTES — presentation uniquement, 0 changement
