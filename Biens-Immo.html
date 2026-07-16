@@ -132,6 +132,15 @@
   .drawer-close:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(0,0,0,0.22)}
   .drawer-content{padding:20px;}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;}
+
+  /* Plein écran : on exploite la largeur au lieu de laisser le contenu
+     étiré tout seul au milieu de l'écran. */
+  @media (min-width: 900px){
+    #drawer .drawer-content{max-width:880px;margin:0 auto;padding:40px 48px 56px;}
+    #drawer .drawer-banner{height:280px;border-radius:0;}
+    #drawer .grid2{grid-template-columns:repeat(4,1fr);}
+    #drawer .photo-strip{grid-template-columns:repeat(6,1fr);}
+  }
   .info-box{background:var(--surface-alt);border-radius:var(--radius-md);padding:12px 14px;}
   .info-box .k{font-size:10.5px;color:var(--ink-soft);}
   .info-box .v{font-size:14px;font-weight:700;margin-top:3px;}
@@ -150,7 +159,7 @@
   .photo-strip .thumb-btn img{width:100%;height:100%;object-fit:cover;display:block;}
   .photo-strip .thumb-btn .thumb-count{position:absolute;inset:0;background:rgba(27,36,48,0.35);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;}
   .detail-map{width:100%;height:220px;border-radius:16px;overflow:hidden;background:#f5f7fb;box-shadow:inset 0 0 0 1px rgba(15,23,42,.05);margin-top:12px;}
-  .gallery-modal{position:fixed;inset:0;background:rgba(27,36,48,0.83);z-index:1100;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .gallery-modal{position:fixed;inset:0;background:rgba(27,36,48,0.83);z-index:1100;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;}
   .gallery-modal.hidden{display:none;}
   .gallery-shell{width:min(940px,100%);background:#fff;border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow-lg);}
   .gallery-main{position:relative;display:flex;align-items:center;justify-content:center;min-height:420px;background:#111;padding:16px;}
@@ -261,6 +270,9 @@
     .alert-form-inner{grid-template-columns:1fr 1fr;}
     .alert-card{flex-direction:column;align-items:stretch;text-align:center;}
     .alert-card .at{min-width:0;}
+    .fav-btn{width:38px;height:38px;}
+    .gallery-main{min-height:0;padding:12px;}
+    .gallery-nav,.gallery-close{width:44px;height:44px;}
   }
 
   @media (max-width: 380px){
