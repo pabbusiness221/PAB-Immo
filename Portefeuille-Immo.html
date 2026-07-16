@@ -119,10 +119,14 @@
 
   .overlay{position:fixed;inset:0;background:rgba(27,36,48,0.45);z-index:900;opacity:0;pointer-events:none;transition:opacity .2s ease;}
   .overlay.open{opacity:1;pointer-events:auto;}
-  .drawer{position:fixed;top:0;right:0;height:100%;width:420px;max-width:92vw;background:var(--surface);z-index:901;transform:translateX(100%);transition:transform .3s var(--ease);overflow-y:auto;box-shadow:var(--shadow-lg);border-radius:var(--radius-xl) 0 0 var(--radius-xl);}
-  .drawer.open{transform:translateX(0);}
+  .drawer{position:fixed;top:0;right:0;left:0;height:100%;width:100%;max-width:100%;background:var(--surface);z-index:901;transform:translateX(100%);transition:transform .3s var(--ease);overflow-y:auto;box-shadow:var(--shadow-lg);border-radius:0;}
+  #inboxDrawer{left:auto;width:460px;max-width:92vw;border-radius:var(--radius-xl) 0 0 var(--radius-xl);}
+  .drawer.open{transform:translateX(0);} 
   .drawer-banner{height:120px;display:flex;align-items:center;justify-content:center;position:relative;border-radius:20px 0 0 0;}
-  .drawer-close{position:absolute;top:12px;right:12px;background:rgba(255,255,255,0.9);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .drawer-close{position:absolute;top:12px;right:12px;background:#E53E3E;border:none;border-radius:50%;width:40px;height:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(0,0,0,0.18);transition:transform .15s ease,box-shadow .15s ease;z-index:3;color:#fff}
+  .drawer-close svg{width:18px;height:18px}
+  .drawer-close svg, .drawer-close svg *{stroke:#fff;fill:#fff}
+  .drawer-close:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(0,0,0,0.22)}
   .drawer-content{padding:20px;}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;}
   .info-box{background:var(--surface-alt);border-radius:var(--radius-md);padding:12px 14px;}
@@ -228,8 +232,8 @@
   .photo-thumb .cov-badge{position:absolute;bottom:2px;left:2px;background:var(--primary);color:#fff;font-size:8px;font-weight:700;padding:2px 5px;border-radius:5px;}
   .photo-add-btn{width:72px;height:72px;border-radius:var(--radius-sm);border:1.5px dashed var(--border);background:var(--surface-alt);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink-soft);flex-shrink:0;transition:all .2s var(--ease);}
   .photo-add-btn:hover{border-color:var(--primary);color:var(--primary);}
-  .photo-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(86px,1fr));gap:8px;margin-top:8px;}
-  .photo-strip .thumb-btn{position:relative;width:100%;aspect-ratio:4/3;border:none;padding:0;border-radius:12px;overflow:hidden;cursor:pointer;background:var(--surface-alt);box-shadow:inset 0 0 0 1px var(--border);}
+  .photo-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(62px,76px));gap:6px;margin-top:8px;}
+  .photo-strip .thumb-btn{position:relative;width:100%;max-width:76px;aspect-ratio:4/3;border:none;padding:0;border-radius:12px;overflow:hidden;cursor:pointer;background:var(--surface-alt);box-shadow:inset 0 0 0 1px var(--border);}
   .photo-strip .thumb-btn img{width:100%;height:100%;object-fit:cover;display:block;}
   .photo-strip .thumb-btn .thumb-count{position:absolute;inset:0;background:rgba(27,36,48,0.35);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;}
   .gallery-modal{position:fixed;inset:0;background:rgba(27,36,48,0.83);z-index:1100;display:flex;align-items:center;justify-content:center;padding:20px;}
@@ -338,11 +342,11 @@
 <div class="overlay" id="overlay"></div>
 <div class="drawer" id="drawer"></div>
 <div class="overlay" id="formOverlay"></div>
-<div class="drawer" id="formDrawerPanel" style="width:480px;"></div>
+<div class="drawer" id="formDrawerPanel"></div>
 <div class="gallery-modal hidden" id="galleryModal"></div>
 
 <div class="overlay" id="inboxOverlay"></div>
-<div class="drawer" id="inboxDrawer" style="width:460px;"></div>
+<div class="drawer" id="inboxDrawer"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -562,6 +566,14 @@ function highlightCard(id){
   state.selected = id;
   renderList();
   rebuildMarkers(filtered());
+  const card = document.querySelector('.card.selected');
+  if(card){
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  const p = PROPERTIES.find(x => String(x.id) === String(id));
+  if(p){
+    map.flyTo([p.lat, p.lng], 12, { duration: 0.6 });
+  }
 }
 
 // ---- Drawer détail ----
@@ -604,7 +616,7 @@ function openPhotoGallery(p, startIndex = 0){
 
   renderGallery();
   modal.classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
+  updateScrollLock();
   modal.onclick = (e) => { if(e.target === modal) closePhotoGallery(); };
 }
 
@@ -612,7 +624,15 @@ function closePhotoGallery(){
   const modal = document.getElementById('galleryModal');
   modal.classList.add('hidden');
   modal.innerHTML = '';
-  document.body.style.overflow = '';
+  updateScrollLock();
+}
+
+function updateScrollLock(){
+  const drawerOpen = document.getElementById('drawer') && document.getElementById('drawer').classList.contains('open');
+  const formOpen = document.getElementById('formDrawerPanel') && document.getElementById('formDrawerPanel').classList.contains('open');
+  const inboxOpen = document.getElementById('inboxDrawer') && document.getElementById('inboxDrawer').classList.contains('open');
+  const galleryOpen = document.getElementById('galleryModal') && !document.getElementById('galleryModal').classList.contains('hidden');
+  document.body.style.overflow = (drawerOpen || formOpen || inboxOpen || galleryOpen) ? 'hidden' : '';
 }
 
 function openDrawer(p){
@@ -692,6 +712,7 @@ function openDrawer(p){
   });
   document.getElementById('drawer').classList.add('open');
   document.getElementById('overlay').classList.add('open');
+  updateScrollLock();
 }
 async function deleteProperty(prop){
   if(!confirm('Confirmer la suppression de ce bien ? Cette action est irréversible.')) return;
@@ -737,6 +758,7 @@ function closeDrawer(){
   state.selected = null;
   renderList();
   rebuildMarkers(filtered());
+  updateScrollLock();
 }
 document.getElementById('overlay').onclick = closeDrawer;
 
@@ -744,6 +766,7 @@ document.getElementById('overlay').onclick = closeDrawer;
 function closeForm(){
   document.getElementById('formOverlay').classList.remove('open');
   document.getElementById('formDrawerPanel').classList.remove('open');
+  updateScrollLock();
 }
 document.getElementById('formOverlay').onclick = closeForm;
 document.getElementById('addPropertyBtn').onclick = () => openForm(null);
@@ -916,11 +939,19 @@ function useCurrentPosition(){
   );
 }
 
+function generatePropertyRef(type){
+  const prefix = type === 'Terrain' ? 'TF' : type === 'Maison' ? 'MA' : 'AP';
+  const year = new Date().getFullYear();
+  const suffix = Math.floor(Math.random() * 9000 + 1000);
+  return `${prefix}-${year}-${suffix}`;
+}
+
 function openForm(existing){
   pendingFiles = [];
   editingPhotos = existing && existing.photos ? [...existing.photos] : [];
   const isEdit = !!existing;
   const p = existing || { type:'Terrain', operation:'Vente', status:'Disponible', is_published:false };
+  const initialRef = isEdit ? (p.ref || '') : generatePropertyRef(p.type);
 
   document.getElementById('formDrawerPanel').innerHTML = `
     <div class="drawer-content">
@@ -930,7 +961,7 @@ function openForm(existing){
       </div>
 
       <div class="form-grid" style="margin-top:16px;">
-        <div class="form-field"><label class="form-label">Référence</label><input class="form-input" id="f_ref" value="${esc(p.ref||'')}" placeholder="TF-2024-XXXX"/></div>
+        <div class="form-field"><label class="form-label">Référence</label><input class="form-input" id="f_ref" value="${esc(initialRef)}" placeholder="TF-2024-XXXX"/></div>
         <div class="form-field"><label class="form-label">Type</label>
           <select class="form-select" id="f_type">${['Terrain','Maison','Appartement'].map(t=>`<option value="${t}" ${p.type===t?'selected':''}>${t}</option>`).join('')}</select>
         </div>
@@ -1006,7 +1037,12 @@ function openForm(existing){
     const ops = STATUS_OPTIONS[document.getElementById('f_operation').value];
     document.getElementById('f_status').innerHTML = ops.map(s=>`<option value="${s}">${s}</option>`).join('');
   };
-  document.getElementById('f_type').onchange = () => renderRoomsSection(null);
+  document.getElementById('f_type').onchange = () => {
+    renderRoomsSection(null);
+    if(!existing){
+      document.getElementById('f_ref').value = generatePropertyRef(document.getElementById('f_type').value);
+    }
+  };
   document.getElementById('formClose').onclick = closeForm;
   document.getElementById('photoInput').onchange = (e) => {
     Array.from(e.target.files).forEach(file=>{
@@ -1019,6 +1055,7 @@ function openForm(existing){
 
   document.getElementById('formOverlay').classList.add('open');
   document.getElementById('formDrawerPanel').classList.add('open');
+  updateScrollLock();
 }
 
 async function saveProperty(existing){
@@ -1041,6 +1078,9 @@ async function saveProperty(existing){
     is_published: document.getElementById('f_published').checked,
     chambres: null, salons: null, salles_bain: null, cuisine: null, equipements: null
   };
+  if(!existing){
+    payload.date_acquisition = new Date().toISOString().slice(0, 10);
+  }
 
   if(!payload.ref || !payload.commune || !payload.region || isNaN(payload.lat) || isNaN(payload.lng) || isNaN(payload.surface) || isNaN(payload.price)){
     errEl.textContent = 'Merci de renseigner tous les champs obligatoires (référence, commune, région, latitude, longitude, superficie, prix).';
