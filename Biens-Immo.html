@@ -429,6 +429,9 @@ async function loadProperties(){
 }
 
 const fcfa = n => n.toLocaleString('fr-FR') + ' FCFA';
+function esc(s){
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 let state = { type:'Tous', op:'Tous', search:'', selected:null, favOnly:false };
 let markers = {};
 
@@ -465,7 +468,7 @@ function markerIcon(p, selected){
 }
 function popupContent(p){
   return `<div class="popup-card">
-    <div class="pt">${p.type} — ${p.commune}</div>
+    <div class="pt">${p.type} — ${esc(p.commune)}</div>
     <div class="pm">${p.surface} m²${p.rooms ? ' · '+p.rooms.chambres+' ch. · '+p.rooms.sdb+' sdb' : ''}</div>
     <div class="pp">${fcfa(p.price)}${p.operation==='Location'?' /mois':''}</div>
     <a class="plink" onclick="openDrawerById('${p.id}')">Voir la fiche →</a>
@@ -535,11 +538,11 @@ function renderList(){
       </div>
       <div class="card-body">
         <div class="card-top">
-          <h3>${p.type} — ${p.commune}</h3>
+          <h3>${p.type} — ${esc(p.commune)}</h3>
         </div>
         <div class="card-meta">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <span>${p.region}</span>
+          <span>${esc(p.region)}</span>
           ${p.rooms ? `<span style="margin:0 2px;">·</span><span>${p.rooms.chambres} ch. · ${p.rooms.sdb} sdb</span>` : ''}
         </div>
         <div class="card-foot">
@@ -640,9 +643,9 @@ function openDrawer(p){
       <span class="pill" style="position:absolute;right:16px;bottom:-13px;background:#fff;color:var(--ink);box-shadow:var(--shadow)">${p.operation}</span>
     </div>
     <div class="drawer-content">
-      <h2 style="font-size:20px;margin:10px 0 2px;">${p.type} — ${p.commune}</h2>
-      <div class="card-meta"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>${p.commune}, région de ${p.region}</span></div>
-      <p style="font-size:13.5px;line-height:1.6;margin-top:14px;">${p.desc}</p>
+      <h2 style="font-size:20px;margin:10px 0 2px;">${p.type} — ${esc(p.commune)}</h2>
+      <div class="card-meta"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>${esc(p.commune)}, région de ${esc(p.region)}</span></div>
+      <p style="font-size:13.5px;line-height:1.6;margin-top:14px;">${esc(p.desc)}</p>
       ${photos.length ? `
       <div class="section-title">Photos</div>
       <div class="photo-strip">
@@ -673,13 +676,13 @@ function openDrawer(p){
         </div>
         <div class="feature">
           <div class="fi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h1a2 2 0 002-2V2"/><path d="M5 9v13"/><path d="M18 2c-1.5 2-1.5 5 0 7v11"/></svg></div>
-          <div class="fv" style="font-size:11.5px;">${p.rooms.cuisine}</div><div class="fl">Cuisine</div>
+          <div class="fv" style="font-size:11.5px;">${esc(p.rooms.cuisine)}</div><div class="fl">Cuisine</div>
         </div>
       </div>
-      ${p.rooms.autres && p.rooms.autres.length ? `<div class="tags" style="margin-top:10px;">${p.rooms.autres.map(a=>`<span class="tag">${a}</span>`).join('')}</div>` : ''}
+      ${p.rooms.autres && p.rooms.autres.length ? `<div class="tags" style="margin-top:10px;">${p.rooms.autres.map(a=>`<span class="tag">${esc(a)}</span>`).join('')}</div>` : ''}
       ` : ''}
       <div class="contact-box">
-        <p>Intéressé(e) par ce bien&nbsp;? Réf. ${p.ref}</p>
+        <p>Intéressé(e) par ce bien&nbsp;? Réf. ${esc(p.ref)}</p>
         <div class="contact-actions">
           <a class="btn btn-whatsapp" href="https://wa.me/221778494111?text=${waText}" target="_blank" rel="noopener">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M20.5 3.5A11 11 0 003.6 17.3L2 22l4.9-1.6A11 11 0 1020.5 3.5zM12 20a8 8 0 01-4.1-1.1l-.3-.2-3 1 1-2.9-.2-.3A8 8 0 1112 20z"/></svg>
