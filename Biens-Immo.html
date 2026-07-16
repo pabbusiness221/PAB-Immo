@@ -87,6 +87,8 @@
   .chip{flex-shrink:0;border:1px solid rgba(226,232,240,0.8);background:rgba(255,255,255,0.95);border-radius:999px;padding:10px 16px;font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer;white-space:nowrap;transition:all .24s var(--ease);}
   .chip:hover{border-color:rgba(148,163,184,0.8);background:rgba(241,245,249,0.95);}
   .chip.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 14px 30px -18px rgba(37,99,235,0.66);}
+  .chip-group{display:flex;flex-direction:column;gap:6px;min-width:0;}
+  .chip-group-label{display:none;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);opacity:.75;padding-left:3px;}
   .fav-chip{background:rgba(37,99,235,0.08);color:var(--primary);border-color:rgba(37,99,235,0.2);}
   .fav-chip:hover{background:rgba(37,99,235,0.12);}
   .fav-chip svg{stroke:var(--primary);}
@@ -249,8 +251,10 @@
     .view-toggle{display:flex;}
     .split[data-view="list"] .panel-map{display:none;}
     .split[data-view="map"] .panel-list{display:none;}
-    .chips-row{flex-direction:column;align-items:stretch;}
+    .chips-row{flex-direction:column;align-items:stretch;gap:16px;}
     .divider{display:none;}
+    .chip-group{width:100%;}
+    .chip-group-label{display:block;}
     /* Chaque groupe de chips (type de bien, type d'opération) devient
        un rail plein largeur qui se scrolle horizontalement au doigt,
        sans jamais revenir à la ligne : plus adapté au tactile. */
@@ -261,7 +265,7 @@
       mask-image:linear-gradient(to right, black calc(100% - 20px), transparent 100%);
     }
     .chip{scroll-snap-align:start;}
-    #favToggleChip{align-self:flex-start;}
+    #favToggleChip{align-self:flex-start;margin-top:4px;}
   }
 
   @media (max-width: 680px){
@@ -386,9 +390,15 @@
 
 <div class="toolbar">
   <div class="chips-row">
-    <div class="chips" id="chipsType"></div>
+    <div class="chip-group">
+      <span class="chip-group-label">Type de bien</span>
+      <div class="chips" id="chipsType"></div>
+    </div>
     <div class="divider"></div>
-    <div class="chips" id="chipsOp"></div>
+    <div class="chip-group">
+      <span class="chip-group-label">Vente &amp; location</span>
+      <div class="chips" id="chipsOp"></div>
+    </div>
     <div class="divider"></div>
     <button class="chip fav-chip" id="favToggleChip">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>
