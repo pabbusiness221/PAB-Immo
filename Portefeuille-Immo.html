@@ -352,6 +352,7 @@
       <div class="legend-row"><span class="legend-dot" style="background:#B24A2C"></span>Terrain</div>
       <div class="legend-row"><span class="legend-dot" style="background:#2E4A61"></span>Maison</div>
       <div class="legend-row"><span class="legend-dot" style="background:#1F7A73"></span>Appartement</div>
+      <div class="legend-row"><span class="legend-dot" style="background:#6B8E23"></span>Champ agricole</div>
     </div>
   </div>
 </div>
@@ -368,14 +369,15 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const TYPE_COLOR = { Terrain:'#B24A2C', Maison:'#2E4A61', Appartement:'#1F7A73' };
+const TYPE_COLOR = { Terrain:'#B24A2C', Maison:'#2E4A61', Appartement:'#1F7A73', 'Champ agricole':'#6B8E23' };
 const STATUS_COLOR = { Disponible:'#3F7A49', 'Réservé':'#B8842A', Vendu:'#8B9199', 'Loué':'#8B9199' };
 const STATUS_OPTIONS = { Vente:['Disponible','Réservé','Vendu'], Location:['Disponible','Réservé','Loué'] };
 const ICON_SVG = {
   Terrain: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg>',
   Maison: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>',
-  Appartement: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="4" y="3" width="16" height="18"/><line x1="9" y1="8" x2="9" y2="8"/><line x1="15" y1="8" x2="15" y2="8"/><line x1="9" y1="13" x2="9" y2="13"/><line x1="15" y1="13" x2="15" y2="13"/></svg>'
+  Appartement: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="4" y="3" width="16" height="18"/><line x1="9" y1="8" x2="9" y2="8"/><line x1="15" y1="8" x2="15" y2="8"/><line x1="9" y1="13" x2="9" y2="13"/><line x1="15" y1="13" x2="15" y2="13"/></svg>',
 };
+function surfaceUnit(type){ return type === 'Champ agricole' ? 'ha' : 'm²'; }
 
 // ===== CONFIGURATION SUPABASE =====
 // Remplacez ces deux valeurs par celles de VOTRE projet
@@ -405,13 +407,13 @@ function ownerLabel(ownerId){
 function mapRow(r){
   return {
     id: r.id, ref: r.ref, type: r.type, operation: r.operation,
-    commune: r.commune, region: r.region, surface: Number(r.surface), price: Number(r.price),
+    commune: r.commune, region: r.region, quartier: r.quartier || '', surface: Number(r.surface), price: Number(r.price),
     status: r.status, desc: r.description || '', lat: Number(r.lat), lng: Number(r.lng),
     date: r.date_acquisition || '',
     is_published: !!r.is_published,
     owner_id: r.owner_id,
     photos: r.property_photos || [],
-    rooms: (r.chambres != null) ? { chambres:r.chambres, salons:r.salons, sdb:r.salles_bain, cuisine:r.cuisine, autres:r.equipements || [] } : null
+    rooms: (r.chambres != null || (r.equipements && r.equipements.length)) ? { chambres:r.chambres, salons:r.salons, sdb:r.salles_bain, cuisine:r.cuisine, autres:r.equipements || [] } : null
   };
 }
 
@@ -464,7 +466,7 @@ function markerIcon(p, selected){
 function popupContent(p){
   return `<div class="popup-card">
     <div class="pt">${p.type} — ${esc(p.commune)}</div>
-    <div class="pm">${p.surface} m²${p.rooms ? ' · '+p.rooms.chambres+' ch. · '+p.rooms.sdb+' sdb' : ''}</div>
+    <div class="pm">${p.surface} ${surfaceUnit(p.type)}${p.rooms && p.rooms.chambres != null ? ' · '+p.rooms.chambres+' ch. · '+p.rooms.sdb+' sdb' : ''}</div>
     <div class="pp">${fcfa(p.price)}${p.operation==='Location'?' /mois':''}</div>
     <span class="pill" style="background:${STATUS_COLOR[p.status]}22;color:${STATUS_COLOR[p.status]};display:inline-block;margin-top:6px;">${p.status}</span><br/>
     <a class="plink" onclick="openDrawerById('${p.id}')">Voir la fiche complète →</a>
@@ -494,16 +496,16 @@ function filtered(){
     if(state.status!=='Tous' && p.status!==state.status) return false;
     if(state.search){
       const q=state.search.toLowerCase();
-      if(!(p.commune.toLowerCase().includes(q)||p.region.toLowerCase().includes(q)||p.ref.toLowerCase().includes(q))) return false;
+      if(!(p.commune.toLowerCase().includes(q)||p.region.toLowerCase().includes(q)||p.ref.toLowerCase().includes(q)||(p.quartier||'').toLowerCase().includes(q))) return false;
     }
     return true;
   });
 }
 
 // ---- Chips ----
-const NAV = [['Tous','Tous'],['Terrain','Terrains'],['Maison','Maisons'],['Appartement','Appartements']];
+const NAV = [['Tous','Tous'],['Terrain','Terrains'],['Maison','Maisons'],['Appartement','Appartements'],['Champ agricole','Champs agricoles']];
 function renderChips(){
-  const counts = {Terrain:0,Maison:0,Appartement:0};
+  const counts = {Terrain:0,Maison:0,Appartement:0,'Champ agricole':0};
   PROPERTIES.forEach(p=>counts[p.type]++);
   const el = document.getElementById('chips');
   el.innerHTML = NAV.map(([key,label])=>{
@@ -557,12 +559,12 @@ function renderList(){
         </div>
         <div class="card-meta">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-          <span>${esc(p.region)}</span>
-          ${p.rooms ? `<span style="margin:0 2px;">·</span><span>${p.rooms.chambres} ch. · ${p.rooms.salons} salon${p.rooms.salons>1?'s':''} · ${p.rooms.sdb} sdb</span>` : ''}
+          <span>${p.quartier ? esc(p.quartier)+', ' : ''}${esc(p.region)}</span>
+          ${p.rooms && p.rooms.chambres != null ? `<span style="margin:0 2px;">·</span><span>${p.rooms.chambres} ch. · ${p.rooms.salons} salon${p.rooms.salons>1?'s':''} · ${p.rooms.sdb} sdb</span>` : ''}
         </div>
         ${IS_ADMIN ? `<div class="card-meta" style="margin-top:3px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Ajouté par ${esc(ownerLabel(p.owner_id))}</span></div>` : ''}
         <div class="card-foot">
-          <span class="surface-txt mono">${p.surface} m²</span>
+          <span class="surface-txt mono">${p.surface} ${surfaceUnit(p.type)}</span>
           <span class="price mono">${fcfa(p.price)}${p.operation==='Location'?' /mois':''}</span>
         </div>
       </div>
@@ -668,7 +670,7 @@ function openDrawer(p){
     <div class="drawer-content">
       <div class="ref mono" style="margin-top:6px;">${esc(p.ref)}</div>
       <h2 style="font-size:20px;margin:4px 0 2px;">${p.type} — ${esc(p.commune)}</h2>
-      <div class="card-meta"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>${esc(p.commune)}, région de ${esc(p.region)}</span></div>
+      <div class="card-meta"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>${p.quartier ? esc(p.quartier)+', ' : ''}${esc(p.commune)}, région de ${esc(p.region)}</span></div>
       ${IS_ADMIN ? `<div class="card-meta" style="margin-top:4px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Ajouté par <strong>${esc(ownerLabel(p.owner_id))}</strong></span></div>` : ''}
       <p style="font-size:13.5px;line-height:1.6;margin-top:14px;">${esc(p.desc)}</p>
       ${photos.length ? `
@@ -685,13 +687,14 @@ function openDrawer(p){
         ${STATUS_OPTIONS[p.operation].map(s=>`<button class="status-btn ${p.status===s?'active':''}" style="--sc:${STATUS_COLOR[s]}" data-status="${s}">${s}</button>`).join('')}
       </div>
       <div class="grid2">
-        <div class="info-box"><div class="k">Superficie</div><div class="v mono">${p.surface} m²</div></div>
+        <div class="info-box"><div class="k">Superficie</div><div class="v mono">${p.surface} ${surfaceUnit(p.type)}</div></div>
         <div class="info-box"><div class="k">${p.operation}</div><div class="v mono" style="color:var(--gold)">${fcfa(p.price)}${p.operation==='Location'?'/mois':''}</div></div>
         <div class="info-box"><div class="k">Ajouté le</div><div class="v mono" style="font-size:12.5px">${p.date}</div></div>
         <div class="info-box"><div class="k">Statut</div><div class="v mono" style="color:${STATUS_COLOR[p.status]};font-size:12.5px">${p.status}</div></div>
       </div>
       ${p.rooms ? `
       <div class="section-title">Caractéristiques</div>
+      ${p.rooms.chambres != null ? `
       <div class="features">
         <div class="feature">
           <div class="fi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 18v-6a2 2 0 012-2h14a2 2 0 012 2v6"/><path d="M3 18h18"/><path d="M5 10V6a2 2 0 012-2h2a2 2 0 012 2v4"/></svg></div>
@@ -709,7 +712,7 @@ function openDrawer(p){
           <div class="fi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h1a2 2 0 002-2V2"/><path d="M5 9v13"/><path d="M18 2c-1.5 2-1.5 5 0 7v11"/></svg></div>
           <div class="fv" style="font-size:11.5px;">${esc(p.rooms.cuisine)}</div><div class="fl">Cuisine</div>
         </div>
-      </div>
+      </div>` : ''}
       ${p.rooms.autres && p.rooms.autres.length ? `<div class="tags" style="margin-top:10px;">${p.rooms.autres.map(a=>`<span class="tag">${esc(a)}</span>`).join('')}</div>` : ''}
       ` : ''}
       <div style="display:flex;gap:8px;margin-top:16px;">
@@ -794,8 +797,15 @@ let editingPhotos = [];  // photos déjà en base, pour le mode "Modifier"
 function renderRoomsSection(existingRooms){
   const type = document.getElementById('f_type').value;
   const el = document.getElementById('roomsSection');
-  if(type === 'Terrain'){ el.innerHTML = ''; return; }
   const r = existingRooms || {};
+  if(type === 'Terrain' || type === 'Champ agricole'){
+    el.innerHTML = `
+    <div class="form-field full">
+      <label class="form-label">Équipements ou Contenus (séparés par des virgules)</label>
+      <input class="form-input" id="f_equip" value="${esc((r.autres||[]).join(', '))}" placeholder="Clôturé, Puits, Arbres fruitiers, Accès route"/>
+    </div>`;
+    return;
+  }
   el.innerHTML = `
     <div class="section-title">Caractéristiques</div>
     <div class="form-grid">
@@ -810,7 +820,7 @@ function renderRoomsSection(existingRooms){
       </div>
     </div>
     <div class="form-field full">
-      <label class="form-label">Équipements (séparés par des virgules)</label>
+      <label class="form-label">Équipements ou Contenus (séparés par des virgules)</label>
       <input class="form-input" id="f_equip" value="${esc((r.autres||[]).join(', '))}" placeholder="Garage, Jardin clôturé"/>
     </div>`;
 }
@@ -922,6 +932,32 @@ async function geocodeSearch(){
   btn.disabled = false; btn.textContent = original;
 }
 
+// Déduit Commune / Région / Quartier à partir de lat/lng via le géocodage inversé de Nominatim,
+// et remplit les champs du formulaire. Retourne true si au moins un champ a pu être rempli.
+async function reverseGeocodeAndFill(lat, lng){
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&addressdetails=1&accept-language=fr&zoom=14`);
+    if(!res.ok) return false;
+    const data = await res.json();
+    const a = data && data.address;
+    if(!a) return false;
+
+    // Les libellés OSM varient selon les zones (urbain/rural) : on essaie plusieurs
+    // niveaux plausibles, du plus spécifique au plus général.
+    const commune = a.city || a.town || a.municipality || a.village || a.county || '';
+    const region = a.state || a.region || '';
+    const quartier = a.suburb || a.neighbourhood || a.quarter || a.city_district || a.hamlet || '';
+
+    if(commune) document.getElementById('f_commune').value = commune;
+    if(region) document.getElementById('f_region').value = region;
+    if(quartier) document.getElementById('f_quartier').value = quartier;
+
+    return !!(commune || region || quartier);
+  } catch(err){
+    return false;
+  }
+}
+
 function useCurrentPosition(){
   if(!navigator.geolocation){ alert("La géolocalisation n'est pas disponible sur cet appareil."); return; }
   
@@ -931,16 +967,19 @@ function useCurrentPosition(){
   btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 10 10"/></svg><span id="f_geoBtnText">…</span>';
   
   navigator.geolocation.getCurrentPosition(
-    (pos) => {
+    async (pos) => {
       const { latitude, longitude } = pos.coords;
       setFormLatLng(latitude, longitude);
       formMarker.setLatLng([latitude, longitude]);
       formMapInstance.setView([latitude, longitude], 16);
+
+      const localiseOk = await reverseGeocodeAndFill(latitude, longitude);
+
       btn.disabled = false;
       btn.innerHTML = originalText;
       const msg = document.createElement('div');
       msg.style.cssText = 'position:fixed;top:20px;right:20px;background:#3F7A49;color:#fff;padding:12px 16px;border-radius:8px;font-size:13px;font-weight:600;z-index:999;box-shadow:var(--shadow-lg)';
-      msg.textContent = '✓ Position capturée avec succès';
+      msg.textContent = localiseOk ? '✓ Position capturée et commune/région/quartier remplis' : '✓ Position capturée avec succès';
       document.body.appendChild(msg);
       setTimeout(() => msg.remove(), 3000);
     },
@@ -957,7 +996,7 @@ function useCurrentPosition(){
 }
 
 function generatePropertyRef(type){
-  const prefix = type === 'Terrain' ? 'TF' : type === 'Maison' ? 'MA' : 'AP';
+  const prefix = type === 'Terrain' ? 'TF' : type === 'Maison' ? 'MA' : type === 'Champ agricole' ? 'CH' : 'AP';
   const year = new Date().getFullYear();
   const suffix = Math.floor(Math.random() * 9000 + 1000);
   return `${prefix}-${year}-${suffix}`;
@@ -980,7 +1019,7 @@ function openForm(existing){
       <div class="form-grid" style="margin-top:16px;">
         <div class="form-field"><label class="form-label">Référence</label><input class="form-input" id="f_ref" value="${esc(initialRef)}" placeholder="TF-2024-XXXX"/></div>
         <div class="form-field"><label class="form-label">Type</label>
-          <select class="form-select" id="f_type">${['Terrain','Maison','Appartement'].map(t=>`<option value="${t}" ${p.type===t?'selected':''}>${t}</option>`).join('')}</select>
+          <select class="form-select" id="f_type">${['Terrain','Maison','Appartement','Champ agricole'].map(t=>`<option value="${t}" ${p.type===t?'selected':''}>${t}</option>`).join('')}</select>
         </div>
         <div class="form-field"><label class="form-label">Opération</label>
           <select class="form-select" id="f_operation">${['Vente','Location'].map(t=>`<option value="${t}" ${p.operation===t?'selected':''}>${t}</option>`).join('')}</select>
@@ -990,9 +1029,10 @@ function openForm(existing){
         </div>
         <div class="form-field"><label class="form-label">Commune</label><input class="form-input" id="f_commune" value="${esc(p.commune||'')}"/></div>
         <div class="form-field"><label class="form-label">Région</label><input class="form-input" id="f_region" value="${esc(p.region||'')}"/></div>
+        <div class="form-field"><label class="form-label">Quartier (optionnel)</label><input class="form-input" id="f_quartier" value="${esc(p.quartier||'')}"/></div>
         <div class="form-field"><label class="form-label">Latitude</label><input class="form-input" id="f_lat" type="number" step="any" value="${p.lat??''}"/></div>
         <div class="form-field"><label class="form-label">Longitude</label><input class="form-input" id="f_lng" type="number" step="any" value="${p.lng??''}"/></div>
-        <div class="form-field"><label class="form-label">Superficie (m²)</label><input class="form-input" id="f_surface" type="number" step="any" value="${p.surface??''}"/></div>
+        <div class="form-field"><label class="form-label" id="f_surfaceLabel">Superficie (${surfaceUnit(p.type)})</label><input class="form-input" id="f_surface" type="number" step="any" value="${p.surface??''}"/></div>
         <div class="form-field"><label class="form-label">Prix (FCFA)</label><input class="form-input" id="f_price" type="number" step="any" value="${p.price??''}"/></div>
       </div>
 
@@ -1056,6 +1096,7 @@ function openForm(existing){
   };
   document.getElementById('f_type').onchange = () => {
     renderRoomsSection(null);
+    document.getElementById('f_surfaceLabel').textContent = `Superficie (${surfaceUnit(document.getElementById('f_type').value)})`;
     if(!existing){
       document.getElementById('f_ref').value = generatePropertyRef(document.getElementById('f_type').value);
     }
@@ -1087,6 +1128,7 @@ async function saveProperty(existing){
     status: document.getElementById('f_status').value,
     commune: document.getElementById('f_commune').value.trim(),
     region: document.getElementById('f_region').value.trim(),
+    quartier: document.getElementById('f_quartier').value.trim() || null,
     lat: parseFloat(document.getElementById('f_lat').value),
     lng: parseFloat(document.getElementById('f_lng').value),
     surface: parseFloat(document.getElementById('f_surface').value),
@@ -1104,15 +1146,18 @@ async function saveProperty(existing){
     return;
   }
 
-  if(type !== 'Terrain'){
+  if(type !== 'Terrain' && type !== 'Champ agricole'){
     const chambres = document.getElementById('f_chambres').value;
     const salons = document.getElementById('f_salons').value;
     const sdb = document.getElementById('f_sdb').value;
-    const equip = document.getElementById('f_equip').value;
     payload.chambres = chambres ? parseInt(chambres) : null;
     payload.salons = salons ? parseInt(salons) : null;
     payload.salles_bain = sdb ? parseInt(sdb) : null;
     payload.cuisine = document.getElementById('f_cuisine').value;
+  }
+  const equipEl = document.getElementById('f_equip');
+  if(equipEl){
+    const equip = equipEl.value;
     payload.equipements = equip ? equip.split(',').map(e=>e.trim()).filter(Boolean) : null;
   }
 
