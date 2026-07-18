@@ -88,6 +88,9 @@
   select:focus{border-color:var(--primary);}
 
   .view-toggle{display:none;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px;margin-top:12px;width:fit-content;}
+  .rdv-view-toggle{display:flex;gap:6px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px;width:fit-content;}
+  .rdv-view-toggle button{border:none;background:transparent;border-radius:8px;padding:7px 16px;font-size:12.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s var(--ease);}
+  .rdv-view-toggle button.active{background:var(--primary);color:#fff;}
   .view-toggle button{border:none;background:transparent;border-radius:8px;padding:7px 16px;font-size:12.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;font-family:'Inter',sans-serif;}
   .view-toggle button.active{background:var(--primary);color:#fff;box-shadow:0 2px 8px -2px rgba(37,99,235,0.5);}
   .view-toggle button{transition:all .2s var(--ease);}
@@ -273,6 +276,24 @@
   .inbox-tabs{display:flex;gap:6px;padding:16px 20px 0;}
   .inbox-tab{flex:1;border:1px solid var(--border);background:var(--surface);border-radius:var(--radius-sm);padding:9px 8px;font-size:12.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s var(--ease);}
   .inbox-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+
+  .cal-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .cal-nav{border:1px solid var(--border);background:var(--surface);border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:16px;line-height:1;color:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .cal-nav:hover{border-color:var(--primary);color:var(--primary);}
+  .cal-month-label{flex:1;text-align:center;font-weight:700;font-size:13px;text-transform:capitalize;}
+  .cal-today-btn{border:1px solid var(--border);background:var(--surface);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;color:var(--ink-soft);flex-shrink:0;}
+  .cal-today-btn:hover{border-color:var(--primary);color:var(--primary);}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+  .cal-dow{text-align:center;font-size:10px;font-weight:700;color:var(--ink-soft);padding-bottom:4px;}
+  .cal-day{aspect-ratio:1;border:1px solid var(--border);border-radius:8px;padding:3px;cursor:pointer;display:flex;flex-direction:column;gap:2px;transition:border-color .15s var(--ease), background .15s var(--ease);overflow:hidden;}
+  .cal-day:hover{border-color:var(--primary);}
+  .cal-day.muted{border:none;cursor:default;}
+  .cal-day.today{border-color:var(--primary);border-width:2px;}
+  .cal-day.selected{background:#EFF6FF;border-color:var(--primary);}
+  .cal-day-num{font-size:10.5px;font-weight:600;}
+  .cal-day-apts{display:flex;flex-direction:column;gap:1px;}
+  .cal-apt-chip{font-size:8px;font-weight:700;padding:1px 3px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .cal-apt-more{font-size:8px;color:var(--ink-soft);font-weight:600;}
   .inbox-list{padding:14px 20px 24px;display:flex;flex-direction:column;gap:10px;}
   .inbox-item{background:var(--surface-alt);border-radius:var(--radius-md);padding:13px 14px;transition:box-shadow .2s var(--ease);}
   .inbox-item.unread{box-shadow:inset 0 0 0 2px var(--primary);}
@@ -825,6 +846,36 @@ function renderRoomsSection(existingRooms){
     </div>`;
 }
 
+// Compresse/redimensionne une photo avant envoi (réduit fortement le poids
+// des photos de smartphone). En cas d'échec (ex: format non décodable par
+// le navigateur), renvoie le fichier d'origine sans bloquer l'ajout.
+function compressImage(file, maxDimension = 1920, quality = 0.82){
+  return new Promise((resolve) => {
+    if(!file.type.startsWith('image/')){ resolve(file); return; }
+    const objectUrl = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      let { width, height } = img;
+      if(width > maxDimension || height > maxDimension){
+        if(width > height){ height = Math.round(height * (maxDimension / width)); width = maxDimension; }
+        else { width = Math.round(width * (maxDimension / height)); height = maxDimension; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      canvas.toBlob((blob) => {
+        if(!blob || blob.size >= file.size){ resolve(file); return; }
+        const compressed = new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type:'image/jpeg' });
+        console.log(`Photo compressée : ${(file.size/1024).toFixed(0)} Ko → ${(compressed.size/1024).toFixed(0)} Ko`);
+        resolve(compressed);
+      }, 'image/jpeg', quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(objectUrl); resolve(file); };
+    img.src = objectUrl;
+  });
+}
+
 function renderPhotoGrid(){
   const el = document.getElementById('photoGrid');
   const existingHtml = editingPhotos.map(ph => `
@@ -1102,12 +1153,17 @@ function openForm(existing){
     }
   };
   document.getElementById('formClose').onclick = closeForm;
-  document.getElementById('photoInput').onchange = (e) => {
-    Array.from(e.target.files).forEach(file=>{
-      pendingFiles.push({ file, previewUrl: URL.createObjectURL(file) });
-    });
-    renderPhotoGrid();
+  document.getElementById('photoInput').onchange = async (e) => {
+    const files = Array.from(e.target.files);
     e.target.value = '';
+    if(!files.length) return;
+    const addBtn = document.getElementById('photoAddBtn');
+    if(addBtn){ addBtn.disabled = true; addBtn.innerHTML = '<span style="font-size:10px;">Compression…</span>'; }
+    for(const file of files){
+      const compressed = await compressImage(file);
+      pendingFiles.push({ file: compressed, previewUrl: URL.createObjectURL(compressed) });
+    }
+    renderPhotoGrid();
   };
   document.getElementById('formSave').onclick = () => saveProperty(existing);
 
@@ -1216,6 +1272,9 @@ async function saveProperty(existing){
 // ---- Boîte de réception (messages, RDV, alertes envoyés depuis la vitrine) ----
 let INBOX = { messages: [], appointments: [], alerts: [] };
 let inboxTab = 'messages';
+let rdvView = 'list'; // 'list' ou 'calendar'
+let calendarMonth = (() => { const d = new Date(); d.setDate(1); d.setHours(0,0,0,0); return d; })();
+let selectedCalendarDay = null; // 'YYYY-MM-DD'
 
 function fmtDate(iso){
   return new Date(iso).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
@@ -1264,6 +1323,110 @@ function renderInbox(){
   renderInboxList();
 }
 
+const RDV_STATUS_COLOR = { 'En attente':'#B8842A', 'Confirmé':'#16A34A', 'Annulé':'#8B9199' };
+
+// Rendu réutilisable d'une liste de RDV (vue Liste ET détail du jour sélectionné en vue Calendrier)
+function renderRdvItems(container, items){
+  if(!items.length){ container.innerHTML = '<div class="inbox-empty">Aucune demande de rendez-vous.</div>'; return; }
+  container.innerHTML = items.map(a => `
+    <div class="inbox-item" data-id="${a.id}">
+      <div class="ii-top"><span class="ii-name">${esc(a.name)}</span><span class="ii-date">${fmtDate(a.created_at)}</span></div>
+      <div class="ii-contact">${esc(a.contact)}</div>
+      ${a.properties ? `<div class="ii-ref">Bien : ${esc(a.properties.ref)} — ${a.properties.type}, ${esc(a.properties.commune)}</div>` : ''}
+      <div class="ii-body">Le ${new Date(a.preferred_date).toLocaleDateString('fr-FR')} · ${esc(a.preferred_time||'')}${a.message ? ' — '+esc(a.message) : ''}</div>
+      <div class="ii-actions">
+        <select data-action="status">
+          <option value="En attente" ${a.status==='En attente'?'selected':''}>En attente</option>
+          <option value="Confirmé" ${a.status==='Confirmé'?'selected':''}>Confirmé</option>
+          <option value="Annulé" ${a.status==='Annulé'?'selected':''}>Annulé</option>
+        </select>
+        <button data-action="delete">Supprimer</button>
+      </div>
+    </div>`).join('');
+  container.querySelectorAll('[data-action="status"]').forEach(sel=>{
+    sel.onchange = async (e) => {
+      const id = e.target.closest('.inbox-item').dataset.id;
+      await db.from('appointments').update({ status: e.target.value }).eq('id', id);
+      const a = INBOX.appointments.find(x=>String(x.id)===id);
+      a.status = e.target.value;
+      loadInboxCounts();
+      if(rdvView === 'calendar'){ renderInboxList(); }
+    };
+  });
+  container.querySelectorAll('[data-action="delete"]').forEach(btn=>{
+    btn.onclick = async (e) => {
+      const id = e.target.closest('.inbox-item').dataset.id;
+      if(!confirm('Supprimer cette demande de RDV ?')) return;
+      await db.from('appointments').delete().eq('id', id);
+      INBOX.appointments = INBOX.appointments.filter(x=>String(x.id)!==id);
+      loadInboxCounts();
+      renderInboxList();
+    };
+  });
+}
+
+function renderRdvCalendar(container){
+  const year = calendarMonth.getFullYear();
+  const month = calendarMonth.getMonth();
+  const startOffset = (new Date(year, month, 1).getDay() + 6) % 7; // lundi en premier
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const todayStr = new Date().toISOString().slice(0,10);
+
+  const byDay = {};
+  INBOX.appointments.forEach(a => { (byDay[a.preferred_date] ||= []).push(a); });
+
+  const monthLabel = calendarMonth.toLocaleDateString('fr-FR', { month:'long', year:'numeric' });
+
+  let cellsHtml = '';
+  for(let i=0;i<startOffset;i++){ cellsHtml += `<div class="cal-day muted"></div>`; }
+  for(let day=1; day<=daysInMonth; day++){
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const apts = byDay[dateStr] || [];
+    cellsHtml += `
+      <div class="cal-day ${dateStr===todayStr?'today':''} ${dateStr===selectedCalendarDay?'selected':''}" data-date="${dateStr}">
+        <span class="cal-day-num">${day}</span>
+        ${apts.length ? `<div class="cal-day-apts">
+          ${apts.slice(0,2).map(a=>`<span class="cal-apt-chip" style="background:${RDV_STATUS_COLOR[a.status]}22;color:${RDV_STATUS_COLOR[a.status]}">${esc((a.name||'').split(' ')[0])}</span>`).join('')}
+          ${apts.length>2?`<span class="cal-apt-more">+${apts.length-2}</span>`:''}
+        </div>` : ''}
+      </div>`;
+  }
+
+  container.innerHTML = `
+    <div class="cal-toolbar">
+      <button type="button" class="cal-nav" data-nav="-1">‹</button>
+      <span class="cal-month-label">${monthLabel}</span>
+      <button type="button" class="cal-nav" data-nav="1">›</button>
+      <button type="button" class="cal-today-btn" id="calTodayBtn">Aujourd'hui</button>
+    </div>
+    <div class="cal-grid">
+      <div class="cal-dow">L</div><div class="cal-dow">M</div><div class="cal-dow">M</div><div class="cal-dow">J</div><div class="cal-dow">V</div><div class="cal-dow">S</div><div class="cal-dow">D</div>
+      ${cellsHtml}
+    </div>
+    <div class="section-title" style="margin-top:16px;">${selectedCalendarDay ? new Date(selectedCalendarDay+'T00:00:00').toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'}) : 'Cliquez un jour pour voir le détail'}</div>
+    <div id="calDayDetail"></div>`;
+
+  container.querySelectorAll('[data-nav]').forEach(btn=>{
+    btn.onclick = () => { calendarMonth = new Date(year, month + Number(btn.dataset.nav), 1); renderRdvCalendar(container); };
+  });
+  document.getElementById('calTodayBtn').onclick = () => {
+    const d = new Date(); d.setDate(1); d.setHours(0,0,0,0);
+    calendarMonth = d;
+    selectedCalendarDay = new Date().toISOString().slice(0,10);
+    renderRdvCalendar(container);
+  };
+  container.querySelectorAll('.cal-day[data-date]').forEach(cell=>{
+    cell.onclick = () => {
+      selectedCalendarDay = cell.dataset.date === selectedCalendarDay ? null : cell.dataset.date;
+      renderRdvCalendar(container);
+    };
+  });
+
+  const detailEl = document.getElementById('calDayDetail');
+  if(selectedCalendarDay){ renderRdvItems(detailEl, byDay[selectedCalendarDay] || []); }
+  else { detailEl.innerHTML = ''; }
+}
+
 function renderInboxList(){
   const el = document.getElementById('inboxList');
   if(inboxTab === 'messages'){
@@ -1298,40 +1461,18 @@ function renderInboxList(){
       };
     });
   } else if(inboxTab === 'rdv'){
-    if(!INBOX.appointments.length){ el.innerHTML = '<div class="inbox-empty">Aucune demande de rendez-vous.</div>'; return; }
-    el.innerHTML = INBOX.appointments.map(a => `
-      <div class="inbox-item" data-id="${a.id}">
-        <div class="ii-top"><span class="ii-name">${esc(a.name)}</span><span class="ii-date">${fmtDate(a.created_at)}</span></div>
-        <div class="ii-contact">${esc(a.contact)}</div>
-        ${a.properties ? `<div class="ii-ref">Bien : ${esc(a.properties.ref)} — ${a.properties.type}, ${esc(a.properties.commune)}</div>` : ''}
-        <div class="ii-body">Le ${new Date(a.preferred_date).toLocaleDateString('fr-FR')} · ${esc(a.preferred_time||'')}${a.message ? ' — '+esc(a.message) : ''}</div>
-        <div class="ii-actions">
-          <select data-action="status">
-            <option value="En attente" ${a.status==='En attente'?'selected':''}>En attente</option>
-            <option value="Confirmé" ${a.status==='Confirmé'?'selected':''}>Confirmé</option>
-            <option value="Annulé" ${a.status==='Annulé'?'selected':''}>Annulé</option>
-          </select>
-          <button data-action="delete">Supprimer</button>
-        </div>
-      </div>`).join('');
-    el.querySelectorAll('[data-action="status"]').forEach(sel=>{
-      sel.onchange = async (e) => {
-        const id = e.target.closest('.inbox-item').dataset.id;
-        await db.from('appointments').update({ status: e.target.value }).eq('id', id);
-        const a = INBOX.appointments.find(x=>String(x.id)===id);
-        a.status = e.target.value;
-        loadInboxCounts();
-      };
+    el.innerHTML = `
+      <div class="rdv-view-toggle" style="margin-bottom:12px;">
+        <button data-rdvview="list" class="${rdvView==='list'?'active':''}">Liste</button>
+        <button data-rdvview="calendar" class="${rdvView==='calendar'?'active':''}">Calendrier</button>
+      </div>
+      <div id="rdvContent"></div>`;
+    el.querySelectorAll('[data-rdvview]').forEach(btn=>{
+      btn.onclick = () => { rdvView = btn.dataset.rdvview; renderInboxList(); };
     });
-    el.querySelectorAll('[data-action="delete"]').forEach(btn=>{
-      btn.onclick = async (e) => {
-        const id = e.target.closest('.inbox-item').dataset.id;
-        if(!confirm('Supprimer cette demande de RDV ?')) return;
-        await db.from('appointments').delete().eq('id', id);
-        INBOX.appointments = INBOX.appointments.filter(x=>String(x.id)!==id);
-        renderInboxList(); loadInboxCounts();
-      };
-    });
+    const content = document.getElementById('rdvContent');
+    if(rdvView === 'calendar'){ renderRdvCalendar(content); }
+    else { renderRdvItems(content, INBOX.appointments); }
   } else {
     if(!INBOX.alerts.length){ el.innerHTML = '<div class="inbox-empty">Aucune inscription aux alertes.</div>'; return; }
     el.innerHTML = INBOX.alerts.map(a => `
