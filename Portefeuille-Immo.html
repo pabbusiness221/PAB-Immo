@@ -277,6 +277,13 @@
   .inbox-tab{flex:1;border:1px solid var(--border);background:var(--surface);border-radius:var(--radius-sm);padding:9px 8px;font-size:12.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s var(--ease);}
   .inbox-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);}
 
+  .inbox-search-row{display:flex;gap:8px;padding:12px 20px 0;}
+  .inbox-search-input{flex:1;display:flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--surface-alt);border-radius:var(--radius-sm);padding:0 12px;min-width:0;}
+  .inbox-search-input svg{flex-shrink:0;}
+  .inbox-search-input input{flex:1;min-width:0;border:none;background:transparent;padding:9px 0;font-size:13px;font-family:'Inter',sans-serif;color:var(--ink);outline:none;}
+  .inbox-search-input button{border:none;background:none;color:var(--ink-soft);font-size:17px;line-height:1;cursor:pointer;padding:2px 4px;flex-shrink:0;}
+  .inbox-filter-select{border:1px solid var(--border);background:var(--surface);border-radius:var(--radius-sm);padding:0 10px;font-size:12.5px;font-weight:600;color:var(--ink);font-family:'Inter',sans-serif;flex-shrink:0;}
+
   .cal-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
   .cal-nav{border:1px solid var(--border);background:var(--surface);border-radius:8px;width:28px;height:28px;cursor:pointer;font-size:16px;line-height:1;color:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .cal-nav:hover{border-color:var(--primary);color:var(--primary);}
@@ -1272,12 +1279,25 @@ async function saveProperty(existing){
 // ---- Boîte de réception (messages, RDV, alertes envoyés depuis la vitrine) ----
 let INBOX = { messages: [], appointments: [], alerts: [] };
 let inboxTab = 'messages';
+let inboxSearch = '';
+let inboxMsgFilter = 'all';   // all | unread | read
+let inboxRdvFilter = 'all';   // all | En attente | Confirmé | Annulé
 let rdvView = 'list'; // 'list' ou 'calendar'
+let rdvFilteredItems = []; // RDV après application du filtre statut + recherche, utilisé par la liste ET le calendrier
 let calendarMonth = (() => { const d = new Date(); d.setDate(1); d.setHours(0,0,0,0); return d; })();
 let selectedCalendarDay = null; // 'YYYY-MM-DD'
 
 function fmtDate(iso){
   return new Date(iso).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+// Vérifie si un texte de recherche apparaît dans un ensemble de champs
+// (nom, contact, message, référence du bien...), insensible à la casse et aux accents.
+function matchesInboxSearch(fields){
+  if(!inboxSearch.trim()) return true;
+  const norm = s => String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const q = norm(inboxSearch);
+  return fields.some(f => norm(f).includes(q));
 }
 
 async function loadInboxCounts(){
@@ -1314,12 +1334,48 @@ function renderInbox(){
         <button class="inbox-tab ${inboxTab==='rdv'?'active':''}" data-tab="rdv">RDV (${INBOX.appointments.length})</button>
         <button class="inbox-tab ${inboxTab==='alerts'?'active':''}" data-tab="alerts">Alertes (${INBOX.alerts.length})</button>
       </div>
+      <div class="inbox-search-row">
+        <div class="inbox-search-input">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B9199" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="inboxSearchInput" placeholder="Rechercher un nom, contact, bien…" value="${esc(inboxSearch)}"/>
+          <button type="button" id="inboxSearchClear" aria-label="Effacer" style="${inboxSearch ? '' : 'display:none;'}">×</button>
+        </div>
+        ${inboxTab === 'messages' ? `
+          <select id="inboxFilterSelect" class="inbox-filter-select">
+            <option value="all" ${inboxMsgFilter==='all'?'selected':''}>Tous</option>
+            <option value="unread" ${inboxMsgFilter==='unread'?'selected':''}>Non lus</option>
+            <option value="read" ${inboxMsgFilter==='read'?'selected':''}>Lus</option>
+          </select>` : ''}
+        ${inboxTab === 'rdv' ? `
+          <select id="inboxFilterSelect" class="inbox-filter-select">
+            <option value="all" ${inboxRdvFilter==='all'?'selected':''}>Tous statuts</option>
+            <option value="En attente" ${inboxRdvFilter==='En attente'?'selected':''}>En attente</option>
+            <option value="Confirmé" ${inboxRdvFilter==='Confirmé'?'selected':''}>Confirmé</option>
+            <option value="Annulé" ${inboxRdvFilter==='Annulé'?'selected':''}>Annulé</option>
+          </select>` : ''}
+      </div>
       <div class="inbox-list" id="inboxList"></div>
     </div>`;
   document.getElementById('inboxCloseBtn').onclick = closeInbox;
   d.querySelectorAll('.inbox-tab').forEach(t=>{
     t.onclick = () => { inboxTab = t.dataset.tab; renderInbox(); };
   });
+  const searchInput = document.getElementById('inboxSearchInput');
+  const clearBtn = document.getElementById('inboxSearchClear');
+  searchInput.oninput = (e) => {
+    inboxSearch = e.target.value;
+    clearBtn.style.display = inboxSearch ? '' : 'none';
+    renderInboxList();
+  };
+  clearBtn.onclick = () => { inboxSearch = ''; renderInbox(); searchInput.focus(); };
+  const filterSelect = document.getElementById('inboxFilterSelect');
+  if(filterSelect){
+    filterSelect.onchange = (e) => {
+      if(inboxTab === 'messages') inboxMsgFilter = e.target.value;
+      if(inboxTab === 'rdv') inboxRdvFilter = e.target.value;
+      renderInboxList();
+    };
+  }
   renderInboxList();
 }
 
@@ -1373,7 +1429,7 @@ function renderRdvCalendar(container){
   const todayStr = new Date().toISOString().slice(0,10);
 
   const byDay = {};
-  INBOX.appointments.forEach(a => { (byDay[a.preferred_date] ||= []).push(a); });
+  rdvFilteredItems.forEach(a => { (byDay[a.preferred_date] ||= []).push(a); });
 
   const monthLabel = calendarMonth.toLocaleDateString('fr-FR', { month:'long', year:'numeric' });
 
@@ -1430,8 +1486,15 @@ function renderRdvCalendar(container){
 function renderInboxList(){
   const el = document.getElementById('inboxList');
   if(inboxTab === 'messages'){
-    if(!INBOX.messages.length){ el.innerHTML = '<div class="inbox-empty">Aucun message pour l’instant.</div>'; return; }
-    el.innerHTML = INBOX.messages.map(m => `
+    let items = INBOX.messages;
+    if(inboxMsgFilter === 'unread') items = items.filter(m => !m.is_read);
+    else if(inboxMsgFilter === 'read') items = items.filter(m => m.is_read);
+    items = items.filter(m => matchesInboxSearch([m.name, m.contact, m.message, m.properties?.ref, m.properties?.commune]));
+    if(!items.length){
+      el.innerHTML = `<div class="inbox-empty">${INBOX.messages.length ? 'Aucun message ne correspond à votre recherche.' : 'Aucun message pour l’instant.'}</div>`;
+      return;
+    }
+    el.innerHTML = items.map(m => `
       <div class="inbox-item ${!m.is_read?'unread':''}" data-id="${m.id}">
         <div class="ii-top"><span class="ii-name">${esc(m.name)}</span><span class="ii-date">${fmtDate(m.created_at)}</span></div>
         <div class="ii-contact">${esc(m.contact)}</div>
@@ -1461,6 +1524,9 @@ function renderInboxList(){
       };
     });
   } else if(inboxTab === 'rdv'){
+    rdvFilteredItems = INBOX.appointments
+      .filter(a => inboxRdvFilter === 'all' || a.status === inboxRdvFilter)
+      .filter(a => matchesInboxSearch([a.name, a.contact, a.message, a.properties?.ref, a.properties?.commune]));
     el.innerHTML = `
       <div class="rdv-view-toggle" style="margin-bottom:12px;">
         <button data-rdvview="list" class="${rdvView==='list'?'active':''}">Liste</button>
@@ -1472,10 +1538,14 @@ function renderInboxList(){
     });
     const content = document.getElementById('rdvContent');
     if(rdvView === 'calendar'){ renderRdvCalendar(content); }
-    else { renderRdvItems(content, INBOX.appointments); }
+    else { renderRdvItems(content, rdvFilteredItems); }
   } else {
-    if(!INBOX.alerts.length){ el.innerHTML = '<div class="inbox-empty">Aucune inscription aux alertes.</div>'; return; }
-    el.innerHTML = INBOX.alerts.map(a => `
+    const items = INBOX.alerts.filter(a => matchesInboxSearch([a.email, a.type, a.operation, a.region]));
+    if(!items.length){
+      el.innerHTML = `<div class="inbox-empty">${INBOX.alerts.length ? 'Aucune alerte ne correspond à votre recherche.' : 'Aucune inscription aux alertes.'}</div>`;
+      return;
+    }
+    el.innerHTML = items.map(a => `
       <div class="inbox-item" data-id="${a.id}">
         <div class="ii-top"><span class="ii-name">${esc(a.email)}</span><span class="ii-date">${fmtDate(a.created_at)}</span></div>
         <div class="ii-body">${esc([a.type, a.operation, a.region].filter(Boolean).join(' · ') || 'Tous types')}${a.budget_max ? ' · max ' + Number(a.budget_max).toLocaleString('fr-FR') + ' FCFA' : ''}</div>
