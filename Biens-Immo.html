@@ -551,6 +551,7 @@ async function loadProperties(){
   PROPERTIES = (props || []).map(r => mapRow({ ...r, property_photos: photosByProperty[r.id] || [] }));
   renderHeroStat();
   render();
+  openPropertyFromURL();
 }
 
 const fcfa = n => n.toLocaleString('fr-FR') + ' FCFA';
@@ -558,6 +559,7 @@ function esc(s){
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 let state = { type:'Tous', op:'Tous', search:'', selected:null, favOnly:false };
+let isRestoringFromURL = false;
 let markers = {};
 
 // ---- Favoris (stockés uniquement dans ce navigateur) ----
@@ -835,6 +837,10 @@ function openDrawer(p){
             Appeler
           </a>
         </div>
+        <button type="button" class="btn" id="shareBtn" style="width:100%;justify-content:center;margin-top:8px;background:#fff;border:1.5px solid var(--border);color:var(--ink);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg>
+          <span id="shareBtnLabel">Partager ce bien</span>
+        </button>
       </div>
 
       <div class="subform-tabs">
@@ -882,6 +888,7 @@ function openDrawer(p){
     document.getElementById('drawerFavBtn').innerHTML = favIconSvg(isFav(p.id));
     renderList();
   };
+  document.getElementById('shareBtn').onclick = () => shareProperty(p);
   initDrawerMap(p);
   d.querySelectorAll('.subform-tab').forEach(tab=>{
     tab.onclick = () => {
@@ -922,6 +929,11 @@ function openDrawer(p){
   document.getElementById('drawer').classList.add('open');
   document.getElementById('overlay').classList.add('open');
   updateScrollLock();
+  if(!isRestoringFromURL){
+    const url = new URL(window.location);
+    url.searchParams.set('bien', p.ref);
+    history.pushState({ ref: p.ref }, '', url);
+  }
 }
 function closeDrawer(){
   document.getElementById('drawer').classList.remove('open');
@@ -930,6 +942,13 @@ function closeDrawer(){
   renderList();
   rebuildMarkers(filtered());
   updateScrollLock();
+  if(!isRestoringFromURL){
+    const url = new URL(window.location);
+    if(url.searchParams.has('bien')){
+      url.searchParams.delete('bien');
+      history.pushState({}, '', url);
+    }
+  }
 }
 function initDrawerMap(p){
   const mapContainer = document.getElementById('drawerMap');
@@ -954,6 +973,55 @@ function render(){
   renderList();
   rebuildMarkers(filtered());
 }
+// ---- Lien direct / partageable par bien ----
+async function shareProperty(p){
+  const url = new URL(window.location);
+  url.searchParams.set('bien', p.ref);
+  const shareData = {
+    title: `${p.type} — ${p.commune}`,
+    text: `${p.type} à ${p.commune} — ${fcfa(p.price)}${p.operation==='Location'?'/mois':''}`,
+    url: url.toString()
+  };
+  const labelEl = document.getElementById('shareBtnLabel');
+  if(navigator.share){
+    try{ await navigator.share(shareData); } catch(e){ /* partage annulé par la personne, rien à faire */ }
+    return;
+  }
+  try{
+    await navigator.clipboard.writeText(url.toString());
+    if(labelEl){
+      const original = labelEl.textContent;
+      labelEl.textContent = 'Lien copié ✓';
+      setTimeout(()=>{ labelEl.textContent = original; }, 2200);
+    }
+  }catch(e){
+    alert('Voici le lien à partager :\n' + url.toString());
+  }
+}
+
+function openPropertyFromURL(){
+  const ref = new URLSearchParams(window.location.search).get('bien');
+  if(!ref) return;
+  const p = PROPERTIES.find(x => x.ref === ref);
+  if(!p) return;
+  isRestoringFromURL = true;
+  openDrawer(p);
+  isRestoringFromURL = false;
+  map.setView([p.lat, p.lng], 13);
+}
+
+window.addEventListener('popstate', () => {
+  const ref = new URLSearchParams(window.location.search).get('bien');
+  isRestoringFromURL = true;
+  if(ref){
+    const p = PROPERTIES.find(x => x.ref === ref);
+    if(p) openDrawer(p); else closeDrawer();
+  } else {
+    closeDrawer();
+  }
+  isRestoringFromURL = false;
+});
+
 loadProperties();
 
 document.getElementById('search').addEventListener('input', e=>{ state.search = e.target.value; render(); });
