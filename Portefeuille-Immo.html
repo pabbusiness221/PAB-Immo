@@ -495,6 +495,15 @@ function coverUrl(p){
   return publicPhotoUrl(cover.storage_path);
 }
 
+let VIEWS_BY_PROPERTY = {};
+async function loadPropertyViews(){
+  // RLS filtre déjà : l'admin reçoit tout, un collaborateur ne reçoit que
+  // les vues des biens dont il est propriétaire — pas de filtrage à faire ici.
+  const { data } = await db.from('property_views').select('property_id');
+  VIEWS_BY_PROPERTY = {};
+  (data || []).forEach(r => { VIEWS_BY_PROPERTY[r.property_id] = (VIEWS_BY_PROPERTY[r.property_id]||0) + 1; });
+}
+
 async function loadProperties(){
   document.getElementById('list').innerHTML = `<div class="empty"><p style="margin:0;color:var(--ink-soft);font-size:13px;">Chargement de vos biens…</p></div>`;
   const { data, error } = await db.from('properties')
@@ -506,6 +515,7 @@ async function loadProperties(){
     return;
   }
   PROPERTIES = (data || []).map(mapRow);
+  await loadPropertyViews();
   renderStats();
   render();
 }
@@ -627,6 +637,10 @@ function renderList(){
           <span class="pill" style="background:${STATUS_COLOR[p.status]}22;color:${STATUS_COLOR[p.status]}">${p.status}</span>
         </div>
         <div class="card-meta">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>${VIEWS_BY_PROPERTY[p.id] || 0} vue${(VIEWS_BY_PROPERTY[p.id]||0)>1?'s':''}</span>
+        </div>
+        <div class="card-meta">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
           <span>${p.quartier ? esc(p.quartier)+', ' : ''}${esc(p.region)}</span>
           ${p.rooms && p.rooms.chambres != null ? `<span style="margin:0 2px;">·</span><span>${p.rooms.chambres} ch. · ${p.rooms.salons} salon${p.rooms.salons>1?'s':''} · ${p.rooms.sdb} sdb</span>` : ''}
@@ -740,6 +754,7 @@ function openDrawer(p){
       <div class="ref mono" style="margin-top:6px;">${esc(p.ref)}</div>
       <h2 style="font-size:20px;margin:4px 0 2px;">${p.type} — ${esc(p.commune)}</h2>
       <div class="card-meta"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>${p.quartier ? esc(p.quartier)+', ' : ''}${esc(p.commune)}, région de ${esc(p.region)}</span></div>
+      <div class="card-meta" style="margin-top:4px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg><span>${VIEWS_BY_PROPERTY[p.id] || 0} vue${(VIEWS_BY_PROPERTY[p.id]||0)>1?'s':''}</span></div>
       ${IS_ADMIN ? `<div class="card-meta" style="margin-top:4px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Ajouté par <strong>${esc(ownerLabel(p.owner_id))}</strong></span></div>` : ''}
       <p style="font-size:13.5px;line-height:1.6;margin-top:14px;">${esc(p.desc)}</p>
       ${photos.length ? `
