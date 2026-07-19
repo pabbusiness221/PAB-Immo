@@ -506,6 +506,15 @@ async function loadPropertyViews(){
   (data || []).forEach(r => { VIEWS_BY_PROPERTY[r.property_id] = (VIEWS_BY_PROPERTY[r.property_id]||0) + 1; });
 }
 
+let FAVS_BY_PROPERTY = {};
+async function loadPropertyFavorites(){
+  // Même logique que les vues : RLS ne renvoie que les favoris des biens
+  // dont l'utilisateur connecté est propriétaire (ou tout, pour l'admin).
+  const { data } = await db.from('favorite_events').select('property_id').eq('action','add');
+  FAVS_BY_PROPERTY = {};
+  (data || []).forEach(r => { FAVS_BY_PROPERTY[r.property_id] = (FAVS_BY_PROPERTY[r.property_id]||0) + 1; });
+}
+
 async function loadProperties(){
   document.getElementById('list').innerHTML = `<div class="empty"><p style="margin:0;color:var(--ink-soft);font-size:13px;">Chargement de vos biens…</p></div>`;
   const { data, error } = await db.from('properties')
@@ -517,7 +526,7 @@ async function loadProperties(){
     return;
   }
   PROPERTIES = (data || []).map(mapRow);
-  await loadPropertyViews();
+  await Promise.all([loadPropertyViews(), loadPropertyFavorites()]);
   renderStats();
   render();
 }
@@ -603,12 +612,18 @@ function renderStats(){
   const res = PROPERTIES.filter(p=>p.status==='Réservé').length;
   const clot = PROPERTIES.filter(p=>p.status==='Vendu'||p.status==='Loué').length;
   const valeur = PROPERTIES.filter(p=>p.operation==='Vente').reduce((s,p)=>s+p.price,0);
+  const publies = PROPERTIES.filter(p=>p.is_published).length;
+  const totalVues = PROPERTIES.reduce((s,p)=>s+(VIEWS_BY_PROPERTY[p.id]||0), 0);
+  const totalFavs = PROPERTIES.reduce((s,p)=>s+(FAVS_BY_PROPERTY[p.id]||0), 0);
   const items = [
     ['Biens au total', total, '#1B4F91'],
     ['Disponibles', dispo, '#3F7A49'],
     ['Réservés', res, '#B8842A'],
     ['Vendus / Loués', clot, '#8B9199'],
     ['Valeur (ventes)', fcfa(valeur), '#B24A2C'],
+    ['Biens publiés', publies, '#1F7A73'],
+    ['Vues totales', totalVues, '#2563EB'],
+    ['Favoris totaux', totalFavs, '#EF4444'],
   ];
   document.getElementById('stats').innerHTML = items.map(([lbl,val,col])=>`
     <div class="stat">
