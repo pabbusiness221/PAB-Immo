@@ -313,6 +313,40 @@
   .inbox-item .ii-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
   .inbox-item .ii-actions button, .inbox-item .ii-actions select{border:1px solid var(--border);background:#fff;border-radius:8px;padding:5px 10px;font-size:11.5px;font-weight:600;cursor:pointer;color:var(--ink);font-family:'Inter',sans-serif;}
   .inbox-empty{padding:40px 20px;text-align:center;color:var(--ink-soft);font-size:13px;}
+
+  /* --- Tableau de bord analytique --- */
+  .analytics-overlay{position:fixed;inset:0;background:var(--bg);z-index:1000;overflow-y:auto;}
+  .analytics-overlay.hidden{display:none;}
+  .analytics-header{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;}
+  .analytics-header h2{margin:0;font-size:19px;}
+  .analytics-header p{margin:2px 0 0;font-size:12.5px;color:var(--ink-soft);}
+  .analytics-close{border:1px solid var(--border);background:var(--surface);border-radius:999px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .analytics-body{max-width:1280px;margin:0 auto;padding:24px;}
+  .kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:24px;}
+  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;}
+  .kpi-card .kv{font-size:24px;font-weight:800;font-family:'Manrope',sans-serif;line-height:1.1;}
+  .kpi-card .kl{font-size:11.5px;color:var(--ink-soft);margin-top:4px;font-weight:600;}
+  .charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+  .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:18px;}
+  .chart-card.full{grid-column:1/-1;}
+  .chart-card h3{margin:0 0 14px;font-size:14px;font-weight:700;}
+  .chart-card canvas{max-height:260px;}
+  .top-list{display:flex;flex-direction:column;gap:8px;}
+  .top-list-item{display:flex;align-items:center;gap:10px;font-size:12.5px;}
+  .top-list-rank{width:20px;height:20px;border-radius:50%;background:var(--surface-alt);display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;color:var(--ink-soft);flex-shrink:0;}
+  .top-list-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .top-list-count{font-weight:700;font-family:'IBM Plex Mono',monospace;color:var(--primary);flex-shrink:0;}
+  .analytics-empty{text-align:center;color:var(--ink-soft);font-size:12.5px;padding:30px 10px;}
+
+  @media (max-width: 1023px){
+    .kpi-grid{grid-template-columns:repeat(3,1fr);}
+    .charts-grid{grid-template-columns:1fr;}
+  }
+  @media (max-width: 560px){
+    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+    .analytics-body{padding:16px;}
+    .analytics-header{padding:14px 16px;}
+  }
 </style>
 </head>
 <body>
@@ -341,6 +375,10 @@
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input id="search" placeholder="Rechercher une commune, une région, une référence…" />
     </div>
+    <button class="btn btn-inbox" id="analyticsBtn" style="display:none;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span class="btn-label">Statistiques</span>
+    </button>
     <button class="btn btn-inbox" id="inboxBtn">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
       <span class="btn-label">Boîte de réception</span>
@@ -393,9 +431,11 @@
 
 <div class="overlay" id="inboxOverlay"></div>
 <div class="drawer" id="inboxDrawer"></div>
+<div class="analytics-overlay hidden" id="analyticsOverlay"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <script>
 const TYPE_COLOR = { Terrain:'#B24A2C', Maison:'#2E4A61', Appartement:'#1F7A73', 'Champ agricole':'#6B8E23' };
 const STATUS_COLOR = { Disponible:'#3F7A49', 'Réservé':'#B8842A', Vendu:'#8B9199', 'Loué':'#8B9199' };
@@ -440,6 +480,7 @@ function mapRow(r){
     date: r.date_acquisition || '',
     is_published: !!r.is_published,
     owner_id: r.owner_id,
+    created_at: r.created_at,
     photos: r.property_photos || [],
     rooms: (r.chambres != null || (r.equipements && r.equipements.length)) ? { chambres:r.chambres, salons:r.salons, sdb:r.salles_bain, cuisine:r.cuisine, autres:r.equipements || [] } : null
   };
@@ -1576,6 +1617,176 @@ function closeInbox(){
 document.getElementById('inboxOverlay').onclick = closeInbox;
 document.getElementById('inboxBtn').onclick = openInbox;
 
+// ============================================================
+// TABLEAU DE BORD ANALYTIQUE
+// ============================================================
+let analyticsCharts = [];
+
+function lastNMonths(n){
+  const out = [];
+  const base = new Date(); base.setDate(1);
+  for(let i=n-1;i>=0;i--){
+    const dt = new Date(base.getFullYear(), base.getMonth()-i, 1);
+    out.push({
+      key: dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0'),
+      label: dt.toLocaleDateString('fr-FR', {month:'short', year:'2-digit'})
+    });
+  }
+  return out;
+}
+function countByMonth(rows, dateField){
+  const map = {};
+  (rows||[]).forEach(r=>{
+    const v = r[dateField];
+    if(!v) return;
+    const k = v.slice(0,7);
+    map[k] = (map[k]||0)+1;
+  });
+  return map;
+}
+
+async function loadAnalyticsData(){
+  const [
+    { data: visitRows },
+    { data: viewRows },
+    { data: favRows },
+    { data: msgRows },
+    { data: rdvRows },
+    { data: statusHistory }
+  ] = await Promise.all([
+    db.from('site_visits').select('session_id'),
+    db.from('property_views').select('property_id'),
+    db.from('favorite_events').select('property_id').eq('action','add'),
+    db.from('contact_messages').select('id, created_at'),
+    db.from('appointments').select('id, created_at'),
+    db.from('property_status_history').select('property_id, new_status, changed_at')
+  ]);
+
+  const viewsByProperty = {};
+  (viewRows||[]).forEach(r=>{ viewsByProperty[r.property_id] = (viewsByProperty[r.property_id]||0)+1; });
+  const favByProperty = {};
+  (favRows||[]).forEach(r=>{ favByProperty[r.property_id] = (favByProperty[r.property_id]||0)+1; });
+
+  const uniqueVisitors = new Set((visitRows||[]).map(r=>r.session_id)).size;
+  const totalViews = (viewRows||[]).length;
+  const totalFavAdds = (favRows||[]).length;
+  const totalMsg = (msgRows||[]).length;
+  const totalRdv = (rdvRows||[]).length;
+  const conversionRate = uniqueVisitors > 0 ? Math.round(((totalMsg+totalRdv)/uniqueVisitors)*1000)/10 : 0;
+
+  const salesByMonth = {}, rentalsByMonth = {};
+  (statusHistory||[]).forEach(h=>{
+    if(!h.changed_at) return;
+    const k = h.changed_at.slice(0,7);
+    if(h.new_status === 'Vendu') salesByMonth[k] = (salesByMonth[k]||0)+1;
+    if(h.new_status === 'Loué') rentalsByMonth[k] = (rentalsByMonth[k]||0)+1;
+  });
+  const msgByMonth = countByMonth(msgRows, 'created_at');
+  const rdvByMonth = countByMonth(rdvRows, 'created_at');
+
+  const byRegion = {}, byCollaborator = {};
+  PROPERTIES.forEach(p=>{
+    byRegion[p.region] = (byRegion[p.region]||0)+1;
+    const label = ownerLabel(p.owner_id);
+    byCollaborator[label] = (byCollaborator[label]||0)+1;
+  });
+
+  return {
+    uniqueVisitors, totalViews, totalFavAdds, totalMsg, totalRdv, conversionRate,
+    salesByMonth, rentalsByMonth, msgByMonth, rdvByMonth,
+    byRegion, byCollaborator, viewsByProperty, favByProperty
+  };
+}
+
+function topPropertiesList(counts, emptyLabel){
+  const entries = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  if(!entries.length) return `<div class="analytics-empty">${emptyLabel}</div>`;
+  return `<div class="top-list">${entries.map(([id,count],i)=>{
+    const p = PROPERTIES.find(x=>String(x.id)===String(id));
+    const label = p ? `${esc(p.ref)} — ${esc(p.type)}, ${esc(p.commune)}` : 'Bien supprimé';
+    return `<div class="top-list-item"><span class="top-list-rank">${i+1}</span><span class="top-list-label">${label}</span><span class="top-list-count">${count}</span></div>`;
+  }).join('')}</div>`;
+}
+
+const CHART_COLORS = { primary:'#2563EB', success:'#16A34A', warning:'#F59E0B', danger:'#EF4444', ink:'#0F172A', soft:'#64748B', border:'#E2E8F0' };
+
+function renderAnalytics(d){
+  const body = document.getElementById('analyticsBody');
+  const months = lastNMonths(6);
+  const monthLabels = months.map(m=>m.label);
+
+  body.innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kv">${d.uniqueVisitors}</div><div class="kl">Visiteurs</div></div>
+      <div class="kpi-card"><div class="kv">${d.totalViews}</div><div class="kl">Biens consultés</div></div>
+      <div class="kpi-card"><div class="kv">${d.totalFavAdds}</div><div class="kl">Mises en favoris</div></div>
+      <div class="kpi-card"><div class="kv">${d.totalRdv}</div><div class="kl">Demandes de RDV</div></div>
+      <div class="kpi-card"><div class="kv">${d.totalMsg}</div><div class="kl">Messages reçus</div></div>
+      <div class="kpi-card"><div class="kv">${d.conversionRate}%</div><div class="kl">Taux de conversion</div></div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card full"><h3>Évolution du portefeuille (biens cumulés, 6 derniers mois)</h3><canvas id="chartPortfolio"></canvas></div>
+      <div class="chart-card"><h3>Ventes &amp; locations par mois</h3><canvas id="chartSalesRentals"></canvas></div>
+      <div class="chart-card"><h3>Messages &amp; RDV par mois</h3><canvas id="chartLeads"></canvas></div>
+      <div class="chart-card"><h3>Biens par région</h3><canvas id="chartRegion"></canvas></div>
+      <div class="chart-card"><h3>Biens par collaborateur</h3><canvas id="chartCollab"></canvas></div>
+      <div class="chart-card"><h3>Biens les plus consultés</h3>${topPropertiesList(d.viewsByProperty, 'Aucune consultation enregistrée pour l’instant.')}</div>
+      <div class="chart-card"><h3>Biens les plus ajoutés en favoris</h3>${topPropertiesList(d.favByProperty, 'Aucun favori enregistré pour l’instant.')}</div>
+    </div>
+  `;
+
+  analyticsCharts.forEach(c=>c.destroy());
+  analyticsCharts = [];
+  const mk = (id, config) => { analyticsCharts.push(new Chart(document.getElementById(id), config)); };
+
+  // Portefeuille cumulé
+  let cumulative = 0;
+  const portfolioData = months.map(m=>{
+    const endOfMonth = new Date(m.key+'-01'); endOfMonth.setMonth(endOfMonth.getMonth()+1);
+    return PROPERTIES.filter(p => p.created_at && new Date(p.created_at) < endOfMonth).length;
+  });
+  mk('chartPortfolio', { type:'line', data:{ labels:monthLabels, datasets:[{ label:'Biens au total', data:portfolioData, borderColor:CHART_COLORS.primary, backgroundColor:CHART_COLORS.primary+'22', fill:true, tension:.3 }] }, options:{ plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}} } });
+
+  mk('chartSalesRentals', { type:'bar', data:{ labels:monthLabels, datasets:[
+    { label:'Ventes', data: months.map(m=>d.salesByMonth[m.key]||0), backgroundColor:CHART_COLORS.success },
+    { label:'Locations', data: months.map(m=>d.rentalsByMonth[m.key]||0), backgroundColor:CHART_COLORS.primary }
+  ]}, options:{ scales:{y:{beginAtZero:true, ticks:{precision:0}}} } });
+
+  mk('chartLeads', { type:'bar', data:{ labels:monthLabels, datasets:[
+    { label:'Messages', data: months.map(m=>d.msgByMonth[m.key]||0), backgroundColor:CHART_COLORS.warning },
+    { label:'RDV', data: months.map(m=>d.rdvByMonth[m.key]||0), backgroundColor:CHART_COLORS.danger }
+  ]}, options:{ scales:{y:{beginAtZero:true, ticks:{precision:0}}} } });
+
+  const regionEntries = Object.entries(d.byRegion).sort((a,b)=>b[1]-a[1]);
+  mk('chartRegion', { type:'bar', data:{ labels:regionEntries.map(e=>e[0]), datasets:[{ label:'Biens', data:regionEntries.map(e=>e[1]), backgroundColor:CHART_COLORS.primary }] }, options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}} } });
+
+  const collabEntries = Object.entries(d.byCollaborator).sort((a,b)=>b[1]-a[1]);
+  mk('chartCollab', { type:'bar', data:{ labels:collabEntries.map(e=>e[0]), datasets:[{ label:'Biens ajoutés', data:collabEntries.map(e=>e[1]), backgroundColor:CHART_COLORS.success }] }, options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}} } });
+}
+
+async function openAnalytics(){
+  const overlay = document.getElementById('analyticsOverlay');
+  overlay.classList.remove('hidden');
+  overlay.innerHTML = `
+    <div class="analytics-header">
+      <div><h2>Statistiques</h2><p>Vue d'ensemble de votre activité — 6 derniers mois</p></div>
+      <button class="analytics-close" id="analyticsCloseBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="analytics-body" id="analyticsBody"><p style="text-align:center;color:var(--ink-soft);padding:60px 0;">Chargement des statistiques…</p></div>
+  `;
+  document.getElementById('analyticsCloseBtn').onclick = closeAnalytics;
+  const data = await loadAnalyticsData();
+  renderAnalytics(data);
+}
+function closeAnalytics(){
+  document.getElementById('analyticsOverlay').classList.add('hidden');
+  analyticsCharts.forEach(c=>c.destroy());
+  analyticsCharts = [];
+}
+document.getElementById('analyticsBtn').onclick = openAnalytics;
+
 // ---- Rendu global ----
 function render(){
   renderChips();
@@ -1588,6 +1799,7 @@ async function checkAuth(){
     document.getElementById('authOverlay').style.display = 'none';
     IS_ADMIN = session.user.id === ADMIN_ID;
     document.getElementById('inboxBtn').style.display = IS_ADMIN ? '' : 'none';
+    document.getElementById('analyticsBtn').style.display = IS_ADMIN ? '' : 'none';
     if(IS_ADMIN) await loadCollaborators();
     loadProperties();
     if(IS_ADMIN) loadInboxCounts();
@@ -1607,6 +1819,7 @@ document.getElementById('authSubmit').onclick = async () => {
   document.getElementById('authOverlay').style.display = 'none';
   IS_ADMIN = data.user.id === ADMIN_ID;
   document.getElementById('inboxBtn').style.display = IS_ADMIN ? '' : 'none';
+  document.getElementById('analyticsBtn').style.display = IS_ADMIN ? '' : 'none';
   if(IS_ADMIN) await loadCollaborators();
   loadProperties();
   if(IS_ADMIN) loadInboxCounts();
