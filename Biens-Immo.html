@@ -239,6 +239,44 @@
   .alert-form-inner{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:16px 18px;margin-top:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;align-items:end;border:1px solid var(--border);animation:fadeInUp .3s var(--ease);}
   .alert-form-inner .form-field.full{grid-column:1/-1;}
 
+  /* --- Recherche avancée --- */
+  .adv-badge{background:var(--primary);color:#fff;border-radius:999px;font-size:10px;font-weight:800;min-width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;margin-left:2px;}
+  .adv-search-panel{max-width:1400px;margin:12px auto 0;padding:0 20px;}
+  .adv-search-panel.hidden{display:none;}
+  .adv-search-panel > *{background:var(--surface);border:1px solid var(--border);}
+  .adv-search-grid{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg) var(--radius-lg) 0 0;border-bottom:none;padding:16px 18px 8px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;box-shadow:var(--shadow);}
+  .adv-zone-row{background:var(--surface);border:1px solid var(--border);border-top:none;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  .adv-zone-label p{margin:1px 0 0;font-size:12px;color:var(--ink-soft);}
+  .adv-zone-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .adv-zone-actions .btn{padding:8px 14px;font-size:12.5px;}
+  #pickOnMapBtn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .adv-radius-chips{background:var(--surface);border:1px solid var(--border);border-top:none;padding:0 18px 14px;display:flex;gap:8px;flex-wrap:wrap;}
+  .adv-radius-chips.hidden{display:none;}
+  .adv-radius-chips .chip{padding:7px 14px;font-size:12.5px;}
+  .adv-radius-chips .chip.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .adv-search-footer{background:var(--surface);border:1px solid var(--border);border-top:none;padding:14px 18px;display:flex;gap:10px;flex-wrap:wrap;}
+  .adv-search-footer .btn{padding:9px 16px;font-size:12.5px;}
+  .saved-searches{background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius-lg) var(--radius-lg);padding:0 18px;}
+  .saved-searches:empty{display:none;}
+  .saved-search-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--border);font-size:12.5px;}
+  .saved-search-item:first-child{border-top:none;}
+  .saved-search-item .ssi-name{flex:1;font-weight:700;cursor:pointer;}
+  .saved-search-item .ssi-name:hover{color:var(--primary);}
+  .saved-search-item .ssi-crit{color:var(--ink-soft);font-size:11.5px;}
+  .saved-search-item button{border:none;background:none;color:var(--ink-soft);cursor:pointer;font-size:15px;padding:2px 6px;}
+
+  @media (max-width: 1023px){
+    .adv-search-grid{grid-template-columns:1fr 1fr;}
+  }
+  @media (max-width: 680px){
+    .adv-search-grid{grid-template-columns:1fr;padding:14px 14px 6px;}
+    .adv-zone-row{padding:12px 14px;flex-direction:column;align-items:stretch;}
+    .adv-zone-actions{flex-direction:column;}
+    .adv-radius-chips{padding:0 14px 12px;}
+    .adv-search-footer{padding:12px 14px;flex-direction:column;}
+    .saved-searches{padding:0 14px;}
+  }
+
   .custom-marker{display:flex;align-items:center;justify-content:center;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.25);border:2.5px solid #fff;}
   .custom-marker.pulse{animation:pulse 1.1s ease-out infinite;}
   @keyframes pulse{
@@ -425,11 +463,64 @@
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>
       <span>Mes favoris</span>
     </button>
+    <button class="chip" id="advSearchToggle">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="7" cy="18" r="2" fill="currentColor" stroke="none"/></svg>
+      <span>Recherche avancée</span>
+      <span class="adv-badge" id="advBadge" style="display:none;">0</span>
+    </button>
   </div>
   <div class="view-toggle" id="viewToggle" style="margin-top:12px;">
     <button data-view="list" class="active">Liste</button>
     <button data-view="map">Carte</button>
   </div>
+</div>
+
+<div class="adv-search-panel hidden" id="advSearchPanel">
+  <div class="adv-search-grid">
+    <div class="form-field">
+      <label class="sf-label" for="adv_region">Région</label>
+      <select class="sf-select" id="adv_region" style="margin-bottom:0;"><option value="">Toutes régions</option></select>
+    </div>
+    <div class="form-field">
+      <label class="sf-label" for="adv_departement">Département</label>
+      <select class="sf-select" id="adv_departement" style="margin-bottom:0;"><option value="">Tous départements</option></select>
+    </div>
+    <div class="form-field">
+      <label class="sf-label" for="adv_commune">Commune</label>
+      <input class="sf-input" id="adv_commune" list="adv_commune_list" placeholder="ex : Sacré-Cœur" style="margin-bottom:0;" autocomplete="off"/>
+      <datalist id="adv_commune_list"></datalist>
+    </div>
+    <div class="form-field">
+      <label class="sf-label" for="adv_quartier">Quartier</label>
+      <input class="sf-input" id="adv_quartier" list="adv_quartier_list" placeholder="ex : Point E" style="margin-bottom:0;" autocomplete="off"/>
+      <datalist id="adv_quartier_list"></datalist>
+    </div>
+  </div>
+
+  <div class="adv-zone-row">
+    <div class="adv-zone-label">
+      <span class="sf-label" style="margin:0;">Autour d'un point</span>
+      <p id="advZoneStatus">Aucune zone sélectionnée</p>
+    </div>
+    <div class="adv-zone-actions">
+      <button type="button" class="btn btn-outline" id="gpsSearchBtn">📍 Autour de moi</button>
+      <button type="button" class="btn btn-outline" id="pickOnMapBtn">🖱️ Choisir sur la carte</button>
+      <button type="button" class="btn btn-outline hidden" id="clearZoneBtn">✕ Effacer</button>
+    </div>
+  </div>
+  <div class="adv-radius-chips hidden" id="advRadiusChips">
+    <button type="button" class="chip" data-radius="1">1 km</button>
+    <button type="button" class="chip" data-radius="5">5 km</button>
+    <button type="button" class="chip" data-radius="10">10 km</button>
+    <button type="button" class="chip" data-radius="20">20 km</button>
+    <button type="button" class="chip" data-radius="50">50 km</button>
+  </div>
+
+  <div class="adv-search-footer">
+    <button type="button" class="btn btn-primary" id="saveSearchBtn">💾 Enregistrer cette recherche</button>
+    <button type="button" class="btn btn-outline" id="resetAdvSearchBtn">Réinitialiser tous les filtres</button>
+  </div>
+  <div class="saved-searches" id="savedSearchesList"></div>
 </div>
 
 <div class="alert-banner">
@@ -538,7 +629,7 @@ let PROPERTIES = [];
 function mapRow(r){
   return {
     id: r.id, ref: r.ref, type: r.type, operation: r.operation,
-    commune: r.commune, region: r.region, quartier: r.quartier || '', surface: Number(r.surface), price: Number(r.price),
+    commune: r.commune, region: r.region, quartier: r.quartier || '', departement: r.departement || '', surface: Number(r.surface), price: Number(r.price),
     status: r.status, desc: r.description || '', lat: Number(r.lat), lng: Number(r.lng),
     photos: r.property_photos || [],
     rooms: (r.chambres != null || (r.equipements && r.equipements.length)) ? { chambres:r.chambres, salons:r.salons, sdb:r.salles_bain, cuisine:r.cuisine, autres:r.equipements || [] } : null
@@ -573,6 +664,7 @@ async function loadProperties(){
   });
   PROPERTIES = (props || []).map(r => mapRow({ ...r, property_photos: photosByProperty[r.id] || [] }));
   renderHeroStat();
+  initAdvancedSearch();
   render();
   openPropertyFromURL();
 }
@@ -581,9 +673,21 @@ const fcfa = n => n.toLocaleString('fr-FR') + ' FCFA';
 function esc(s){
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-let state = { type:'Tous', op:'Tous', search:'', selected:null, favOnly:false };
+let state = { type:'Tous', op:'Tous', search:'', selected:null, favOnly:false,
+  region:'', departement:'', commune:'', quartier:'', centerLat:null, centerLng:null, radiusKm:null };
 let isRestoringFromURL = false;
 let markers = {};
+let searchCircle = null;
+let pickingCenter = false;
+
+// ---- Distance à vol d'oiseau (formule de Haversine), pour la recherche par rayon ----
+function distanceKm(lat1, lng1, lat2, lng2){
+  const R = 6371;
+  const dLat = (lat2-lat1) * Math.PI/180;
+  const dLng = (lng2-lng1) * Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
 
 // ---- Favoris (stockés uniquement dans ce navigateur) ----
 const FAV_KEY = 'pab_favorites';
@@ -594,29 +698,10 @@ function loadFavorites(){
 let FAVORITES = loadFavorites();
 function saveFavorites(){ localStorage.setItem(FAV_KEY, JSON.stringify([...FAVORITES])); }
 function isFav(id){ return FAVORITES.has(String(id)); }
-
-// ---- Session anonyme, pour le tableau de bord analytique (aucune donnée
-// personnelle — un identifiant aléatoire par onglet, jamais lié à une identité) ----
-const SESSION_KEY = 'pab_session_id';
-function getSessionId(){
-  let sid = sessionStorage.getItem(SESSION_KEY);
-  if(!sid){
-    sid = (crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(36).slice(2));
-    sessionStorage.setItem(SESSION_KEY, sid);
-  }
-  return sid;
-}
-function trackEvent(table, payload){
-  // Best-effort, silencieux : le suivi ne doit jamais bloquer ni gêner la navigation.
-  db.from(table).insert(payload).then(()=>{}).catch(()=>{});
-}
-
 function toggleFav(id){
   id = String(id);
-  const wasFav = FAVORITES.has(id);
-  if(wasFav) FAVORITES.delete(id); else FAVORITES.add(id);
+  if(FAVORITES.has(id)) FAVORITES.delete(id); else FAVORITES.add(id);
   saveFavorites();
-  trackEvent('favorite_events', { property_id:id, session_id:getSessionId(), action: wasFav ? 'remove' : 'add' });
 }
 function favIconSvg(active){
   return `<svg width="15" height="15" viewBox="0 0 24 24" fill="${active?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>`;
@@ -665,6 +750,13 @@ function filtered(){
     if(state.favOnly && !isFav(p.id)) return false;
     if(state.type!=='Tous' && p.type!==state.type) return false;
     if(state.op!=='Tous' && p.operation!==state.op) return false;
+    if(state.region && p.region !== state.region) return false;
+    if(state.departement && p.departement !== state.departement) return false;
+    if(state.commune && !p.commune.toLowerCase().includes(state.commune.toLowerCase())) return false;
+    if(state.quartier && !(p.quartier||'').toLowerCase().includes(state.quartier.toLowerCase())) return false;
+    if(state.centerLat != null && state.radiusKm){
+      if(distanceKm(state.centerLat, state.centerLng, p.lat, p.lng) > state.radiusKm) return false;
+    }
     if(state.search){
       const q=state.search.toLowerCase();
       if(!(p.commune.toLowerCase().includes(q)||p.region.toLowerCase().includes(q))) return false;
@@ -686,6 +778,252 @@ function renderChips(){
 
 function renderHeroStat(){
   document.getElementById('heroStat').innerHTML = `<b>${PROPERTIES.length}</b>&nbsp;biens disponibles à Dakar et Thiès`;
+}
+
+// ============================================================
+// RECHERCHE AVANCÉE
+// ============================================================
+const DEPARTEMENTS_PAR_REGION = {
+  'Dakar': ['Dakar', 'Guédiawaye', 'Pikine', 'Rufisque'],
+  'Thiès': ['Thiès', 'Mbour', 'Tivaouane']
+};
+function uniqueSorted(field){
+  return [...new Set(PROPERTIES.map(p=>p[field]).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
+}
+
+function populateAdvSearchOptions(){
+  const regionSel = document.getElementById('adv_region');
+  const currentRegion = regionSel.value;
+  regionSel.innerHTML = '<option value="">Toutes régions</option>' +
+    uniqueSorted('region').map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
+  regionSel.value = currentRegion;
+
+  refreshDepartementOptions();
+
+  document.getElementById('adv_commune_list').innerHTML =
+    uniqueSorted('commune').map(c=>`<option value="${esc(c)}">`).join('');
+  document.getElementById('adv_quartier_list').innerHTML =
+    uniqueSorted('quartier').map(q=>`<option value="${esc(q)}">`).join('');
+}
+
+function refreshDepartementOptions(){
+  const depSel = document.getElementById('adv_departement');
+  const currentDep = depSel.value;
+  // Liste des départements connus pour la région choisie, sinon tous les
+  // départements déjà utilisés dans vos biens (au cas où une future région
+  // s'ajoute sans être encore répertoriée ci-dessus).
+  let options;
+  if(state.region && DEPARTEMENTS_PAR_REGION[state.region]){
+    options = DEPARTEMENTS_PAR_REGION[state.region];
+  } else if(state.region){
+    options = uniqueSorted('departement').filter(d => PROPERTIES.some(p=>p.region===state.region && p.departement===d));
+  } else {
+    options = uniqueSorted('departement').length ? uniqueSorted('departement') : Object.values(DEPARTEMENTS_PAR_REGION).flat();
+  }
+  depSel.innerHTML = '<option value="">Tous départements</option>' + options.map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join('');
+  depSel.value = currentDep;
+}
+
+function advActiveFilterCount(){
+  let n = 0;
+  if(state.region) n++;
+  if(state.departement) n++;
+  if(state.commune) n++;
+  if(state.quartier) n++;
+  if(state.centerLat != null && state.radiusKm) n++;
+  return n;
+}
+function updateAdvBadge(){
+  const n = advActiveFilterCount();
+  const badge = document.getElementById('advBadge');
+  badge.style.display = n > 0 ? '' : 'none';
+  badge.textContent = n;
+}
+
+function updateSearchCircle(){
+  if(searchCircle){ map.removeLayer(searchCircle); searchCircle = null; }
+  if(state.centerLat != null && state.radiusKm){
+    searchCircle = L.circle([state.centerLat, state.centerLng], {
+      radius: state.radiusKm*1000, color:'#2563EB', fillColor:'#2563EB', fillOpacity:0.08, weight:2
+    }).addTo(map);
+  }
+}
+function setSearchCenter(lat, lng, label){
+  state.centerLat = lat; state.centerLng = lng;
+  if(!state.radiusKm) state.radiusKm = 5;
+  updateSearchCircle();
+  updateZoneUI(label);
+  updateAdvBadge();
+  render();
+}
+function clearSearchZone(){
+  state.centerLat = null; state.centerLng = null; state.radiusKm = null;
+  updateSearchCircle();
+  updateZoneUI(null);
+  updateAdvBadge();
+  render();
+}
+function updateZoneUI(label){
+  const statusEl = document.getElementById('advZoneStatus');
+  const chipsWrap = document.getElementById('advRadiusChips');
+  const clearBtn = document.getElementById('clearZoneBtn');
+  if(state.centerLat != null){
+    statusEl.textContent = `${label || 'Zone sélectionnée'} — rayon de ${state.radiusKm} km`;
+    chipsWrap.classList.remove('hidden');
+    clearBtn.classList.remove('hidden');
+    document.querySelectorAll('#advRadiusChips [data-radius]').forEach(b=>{
+      b.classList.toggle('active', Number(b.dataset.radius) === state.radiusKm);
+    });
+  } else {
+    statusEl.textContent = 'Aucune zone sélectionnée';
+    chipsWrap.classList.add('hidden');
+    clearBtn.classList.add('hidden');
+  }
+}
+
+// ---- Recherches enregistrées (stockées dans ce navigateur) ----
+const SAVED_SEARCHES_KEY = 'pab_saved_searches';
+function loadSavedSearches(){
+  try{ return JSON.parse(localStorage.getItem(SAVED_SEARCHES_KEY) || '[]'); } catch { return []; }
+}
+function persistSavedSearches(list){ localStorage.setItem(SAVED_SEARCHES_KEY, JSON.stringify(list)); }
+
+function criteriaSummary(c){
+  const parts = [];
+  if(c.type && c.type!=='Tous') parts.push(c.type);
+  if(c.op && c.op!=='Tous') parts.push(c.op);
+  if(c.region) parts.push(c.region);
+  if(c.departement) parts.push(c.departement);
+  if(c.commune) parts.push(c.commune);
+  if(c.quartier) parts.push(c.quartier);
+  if(c.centerLat != null && c.radiusKm) parts.push(`rayon ${c.radiusKm} km`);
+  return parts.length ? parts.join(' · ') : 'Tous les biens';
+}
+
+function renderSavedSearches(){
+  const list = loadSavedSearches();
+  const el = document.getElementById('savedSearchesList');
+  if(!list.length){ el.innerHTML = ''; return; }
+  el.innerHTML = list.map((s,i)=>`
+    <div class="saved-search-item">
+      <div style="flex:1;min-width:0;">
+        <div class="ssi-name" data-apply="${i}">${esc(s.name)}</div>
+        <div class="ssi-crit">${esc(criteriaSummary(s.criteria))}</div>
+      </div>
+      <button type="button" data-delete="${i}" aria-label="Supprimer">✕</button>
+    </div>`).join('');
+  el.querySelectorAll('[data-apply]').forEach(elm=>{
+    elm.onclick = () => applySavedSearch(Number(elm.dataset.apply));
+  });
+  el.querySelectorAll('[data-delete]').forEach(elm=>{
+    elm.onclick = () => {
+      const list = loadSavedSearches();
+      list.splice(Number(elm.dataset.delete), 1);
+      persistSavedSearches(list);
+      renderSavedSearches();
+    };
+  });
+}
+function applySavedSearch(idx){
+  const s = loadSavedSearches()[idx];
+  if(!s) return;
+  Object.assign(state, s.criteria);
+  document.getElementById('adv_region').value = state.region || '';
+  refreshDepartementOptions();
+  document.getElementById('adv_departement').value = state.departement || '';
+  document.getElementById('adv_commune').value = state.commune || '';
+  document.getElementById('adv_quartier').value = state.quartier || '';
+  updateSearchCircle();
+  updateZoneUI(state.centerLat != null ? 'Zone enregistrée' : null);
+  updateAdvBadge();
+  render();
+}
+
+function initAdvancedSearch(){
+  populateAdvSearchOptions();
+  renderSavedSearches();
+  updateAdvBadge();
+
+  document.getElementById('advSearchToggle').onclick = () => {
+    document.getElementById('advSearchPanel').classList.toggle('hidden');
+  };
+
+  document.getElementById('adv_region').addEventListener('change', e=>{
+    state.region = e.target.value;
+    state.departement = '';
+    document.getElementById('adv_departement').value = '';
+    refreshDepartementOptions();
+    render();
+  });
+  document.getElementById('adv_departement').addEventListener('change', e=>{
+    state.departement = e.target.value; render();
+  });
+  document.getElementById('adv_commune').addEventListener('input', e=>{
+    state.commune = e.target.value; render();
+  });
+  document.getElementById('adv_quartier').addEventListener('input', e=>{
+    state.quartier = e.target.value; render();
+  });
+
+  document.getElementById('gpsSearchBtn').onclick = () => {
+    if(!navigator.geolocation){ alert("La géolocalisation n'est pas disponible sur cet appareil."); return; }
+    const btn = document.getElementById('gpsSearchBtn');
+    const original = btn.textContent;
+    btn.textContent = 'Localisation…'; btn.disabled = true;
+    navigator.geolocation.getCurrentPosition(
+      pos => { btn.textContent = original; btn.disabled = false; setSearchCenter(pos.coords.latitude, pos.coords.longitude, 'Autour de moi'); },
+      () => { btn.textContent = original; btn.disabled = false; alert("Impossible de récupérer votre position. Vérifiez que la localisation est autorisée pour ce site."); },
+      { timeout:10000 }
+    );
+  };
+
+  document.getElementById('pickOnMapBtn').onclick = () => {
+    pickingCenter = !pickingCenter;
+    document.getElementById('pickOnMapBtn').classList.toggle('active', pickingCenter);
+    if(pickingCenter){
+      document.getElementById('viewToggle').querySelector('[data-view="map"]').click();
+    }
+  };
+  map.on('click', (e) => {
+    if(!pickingCenter) return;
+    pickingCenter = false;
+    document.getElementById('pickOnMapBtn').classList.remove('active');
+    setSearchCenter(e.latlng.lat, e.latlng.lng, 'Zone choisie sur la carte');
+  });
+
+  document.getElementById('advRadiusChips').addEventListener('click', e=>{
+    const btn = e.target.closest('[data-radius]');
+    if(!btn) return;
+    state.radiusKm = Number(btn.dataset.radius);
+    updateSearchCircle();
+    updateZoneUI(document.getElementById('advZoneStatus').textContent.split(' — ')[0]);
+    updateAdvBadge();
+    render();
+  });
+  document.getElementById('clearZoneBtn').onclick = clearSearchZone;
+
+  document.getElementById('saveSearchBtn').onclick = () => {
+    const name = prompt('Nom de cette recherche (ex : "Terrains à Diamniadio")');
+    if(!name) return;
+    const list = loadSavedSearches();
+    list.push({
+      name,
+      criteria: { type:state.type, op:state.op, region:state.region, departement:state.departement, commune:state.commune, quartier:state.quartier, centerLat:state.centerLat, centerLng:state.centerLng, radiusKm:state.radiusKm }
+    });
+    persistSavedSearches(list);
+    renderSavedSearches();
+  };
+
+  document.getElementById('resetAdvSearchBtn').onclick = () => {
+    state.region = ''; state.departement = ''; state.commune = ''; state.quartier = '';
+    clearSearchZone();
+    document.getElementById('adv_region').value = '';
+    refreshDepartementOptions();
+    document.getElementById('adv_commune').value = '';
+    document.getElementById('adv_quartier').value = '';
+    updateAdvBadge();
+    render();
+  };
 }
 
 function renderList(){
@@ -811,7 +1149,6 @@ function closePhotoGallery(){
 
 function openDrawer(p){
   state.selected = p.id;
-  trackEvent('property_views', { property_id:p.id, session_id:getSessionId() });
   const cover = coverUrl(p);
   const photos = getPropertyPhotos(p);
   const d = document.getElementById('drawer');
@@ -1080,7 +1417,6 @@ window.addEventListener('popstate', () => {
   isRestoringFromURL = false;
 });
 
-trackEvent('site_visits', { session_id:getSessionId() });
 loadProperties();
 
 document.getElementById('search').addEventListener('input', e=>{ state.search = e.target.value; render(); });
