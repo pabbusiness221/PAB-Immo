@@ -475,7 +475,7 @@ function ownerLabel(ownerId){
 function mapRow(r){
   return {
     id: r.id, ref: r.ref, type: r.type, operation: r.operation,
-    commune: r.commune, region: r.region, quartier: r.quartier || '', surface: Number(r.surface), price: Number(r.price),
+    commune: r.commune, region: r.region, quartier: r.quartier || '', departement: r.departement || '', surface: Number(r.surface), price: Number(r.price),
     status: r.status, desc: r.description || '', lat: Number(r.lat), lng: Number(r.lng),
     date: r.date_acquisition || '',
     is_published: !!r.is_published,
@@ -1058,15 +1058,17 @@ async function reverseGeocodeAndFill(lat, lng){
 
     // Les libellés OSM varient selon les zones (urbain/rural) : on essaie plusieurs
     // niveaux plausibles, du plus spécifique au plus général.
-    const commune = a.city || a.town || a.municipality || a.village || a.county || '';
+    const commune = a.city || a.town || a.municipality || a.village || '';
     const region = a.state || a.region || '';
+    const departement = a.county || a.state_district || '';
     const quartier = a.suburb || a.neighbourhood || a.quarter || a.city_district || a.hamlet || '';
 
     if(commune) document.getElementById('f_commune').value = commune;
     if(region) document.getElementById('f_region').value = region;
+    if(departement) document.getElementById('f_departement').value = departement;
     if(quartier) document.getElementById('f_quartier').value = quartier;
 
-    return !!(commune || region || quartier);
+    return !!(commune || region || departement || quartier);
   } catch(err){
     return false;
   }
@@ -1141,8 +1143,11 @@ function openForm(existing){
         <div class="form-field"><label class="form-label">Statut</label>
           <select class="form-select" id="f_status">${(STATUS_OPTIONS[p.operation]||STATUS_OPTIONS.Vente).map(s=>`<option value="${s}" ${p.status===s?'selected':''}>${s}</option>`).join('')}</select>
         </div>
-        <div class="form-field"><label class="form-label">Commune</label><input class="form-input" id="f_commune" value="${esc(p.commune||'')}"/></div>
         <div class="form-field"><label class="form-label">Région</label><input class="form-input" id="f_region" value="${esc(p.region||'')}"/></div>
+        <div class="form-field"><label class="form-label">Département</label><input class="form-input" id="f_departement" list="departement_list" required value="${esc(p.departement||'')}"/>
+          <datalist id="departement_list"><option value="Dakar"><option value="Guédiawaye"><option value="Pikine"><option value="Rufisque"><option value="Thiès"><option value="Mbour"><option value="Tivaouane"></datalist>
+        </div>
+        <div class="form-field"><label class="form-label">Commune</label><input class="form-input" id="f_commune" value="${esc(p.commune||'')}"/></div>
         <div class="form-field"><label class="form-label">Quartier (optionnel)</label><input class="form-input" id="f_quartier" value="${esc(p.quartier||'')}"/></div>
         <div class="form-field"><label class="form-label">Latitude</label><input class="form-input" id="f_lat" type="number" step="any" value="${p.lat??''}"/></div>
         <div class="form-field"><label class="form-label">Longitude</label><input class="form-input" id="f_lng" type="number" step="any" value="${p.lng??''}"/></div>
@@ -1247,6 +1252,7 @@ async function saveProperty(existing){
     status: document.getElementById('f_status').value,
     commune: document.getElementById('f_commune').value.trim(),
     region: document.getElementById('f_region').value.trim(),
+    departement: document.getElementById('f_departement').value.trim(),
     quartier: document.getElementById('f_quartier').value.trim() || null,
     lat: parseFloat(document.getElementById('f_lat').value),
     lng: parseFloat(document.getElementById('f_lng').value),
@@ -1260,8 +1266,8 @@ async function saveProperty(existing){
     payload.date_acquisition = new Date().toISOString().slice(0, 10);
   }
 
-  if(!payload.ref || !payload.commune || !payload.region || isNaN(payload.lat) || isNaN(payload.lng) || isNaN(payload.surface) || isNaN(payload.price)){
-    errEl.textContent = 'Merci de renseigner tous les champs obligatoires (référence, commune, région, latitude, longitude, superficie, prix).';
+  if(!payload.ref || !payload.commune || !payload.region || !payload.departement || isNaN(payload.lat) || isNaN(payload.lng) || isNaN(payload.surface) || isNaN(payload.price)){
+    errEl.textContent = 'Merci de renseigner tous les champs obligatoires (référence, commune, région, département, latitude, longitude, superficie, prix).';
     return;
   }
 
