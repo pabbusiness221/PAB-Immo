@@ -400,13 +400,19 @@
       <button data-view="list" class="active">Liste</button>
       <button data-view="map">Carte</button>
     </div>
-    <select id="statusFilter" style="margin-top:12px;">
-      <option value="Tous">Tous les statuts</option>
-      <option value="Disponible">Disponible</option>
-      <option value="Réservé">Réservé</option>
-      <option value="Vendu">Vendu</option>
-      <option value="Loué">Loué</option>
-    </select>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:12px;">
+      <button class="btn btn-outline" id="archiveToggleBtn" style="padding:9px 14px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 001 1h12a1 1 0 001-1V8"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+        <span id="archiveToggleLabel">Archives</span>
+      </button>
+      <select id="statusFilter">
+        <option value="Tous">Tous les statuts</option>
+        <option value="Disponible">Disponible</option>
+        <option value="Réservé">Réservé</option>
+        <option value="Vendu">Vendu</option>
+        <option value="Loué">Loué</option>
+      </select>
+    </div>
   </div>
 </div>
 
@@ -479,6 +485,7 @@ function mapRow(r){
     status: r.status, desc: r.description || '', lat: Number(r.lat), lng: Number(r.lng),
     date: r.date_acquisition || '',
     is_published: !!r.is_published,
+    archived_at: r.archived_at || null,
     owner_id: r.owner_id,
     created_at: r.created_at,
     photos: r.property_photos || [],
@@ -524,8 +531,13 @@ const fcfa = n => n.toLocaleString('fr-FR') + ' FCFA';
 function esc(s){
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-let state = { type:'Tous', status:'Tous', search:'', selected:null };
+let state = { type:'Tous', status:'Tous', search:'', selected:null, showArchived:false };
 let markers = {};
+
+// Ensemble de base selon le mode : biens actifs (par défaut) OU biens archivés.
+function baseSet(){
+  return PROPERTIES.filter(p => state.showArchived ? p.archived_at : !p.archived_at);
+}
 
 // ---- Carte ----
 const map = L.map('map', { zoomControl:true }).setView([14.72,-17.15], 9);
@@ -570,7 +582,7 @@ function rebuildMarkers(list){
 
 // ---- Filtrage ----
 function filtered(){
-  return PROPERTIES.filter(p=>{
+  return baseSet().filter(p=>{
     if(state.type!=='Tous' && p.type!==state.type) return false;
     if(state.status!=='Tous' && p.status!==state.status) return false;
     if(state.search){
@@ -584,11 +596,12 @@ function filtered(){
 // ---- Chips ----
 const NAV = [['Tous','Tous'],['Terrain','Terrains'],['Maison','Maisons'],['Appartement','Appartements'],['Champ agricole','Champs agricoles']];
 function renderChips(){
+  const set = baseSet();
   const counts = {Terrain:0,Maison:0,Appartement:0,'Champ agricole':0};
-  PROPERTIES.forEach(p=>counts[p.type]++);
+  set.forEach(p=>counts[p.type]++);
   const el = document.getElementById('chips');
   el.innerHTML = NAV.map(([key,label])=>{
-    const c = key==='Tous' ? PROPERTIES.length : counts[key];
+    const c = key==='Tous' ? set.length : counts[key];
     return `<button class="chip ${state.type===key?'active':''}" data-type="${key}">${label} <span class="count">${c}</span></button>`;
   }).join('');
   el.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{ state.type=b.dataset.type; render(); });
@@ -596,11 +609,12 @@ function renderChips(){
 
 // ---- Stats ----
 function renderStats(){
-  const total = PROPERTIES.length;
-  const dispo = PROPERTIES.filter(p=>p.status==='Disponible').length;
-  const res = PROPERTIES.filter(p=>p.status==='Réservé').length;
-  const clot = PROPERTIES.filter(p=>p.status==='Vendu'||p.status==='Loué').length;
-  const valeur = PROPERTIES.filter(p=>p.operation==='Vente').reduce((s,p)=>s+p.price,0);
+  const active = PROPERTIES.filter(p=>!p.archived_at);
+  const total = active.length;
+  const dispo = active.filter(p=>p.status==='Disponible').length;
+  const res = active.filter(p=>p.status==='Réservé').length;
+  const clot = active.filter(p=>p.status==='Vendu'||p.status==='Loué').length;
+  const valeur = active.filter(p=>p.operation==='Vente').reduce((s,p)=>s+p.price,0);
   const items = [
     ['Biens au total', total, '#1B4F91'],
     ['Disponibles', dispo, '#3F7A49'],
@@ -799,15 +813,29 @@ function openDrawer(p){
       </div>` : ''}
       ${p.rooms.autres && p.rooms.autres.length ? `<div class="tags" style="margin-top:10px;">${p.rooms.autres.map(a=>`<span class="tag">${esc(a)}</span>`).join('')}</div>` : ''}
       ` : ''}
+      ${p.archived_at ? `
+      <div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:12px;padding:10px 12px;margin-top:16px;font-size:12px;color:#92400E;">
+        Bien archivé le ${fmtDateOnly((p.archived_at||'').slice(0,10))} — invisible dans la vitrine cliente.
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <button class="btn btn-primary" id="restorePropertyBtn" style="flex:1;justify-content:center;">Restaurer</button>
+        <button class="btn btn-danger" id="deletePropertyBtn" style="flex:1;justify-content:center;">Supprimer définitivement</button>
+      </div>` : `
       <div style="display:flex;gap:8px;margin-top:16px;">
         <button class="btn btn-primary" id="editPropertyBtn" style="flex:1;justify-content:center;">Modifier</button>
-        <button class="btn btn-danger" id="deletePropertyBtn" style="flex:1;justify-content:center;">Supprimer</button>
-      </div>
+        <button class="btn btn-outline" id="archivePropertyBtn" style="flex:1;justify-content:center;">Archiver</button>
+      </div>`}
       <p style="font-size:11px;color:var(--ink-soft);font-style:italic;margin-top:18px;">Espace privé — cette fiche ne serait visible dans la vitrine client que si vous choisissez de la publier.</p>
     </div>`;
   document.getElementById('drawerClose').onclick = closeDrawer;
-  document.getElementById('editPropertyBtn').onclick = () => { closeDrawer(); openForm(p); };
-  document.getElementById('deletePropertyBtn').onclick = () => deleteProperty(p);
+  const editBtn = document.getElementById('editPropertyBtn');
+  if(editBtn) editBtn.onclick = () => { closeDrawer(); openForm(p); };
+  const archiveBtn = document.getElementById('archivePropertyBtn');
+  if(archiveBtn) archiveBtn.onclick = () => archiveProperty(p);
+  const restoreBtn = document.getElementById('restorePropertyBtn');
+  if(restoreBtn) restoreBtn.onclick = () => unarchiveProperty(p);
+  const deleteBtn = document.getElementById('deletePropertyBtn');
+  if(deleteBtn) deleteBtn.onclick = () => deleteProperty(p);
   d.querySelectorAll('.status-btn').forEach(btn=>{
     btn.onclick = () => changeStatus(p.id, btn.dataset.status);
   });
@@ -818,8 +846,26 @@ function openDrawer(p){
   document.getElementById('overlay').classList.add('open');
   updateScrollLock();
 }
+async function archiveProperty(prop){
+  if(!confirm("Archiver ce bien ? Il quittera la vitrine cliente et les listes courantes, mais restera consultable et restaurable dans l'onglet Archives.")) return;
+  const nowIso = new Date().toISOString();
+  const { error } = await db.from('properties').update({ archived_at: nowIso }).eq('id', prop.id);
+  if(error){ alert("Archivage impossible : " + error.message); return; }
+  prop.archived_at = nowIso;
+  renderStats();
+  render();
+  closeDrawer();
+}
+async function unarchiveProperty(prop){
+  const { error } = await db.from('properties').update({ archived_at: null }).eq('id', prop.id);
+  if(error){ alert("Restauration impossible : " + error.message); return; }
+  prop.archived_at = null;
+  renderStats();
+  render();
+  closeDrawer();
+}
 async function deleteProperty(prop){
-  if(!confirm('Confirmer la suppression de ce bien ? Cette action est irréversible.')) return;
+  if(!confirm('Supprimer DÉFINITIVEMENT ce bien et ses photos ? Cette action est irréversible. (Pour le retirer sans le perdre, utilisez plutôt « Archiver ».)')) return;
   if(prop.photos && prop.photos.length){
     const { error: rmErr } = await db.storage.from('property-photos').remove(prop.photos.map(ph=>ph.storage_path));
     if(rmErr) console.error('Nettoyage Storage échoué (le bien sera quand même supprimé) :', rmErr);
@@ -1717,7 +1763,7 @@ async function loadAnalyticsData(){
   const rdvByMonth = countByMonth(rdvRows, 'created_at');
 
   const byRegion = {}, byCollaborator = {};
-  PROPERTIES.forEach(p=>{
+  PROPERTIES.filter(p=>!p.archived_at).forEach(p=>{
     byRegion[p.region] = (byRegion[p.region]||0)+1;
     const label = ownerLabel(p.owner_id);
     byCollaborator[label] = (byCollaborator[label]||0)+1;
@@ -1826,7 +1872,7 @@ function renderAnalytics(d){
   let cumulative = 0;
   const portfolioData = months.map(m=>{
     const endOfMonth = new Date(m.key+'-01'); endOfMonth.setMonth(endOfMonth.getMonth()+1);
-    return PROPERTIES.filter(p => p.created_at && new Date(p.created_at) < endOfMonth).length;
+    return PROPERTIES.filter(p => !p.archived_at && p.created_at && new Date(p.created_at) < endOfMonth).length;
   });
   mk('chartPortfolio', { type:'line', data:{ labels:monthLabels, datasets:[{ label:'Biens au total', data:portfolioData, borderColor:CHART_COLORS.primary, backgroundColor:CHART_COLORS.primary+'22', fill:true, tension:.3 }] }, options:{ plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}} } });
 
@@ -1918,6 +1964,15 @@ checkAuth();
 
 document.getElementById('search').addEventListener('input', e=>{ state.search = e.target.value; render(); });
 document.getElementById('statusFilter').addEventListener('change', e=>{ state.status = e.target.value; render(); });
+document.getElementById('archiveToggleBtn').onclick = () => {
+  state.showArchived = !state.showArchived;
+  state.selected = null;
+  const btn = document.getElementById('archiveToggleBtn');
+  btn.classList.toggle('btn-primary', state.showArchived);
+  btn.classList.toggle('btn-outline', !state.showArchived);
+  document.getElementById('archiveToggleLabel').textContent = state.showArchived ? 'Voir les biens actifs' : 'Archives';
+  render();
+};
 document.querySelectorAll('#viewToggle button').forEach(b=>{
   b.onclick = ()=>{
     document.querySelectorAll('#viewToggle button').forEach(x=>x.classList.remove('active'));
