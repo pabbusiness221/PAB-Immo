@@ -624,6 +624,43 @@ const SUPABASE_KEY = 'sb_publishable_nAQnS82ru9h-beIDPKMqPA_JO_aSYc-'; // clé "
 const SHARE_PREVIEW_URL = SUPABASE_URL + '/functions/v1/share-preview'; // aperçu WhatsApp/Facebook dynamique par bien
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// ============================================================
+// SUIVI ANALYTIQUE (visites, consultations, favoris)
+// Alimente les tables lues par le tableau de bord. Les policies RLS
+// autorisent déjà ces insertions en anonyme (WITH CHECK: true).
+// Tout est "best-effort" : une erreur réseau ne doit jamais bloquer la page.
+// ============================================================
+const SESSION_KEY = 'pab_session_id';
+function getSessionId(){
+  let sid = localStorage.getItem(SESSION_KEY);
+  if(!sid){
+    sid = (crypto.randomUUID ? crypto.randomUUID()
+      : 'sess-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+    localStorage.setItem(SESSION_KEY, sid);
+  }
+  return sid;
+}
+const SESSION_ID = getSessionId();
+const viewedThisSession = new Set(); // évite de compter plusieurs vues du même bien dans la même session
+
+async function recordSiteVisit(){
+  // Une seule visite comptabilisée par session de navigation (onglet).
+  if(sessionStorage.getItem('pab_visit_recorded')) return;
+  sessionStorage.setItem('pab_visit_recorded', '1');
+  try{ await db.from('site_visits').insert({ session_id: SESSION_ID }); }
+  catch(e){ /* suivi non bloquant */ }
+}
+async function recordPropertyView(propertyId){
+  if(viewedThisSession.has(propertyId)) return;
+  viewedThisSession.add(propertyId);
+  try{ await db.from('property_views').insert({ property_id: propertyId, session_id: SESSION_ID }); }
+  catch(e){ /* suivi non bloquant */ }
+}
+async function recordFavoriteEvent(propertyId, action){
+  try{ await db.from('favorite_events').insert({ property_id: propertyId, session_id: SESSION_ID, action }); }
+  catch(e){ /* suivi non bloquant */ }
+}
+
 let PROPERTIES = [];
 
 function mapRow(r){
@@ -700,8 +737,11 @@ function saveFavorites(){ localStorage.setItem(FAV_KEY, JSON.stringify([...FAVOR
 function isFav(id){ return FAVORITES.has(String(id)); }
 function toggleFav(id){
   id = String(id);
-  if(FAVORITES.has(id)) FAVORITES.delete(id); else FAVORITES.add(id);
+  let action;
+  if(FAVORITES.has(id)){ FAVORITES.delete(id); action = 'remove'; }
+  else { FAVORITES.add(id); action = 'add'; }
   saveFavorites();
+  recordFavoriteEvent(id, action);
 }
 function favIconSvg(active){
   return `<svg width="15" height="15" viewBox="0 0 24 24" fill="${active?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>`;
@@ -752,14 +792,14 @@ function filtered(){
     if(state.op!=='Tous' && p.operation!==state.op) return false;
     if(state.region && p.region !== state.region) return false;
     if(state.departement && p.departement !== state.departement) return false;
-    if(state.commune && !p.commune.toLowerCase().includes(state.commune.toLowerCase())) return false;
+    if(state.commune && !(p.commune||'').toLowerCase().includes(state.commune.toLowerCase())) return false;
     if(state.quartier && !(p.quartier||'').toLowerCase().includes(state.quartier.toLowerCase())) return false;
     if(state.centerLat != null && state.radiusKm){
       if(distanceKm(state.centerLat, state.centerLng, p.lat, p.lng) > state.radiusKm) return false;
     }
     if(state.search){
       const q=state.search.toLowerCase();
-      if(!(p.commune.toLowerCase().includes(q)||p.region.toLowerCase().includes(q))) return false;
+      if(!((p.commune||'').toLowerCase().includes(q)||(p.region||'').toLowerCase().includes(q))) return false;
     }
     return true;
   });
@@ -1149,6 +1189,7 @@ function closePhotoGallery(){
 
 function openDrawer(p){
   state.selected = p.id;
+  recordPropertyView(p.id);
   const cover = coverUrl(p);
   const photos = getPropertyPhotos(p);
   const d = document.getElementById('drawer');
@@ -1295,7 +1336,7 @@ function openDrawer(p){
     errEl.textContent = '';
     const btn = document.getElementById('msgSubmitBtn');
     btn.disabled = true; btn.textContent = 'Envoi…';
-    const { error } = await db.from('contact_messages').insert({ property_id: p.id, name, contact, message });
+    const { error } = await db.from('contact_messages').insert({ property_id: p.id, name, contact, message, is_read: false });
     if(error){ errEl.textContent = "Échec de l'envoi : " + error.message; btn.disabled = false; btn.textContent = 'Envoyer le message'; return; }
     document.getElementById('panel-message').innerHTML = '<p class="sf-success">Message envoyé ! On vous recontacte rapidement.</p>';
   };
@@ -1314,7 +1355,7 @@ function openDrawer(p){
     errEl.textContent = '';
     const btn = document.getElementById('rdvSubmitBtn');
     btn.disabled = true; btn.textContent = 'Envoi…';
-    const { error } = await db.from('appointments').insert({ property_id: p.id, name, contact, preferred_date: date, preferred_time: time, message: message || null });
+    const { error } = await db.from('appointments').insert({ property_id: p.id, name, contact, preferred_date: date, preferred_time: time, message: message || null, status: 'En attente' });
     if(error){ errEl.textContent = "Échec de l'envoi : " + error.message; btn.disabled = false; btn.textContent = 'Demander ce rendez-vous'; return; }
     document.getElementById('panel-rdv').innerHTML = '<p class="sf-success">Demande envoyée ! On vous confirme le créneau rapidement.</p>';
   };
@@ -1342,6 +1383,10 @@ function closeDrawer(){
     }
   }
 }
+let drawerMapInstance = null;
+function destroyDrawerMap(){
+  if(drawerMapInstance){ drawerMapInstance.remove(); drawerMapInstance = null; }
+}
 function initDrawerMap(p){
   const mapContainer = document.getElementById('drawerMap');
   if(!mapContainer) return;
@@ -1349,14 +1394,15 @@ function initDrawerMap(p){
   mapContainer.style.borderRadius = '16px';
   mapContainer.style.overflow = 'hidden';
 
+  destroyDrawerMap();          // détruit proprement la carte précédente
   mapContainer.innerHTML = '';
-  const drawerMap = L.map(mapContainer, { zoomControl:false, attributionControl:false }).setView([p.lat, p.lng], 14);
+  drawerMapInstance = L.map(mapContainer, { zoomControl:false, attributionControl:false }).setView([p.lat, p.lng], 14);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom:19,
     subdomains:'abc'
-  }).addTo(drawerMap);
-  L.marker([p.lat, p.lng]).addTo(drawerMap);
-  drawerMap.invalidateSize();
+  }).addTo(drawerMapInstance);
+  L.marker([p.lat, p.lng]).addTo(drawerMapInstance);
+  drawerMapInstance.invalidateSize();
 }
 document.getElementById('overlay').onclick = closeDrawer;
 
@@ -1418,6 +1464,7 @@ window.addEventListener('popstate', () => {
 });
 
 loadProperties();
+recordSiteVisit();
 
 document.getElementById('search').addEventListener('input', e=>{ state.search = e.target.value; render(); });
 
