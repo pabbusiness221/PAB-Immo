@@ -1731,6 +1731,32 @@ function topPropertiesList(counts, emptyLabel){
 
 const CHART_COLORS = { primary:'#2563EB', success:'#16A34A', warning:'#F59E0B', danger:'#EF4444', ink:'#0F172A', soft:'#64748B', border:'#E2E8F0' };
 
+// Chargement résilient de Chart.js : si le CDN principal a échoué (script blanc,
+// blocage réseau, URL obsolète), on tente d'autres sources avant d'abandonner.
+// C'est ce qui empêchait les graphiques de s'afficher (Chart était introuvable).
+function loadScriptOnce(src){
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.async = true;
+    s.onload = () => resolve(src);
+    s.onerror = () => reject(new Error('Échec de chargement : ' + src));
+    document.head.appendChild(s);
+  });
+}
+async function ensureChartJs(){
+  if(typeof Chart !== 'undefined') return true;
+  const sources = [
+    'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js',
+    'https://unpkg.com/chart.js@4.4.4/dist/chart.umd.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js'
+  ];
+  for(const src of sources){
+    try{ await loadScriptOnce(src); if(typeof Chart !== 'undefined') return true; }
+    catch(e){ /* source suivante */ }
+  }
+  return typeof Chart !== 'undefined';
+}
+
 function renderAnalytics(d){
   const body = document.getElementById('analyticsBody');
   const months = lastNMonths(6);
@@ -1756,9 +1782,34 @@ function renderAnalytics(d){
     </div>
   `;
 
-  analyticsCharts.forEach(c=>c.destroy());
+  analyticsCharts.forEach(c=>{ try{ c.destroy(); }catch(e){} });
   analyticsCharts = [];
-  const mk = (id, config) => { analyticsCharts.push(new Chart(document.getElementById(id), config)); };
+
+  // Si Chart.js n'a pas pu être chargé du tout, on l'indique clairement dans
+  // chaque cadre au lieu d'afficher des graphiques vides sans explication.
+  if(typeof Chart === 'undefined'){
+    document.querySelectorAll('.charts-grid .chart-card canvas').forEach(cv=>{
+      const msg = document.createElement('p');
+      msg.style.cssText = 'color:var(--ink-soft);font-size:12.5px;text-align:center;padding:24px 0;margin:0;';
+      msg.textContent = 'Graphique indisponible : la librairie Chart.js n’a pas pu être chargée (vérifiez la connexion internet).';
+      cv.replaceWith(msg);
+    });
+    return;
+  }
+
+  const mk = (id, config) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    try{
+      analyticsCharts.push(new Chart(el, config));
+    }catch(e){
+      console.error('Erreur création du graphique ' + id + ' :', e);
+      const msg = document.createElement('p');
+      msg.style.cssText = 'color:var(--ink-soft);font-size:12.5px;text-align:center;padding:24px 0;margin:0;';
+      msg.textContent = 'Graphique indisponible.';
+      el.replaceWith(msg);
+    }
+  };
 
   // Portefeuille cumulé
   let cumulative = 0;
@@ -1799,6 +1850,7 @@ async function openAnalytics(){
   `;
   document.getElementById('analyticsCloseBtn').onclick = closeAnalytics;
   const data = await loadAnalyticsData();
+  await ensureChartJs();
   renderAnalytics(data);
 }
 function closeAnalytics(){
