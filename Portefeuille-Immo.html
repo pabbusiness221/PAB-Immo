@@ -331,8 +331,6 @@
   .chart-card.full{grid-column:1/-1;}
   .chart-card h3{margin:0 0 14px;font-size:14px;font-weight:700;}
   .chart-card canvas{max-height:260px;}
-  .chart-canvas-wrap{position:relative;height:260px;}
-  .chart-canvas-wrap canvas{width:100%!important;height:100%!important;max-height:none;}
   .top-list{display:flex;flex-direction:column;gap:8px;}
   .top-list-item{display:flex;align-items:center;gap:10px;font-size:12.5px;}
   .top-list-rank{width:20px;height:20px;border-radius:50%;background:var(--surface-alt);display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;color:var(--ink-soft);flex-shrink:0;}
@@ -437,7 +435,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
 <script>
 const TYPE_COLOR = { Terrain:'#B24A2C', Maison:'#2E4A61', Appartement:'#1F7A73', 'Champ agricole':'#6B8E23' };
 const STATUS_COLOR = { Disponible:'#3F7A49', 'Réservé':'#B8842A', Vendu:'#8B9199', 'Loué':'#8B9199' };
@@ -506,15 +504,6 @@ async function loadPropertyViews(){
   (data || []).forEach(r => { VIEWS_BY_PROPERTY[r.property_id] = (VIEWS_BY_PROPERTY[r.property_id]||0) + 1; });
 }
 
-let FAVS_BY_PROPERTY = {};
-async function loadPropertyFavorites(){
-  // Même logique que les vues : RLS ne renvoie que les favoris des biens
-  // dont l'utilisateur connecté est propriétaire (ou tout, pour l'admin).
-  const { data } = await db.from('favorite_events').select('property_id').eq('action','add');
-  FAVS_BY_PROPERTY = {};
-  (data || []).forEach(r => { FAVS_BY_PROPERTY[r.property_id] = (FAVS_BY_PROPERTY[r.property_id]||0) + 1; });
-}
-
 async function loadProperties(){
   document.getElementById('list').innerHTML = `<div class="empty"><p style="margin:0;color:var(--ink-soft);font-size:13px;">Chargement de vos biens…</p></div>`;
   const { data, error } = await db.from('properties')
@@ -526,7 +515,7 @@ async function loadProperties(){
     return;
   }
   PROPERTIES = (data || []).map(mapRow);
-  await Promise.all([loadPropertyViews(), loadPropertyFavorites()]);
+  await loadPropertyViews();
   renderStats();
   render();
 }
@@ -586,7 +575,7 @@ function filtered(){
     if(state.status!=='Tous' && p.status!==state.status) return false;
     if(state.search){
       const q=state.search.toLowerCase();
-      if(!(p.commune.toLowerCase().includes(q)||p.region.toLowerCase().includes(q)||p.ref.toLowerCase().includes(q)||(p.quartier||'').toLowerCase().includes(q))) return false;
+      if(!((p.commune||'').toLowerCase().includes(q)||(p.region||'').toLowerCase().includes(q)||(p.ref||'').toLowerCase().includes(q)||(p.quartier||'').toLowerCase().includes(q))) return false;
     }
     return true;
   });
@@ -612,18 +601,12 @@ function renderStats(){
   const res = PROPERTIES.filter(p=>p.status==='Réservé').length;
   const clot = PROPERTIES.filter(p=>p.status==='Vendu'||p.status==='Loué').length;
   const valeur = PROPERTIES.filter(p=>p.operation==='Vente').reduce((s,p)=>s+p.price,0);
-  const publies = PROPERTIES.filter(p=>p.is_published).length;
-  const totalVues = PROPERTIES.reduce((s,p)=>s+(VIEWS_BY_PROPERTY[p.id]||0), 0);
-  const totalFavs = PROPERTIES.reduce((s,p)=>s+(FAVS_BY_PROPERTY[p.id]||0), 0);
   const items = [
     ['Biens au total', total, '#1B4F91'],
     ['Disponibles', dispo, '#3F7A49'],
     ['Réservés', res, '#B8842A'],
     ['Vendus / Loués', clot, '#8B9199'],
     ['Valeur (ventes)', fcfa(valeur), '#B24A2C'],
-    ['Biens publiés', publies, '#1F7A73'],
-    ['Vues totales', totalVues, '#2563EB'],
-    ['Favoris totaux', totalFavs, '#EF4444'],
   ];
   document.getElementById('stats').innerHTML = items.map(([lbl,val,col])=>`
     <div class="stat">
@@ -1483,9 +1466,9 @@ function renderRdvItems(container, items){
       const id = e.target.closest('.inbox-item').dataset.id;
       await db.from('appointments').update({ status: e.target.value }).eq('id', id);
       const a = INBOX.appointments.find(x=>String(x.id)===id);
-      a.status = e.target.value;
+      if(a) a.status = e.target.value;
       loadInboxCounts();
-      if(rdvView === 'calendar'){ renderInboxList(); }
+      renderInboxList();   // rafraîchit filtre + couleurs en vue Liste ET Calendrier
     };
   });
   container.querySelectorAll('[data-action="delete"]').forEach(btn=>{
@@ -1684,22 +1667,6 @@ function countByMonth(rows, dateField){
 }
 
 async function loadAnalyticsData(){
-  const labels = ['site_visits','property_views','favorite_events','contact_messages','appointments','property_status_history'];
-  const results = await Promise.all([
-    db.from('site_visits').select('session_id'),
-    db.from('property_views').select('property_id'),
-    db.from('favorite_events').select('property_id').eq('action','add'),
-    db.from('contact_messages').select('id, created_at'),
-    db.from('appointments').select('id, created_at'),
-    db.from('property_status_history').select('property_id, new_status, changed_at')
-  ]);
-
-  // Si une des requêtes échoue (table absente, droits insuffisants, etc.),
-  // on le signale clairement au lieu d'afficher silencieusement des zéros.
-  const errors = results
-    .map((r,i) => r.error ? `${labels[i]} : ${r.error.message}` : null)
-    .filter(Boolean);
-
   const [
     { data: visitRows },
     { data: viewRows },
@@ -1707,7 +1674,14 @@ async function loadAnalyticsData(){
     { data: msgRows },
     { data: rdvRows },
     { data: statusHistory }
-  ] = results;
+  ] = await Promise.all([
+    db.from('site_visits').select('session_id'),
+    db.from('property_views').select('property_id'),
+    db.from('favorite_events').select('property_id').eq('action','add'),
+    db.from('contact_messages').select('id, created_at'),
+    db.from('appointments').select('id, created_at'),
+    db.from('property_status_history').select('property_id, new_status, changed_at')
+  ]);
 
   const viewsByProperty = {};
   (viewRows||[]).forEach(r=>{ viewsByProperty[r.property_id] = (viewsByProperty[r.property_id]||0)+1; });
@@ -1739,7 +1713,6 @@ async function loadAnalyticsData(){
   });
 
   return {
-    errors,
     uniqueVisitors, totalViews, totalFavAdds, totalMsg, totalRdv, conversionRate,
     salesByMonth, rentalsByMonth, msgByMonth, rdvByMonth,
     byRegion, byCollaborator, viewsByProperty, favByProperty
@@ -1763,16 +1736,7 @@ function renderAnalytics(d){
   const months = lastNMonths(6);
   const monthLabels = months.map(m=>m.label);
 
-  const errorBanner = (d.errors && d.errors.length)
-    ? `<div style="background:#FEF2F2;border:1px solid #FCA5A5;color:#991B1B;border-radius:var(--radius-md);padding:12px 16px;margin-bottom:16px;font-size:12.5px;">
-        <strong>Certaines données n'ont pas pu être chargées :</strong>
-        <ul style="margin:6px 0 0;padding-left:18px;">${d.errors.map(e=>`<li>${esc(e)}</li>`).join('')}</ul>
-        <p style="margin:6px 0 0;">Vérifiez que tous les scripts SQL de suivi analytique ont bien été exécutés.</p>
-      </div>`
-    : '';
-
   body.innerHTML = `
-    ${errorBanner}
     <div class="kpi-grid">
       <div class="kpi-card"><div class="kv">${d.uniqueVisitors}</div><div class="kl">Visiteurs</div></div>
       <div class="kpi-card"><div class="kv">${d.totalViews}</div><div class="kl">Biens consultés</div></div>
@@ -1782,26 +1746,15 @@ function renderAnalytics(d){
       <div class="kpi-card"><div class="kv">${d.conversionRate}%</div><div class="kl">Taux de conversion</div></div>
     </div>
     <div class="charts-grid">
-      <div class="chart-card full"><h3>Évolution du portefeuille (biens cumulés, 6 derniers mois)</h3><div class="chart-canvas-wrap"><canvas id="chartPortfolio"></canvas></div></div>
-      <div class="chart-card"><h3>Ventes &amp; locations par mois</h3><div class="chart-canvas-wrap"><canvas id="chartSalesRentals"></canvas></div></div>
-      <div class="chart-card"><h3>Messages &amp; RDV par mois</h3><div class="chart-canvas-wrap"><canvas id="chartLeads"></canvas></div></div>
-      <div class="chart-card"><h3>Biens par région</h3><div class="chart-canvas-wrap"><canvas id="chartRegion"></canvas></div></div>
-      <div class="chart-card"><h3>Biens par collaborateur</h3><div class="chart-canvas-wrap"><canvas id="chartCollab"></canvas></div></div>
+      <div class="chart-card full"><h3>Évolution du portefeuille (biens cumulés, 6 derniers mois)</h3><canvas id="chartPortfolio"></canvas></div>
+      <div class="chart-card"><h3>Ventes &amp; locations par mois</h3><canvas id="chartSalesRentals"></canvas></div>
+      <div class="chart-card"><h3>Messages &amp; RDV par mois</h3><canvas id="chartLeads"></canvas></div>
+      <div class="chart-card"><h3>Biens par région</h3><canvas id="chartRegion"></canvas></div>
+      <div class="chart-card"><h3>Biens par collaborateur</h3><canvas id="chartCollab"></canvas></div>
       <div class="chart-card"><h3>Biens les plus consultés</h3>${topPropertiesList(d.viewsByProperty, 'Aucune consultation enregistrée pour l’instant.')}</div>
       <div class="chart-card"><h3>Biens les plus ajoutés en favoris</h3>${topPropertiesList(d.favByProperty, 'Aucun favori enregistré pour l’instant.')}</div>
     </div>
   `;
-
-  if(typeof Chart === 'undefined'){
-    // La librairie de graphiques n'a pas pu être chargée (réseau, pare-feu,
-    // bloqueur de script…). On le signale clairement au lieu de laisser des
-    // cadres vides sans explication — les indicateurs et listes ci-dessus
-    // restent, eux, pleinement fonctionnels.
-    document.querySelectorAll('.chart-canvas-wrap').forEach(w=>{
-      w.innerHTML = '<div class="analytics-empty" style="padding:0;">Graphique indisponible — la librairie Chart.js n\'a pas pu se charger (vérifiez votre connexion ou un éventuel bloqueur de scripts, puis rafraîchissez la page).</div>';
-    });
-    return;
-  }
 
   analyticsCharts.forEach(c=>c.destroy());
   analyticsCharts = [];
@@ -1813,23 +1766,23 @@ function renderAnalytics(d){
     const endOfMonth = new Date(m.key+'-01'); endOfMonth.setMonth(endOfMonth.getMonth()+1);
     return PROPERTIES.filter(p => p.created_at && new Date(p.created_at) < endOfMonth).length;
   });
-  mk('chartPortfolio', { type:'line', data:{ labels:monthLabels, datasets:[{ label:'Biens au total', data:portfolioData, borderColor:CHART_COLORS.primary, backgroundColor:CHART_COLORS.primary+'22', fill:true, tension:.3 }] }, options:{maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}} } });
+  mk('chartPortfolio', { type:'line', data:{ labels:monthLabels, datasets:[{ label:'Biens au total', data:portfolioData, borderColor:CHART_COLORS.primary, backgroundColor:CHART_COLORS.primary+'22', fill:true, tension:.3 }] }, options:{ plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{precision:0}}} } });
 
   mk('chartSalesRentals', { type:'bar', data:{ labels:monthLabels, datasets:[
     { label:'Ventes', data: months.map(m=>d.salesByMonth[m.key]||0), backgroundColor:CHART_COLORS.success },
     { label:'Locations', data: months.map(m=>d.rentalsByMonth[m.key]||0), backgroundColor:CHART_COLORS.primary }
-  ]}, options:{maintainAspectRatio:false, scales:{y:{beginAtZero:true, ticks:{precision:0}}} } });
+  ]}, options:{ scales:{y:{beginAtZero:true, ticks:{precision:0}}} } });
 
   mk('chartLeads', { type:'bar', data:{ labels:monthLabels, datasets:[
     { label:'Messages', data: months.map(m=>d.msgByMonth[m.key]||0), backgroundColor:CHART_COLORS.warning },
     { label:'RDV', data: months.map(m=>d.rdvByMonth[m.key]||0), backgroundColor:CHART_COLORS.danger }
-  ]}, options:{maintainAspectRatio:false, scales:{y:{beginAtZero:true, ticks:{precision:0}}} } });
+  ]}, options:{ scales:{y:{beginAtZero:true, ticks:{precision:0}}} } });
 
   const regionEntries = Object.entries(d.byRegion).sort((a,b)=>b[1]-a[1]);
-  mk('chartRegion', { type:'bar', data:{ labels:regionEntries.map(e=>e[0]), datasets:[{ label:'Biens', data:regionEntries.map(e=>e[1]), backgroundColor:CHART_COLORS.primary }] }, options:{maintainAspectRatio:false, indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}} } });
+  mk('chartRegion', { type:'bar', data:{ labels:regionEntries.map(e=>e[0]), datasets:[{ label:'Biens', data:regionEntries.map(e=>e[1]), backgroundColor:CHART_COLORS.primary }] }, options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}} } });
 
   const collabEntries = Object.entries(d.byCollaborator).sort((a,b)=>b[1]-a[1]);
-  mk('chartCollab', { type:'bar', data:{ labels:collabEntries.map(e=>e[0]), datasets:[{ label:'Biens ajoutés', data:collabEntries.map(e=>e[1]), backgroundColor:CHART_COLORS.success }] }, options:{maintainAspectRatio:false, indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}} } });
+  mk('chartCollab', { type:'bar', data:{ labels:collabEntries.map(e=>e[0]), datasets:[{ label:'Biens ajoutés', data:collabEntries.map(e=>e[1]), backgroundColor:CHART_COLORS.success }] }, options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, ticks:{precision:0}}} } });
 }
 
 async function openAnalytics(){
