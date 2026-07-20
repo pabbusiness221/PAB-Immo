@@ -1352,6 +1352,15 @@ let selectedCalendarDay = null; // 'YYYY-MM-DD'
 function fmtDate(iso){
   return new Date(iso).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
 }
+// Date "AAAA-MM-JJ" (colonne date) affichée sans décalage de fuseau : on force
+// l'interprétation en heure locale plutôt qu'en UTC (sinon un jour peut sauter).
+function localDateStr(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function fmtDateOnly(dateStr){
+  if(!dateStr) return '';
+  return new Date(dateStr + 'T00:00:00').toLocaleDateString('fr-FR');
+}
 
 // Vérifie si un texte de recherche apparaît dans un ensemble de champs
 // (nom, contact, message, référence du bien...), insensible à la casse et aux accents.
@@ -1451,7 +1460,7 @@ function renderRdvItems(container, items){
       <div class="ii-top"><span class="ii-name">${esc(a.name)}</span><span class="ii-date">${fmtDate(a.created_at)}</span></div>
       <div class="ii-contact">${esc(a.contact)}</div>
       ${a.properties ? `<div class="ii-ref">Bien : ${esc(a.properties.ref)} — ${a.properties.type}, ${esc(a.properties.commune)}</div>` : ''}
-      <div class="ii-body">Le ${new Date(a.preferred_date).toLocaleDateString('fr-FR')} · ${esc(a.preferred_time||'')}${a.message ? ' — '+esc(a.message) : ''}</div>
+      <div class="ii-body">Le ${fmtDateOnly(a.preferred_date)} · ${esc(a.preferred_time||'')}${a.message ? ' — '+esc(a.message) : ''}</div>
       <div class="ii-actions">
         <select data-action="status">
           <option value="En attente" ${a.status==='En attente'?'selected':''}>En attente</option>
@@ -1488,7 +1497,7 @@ function renderRdvCalendar(container){
   const month = calendarMonth.getMonth();
   const startOffset = (new Date(year, month, 1).getDay() + 6) % 7; // lundi en premier
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const todayStr = new Date().toISOString().slice(0,10);
+  const todayStr = localDateStr(new Date());
 
   const byDay = {};
   rdvFilteredItems.forEach(a => { (byDay[a.preferred_date] ||= []).push(a); });
@@ -1530,7 +1539,7 @@ function renderRdvCalendar(container){
   document.getElementById('calTodayBtn').onclick = () => {
     const d = new Date(); d.setDate(1); d.setHours(0,0,0,0);
     calendarMonth = d;
-    selectedCalendarDay = new Date().toISOString().slice(0,10);
+    selectedCalendarDay = localDateStr(new Date());
     renderRdvCalendar(container);
   };
   container.querySelectorAll('.cal-day[data-date]').forEach(cell=>{
@@ -1693,7 +1702,9 @@ async function loadAnalyticsData(){
   const totalFavAdds = (favRows||[]).length;
   const totalMsg = (msgRows||[]).length;
   const totalRdv = (rdvRows||[]).length;
-  const conversionRate = uniqueVisitors > 0 ? Math.round(((totalMsg+totalRdv)/uniqueVisitors)*1000)/10 : 0;
+  // Plafonné à 100 % : les messages/RDV historiques (antérieurs au suivi des
+  // visiteurs) peuvent gonfler le ratio au-delà de 100 %, ce qui n'aurait pas de sens.
+  const conversionRate = uniqueVisitors > 0 ? Math.min(100, Math.round(((totalMsg+totalRdv)/uniqueVisitors)*1000)/10) : 0;
 
   const salesByMonth = {}, rentalsByMonth = {};
   (statusHistory||[]).forEach(h=>{
