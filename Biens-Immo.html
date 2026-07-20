@@ -22,7 +22,7 @@
 <meta name="twitter:description" content="Terrains, maisons, appartements et champs agricoles à Dakar et Thiès." />
 <meta name="twitter:image" content="https://pabbusiness221.github.io/PAB-Immo/Biens-Immo.html/og-image.png" />
 <meta name="description" content="Terrains, maisons, appartements et champs agricoles à vendre et à louer à Dakar et Thiès — PAB Immo." />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
@@ -601,7 +601,7 @@
   </a>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const TYPE_COLOR = { Terrain:'#B24A2C', Maison:'#2E4A61', Appartement:'#1F7A73', 'Champ agricole':'#6B8E23' };
@@ -755,10 +755,19 @@ function favIconSvg(active){
   return `<svg width="15" height="15" viewBox="0 0 24 24" fill="${active?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>`;
 }
 
-const map = L.map('map', { zoomControl:true }).setView([14.72,-17.15], 9);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap contributors', maxZoom:19, subdomains:'abc'
-}).addTo(map);
+// Initialisation protégée : si Leaflet ne s'est pas chargé (CDN indisponible),
+// la vitrine (liste des biens) doit rester utilisable — la carte sera simplement absente.
+let map = null;
+try {
+  map = L.map('map', { zoomControl:true }).setView([14.72,-17.15], 9);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors', maxZoom:19, subdomains:'abc'
+  }).addTo(map);
+} catch(e){
+  console.error('Carte indisponible (Leaflet non chargé) :', e);
+  const mapEl = document.getElementById('map');
+  if(mapEl){ mapEl.innerHTML = '<div style="padding:20px;font-size:13px;color:#5C6470;text-align:center;">Carte momentanément indisponible.</div>'; }
+}
 
 function markerIcon(p, selected){
   return L.divIcon({
@@ -778,10 +787,11 @@ function popupContent(p){
 }
 function openDrawerById(id){
   const p = PROPERTIES.find(x=>x.id===id);
-  if(p){ openDrawer(p); highlightCard(p.id); map.closePopup(); }
+  if(p){ openDrawer(p); highlightCard(p.id); if(map) map.closePopup(); }
 }
 
 function rebuildMarkers(list){
+  if(!map || typeof L === 'undefined') return; // carte indisponible
   Object.values(markers).forEach(m => map.removeLayer(m));
   markers = {};
   list.forEach(p => {
@@ -889,6 +899,7 @@ function updateAdvBadge(){
 }
 
 function updateSearchCircle(){
+  if(!map || typeof L === 'undefined') return; // carte indisponible
   if(searchCircle){ map.removeLayer(searchCircle); searchCircle = null; }
   if(state.centerLat != null && state.radiusKm){
     searchCircle = L.circle([state.centerLat, state.centerLng], {
@@ -1032,7 +1043,7 @@ function initAdvancedSearch(){
       document.getElementById('viewToggle').querySelector('[data-view="map"]').click();
     }
   };
-  map.on('click', (e) => {
+  if(map) map.on('click', (e) => {
     if(!pickingCenter) return;
     pickingCenter = false;
     document.getElementById('pickOnMapBtn').classList.remove('active');
@@ -1114,7 +1125,7 @@ function renderList(){
       state.selected = p.id;
       renderList();
       rebuildMarkers(filtered());
-      map.flyTo([p.lat,p.lng], 12, {duration:0.6});
+      if(map) map.flyTo([p.lat,p.lng], 12, {duration:0.6});
     };
   });
   el.querySelectorAll('[data-fav-id]').forEach(btn=>{
@@ -1134,7 +1145,7 @@ function highlightCard(id){
     card.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
   const p = PROPERTIES.find(x => String(x.id) === String(id));
-  if(p){
+  if(p && map){
     map.flyTo([p.lat, p.lng], 12, { duration: 0.6 });
   }
 }
@@ -1398,6 +1409,7 @@ function destroyDrawerMap(){
 function initDrawerMap(p){
   const mapContainer = document.getElementById('drawerMap');
   if(!mapContainer) return;
+  if(typeof L === 'undefined'){ mapContainer.style.display = 'none'; return; } // carte indisponible
   mapContainer.style.height = '220px';
   mapContainer.style.borderRadius = '16px';
   mapContainer.style.overflow = 'hidden';
@@ -1456,7 +1468,7 @@ function openPropertyFromURL(){
   isRestoringFromURL = true;
   openDrawer(p);
   isRestoringFromURL = false;
-  map.setView([p.lat, p.lng], 13);
+  if(map) map.setView([p.lat, p.lng], 13);
 }
 
 window.addEventListener('popstate', () => {
@@ -1520,7 +1532,7 @@ document.querySelectorAll('#viewToggle button').forEach(b=>{
     document.querySelectorAll('#viewToggle button').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');
     document.getElementById('split').dataset.view = b.dataset.view;
-    if(b.dataset.view==='map') setTimeout(()=>map.invalidateSize(), 100);
+    if(b.dataset.view==='map' && map) setTimeout(()=>map.invalidateSize(), 100);
   };
 });
 </script>
