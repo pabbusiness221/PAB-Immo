@@ -97,7 +97,7 @@
 
   .split{max-width:1400px;margin:16px auto 40px;padding:0 20px;display:flex;gap:18px;align-items:flex-start;}
   .panel-list{flex:0 0 44%;display:flex;flex-direction:column;gap:12px;}
-  .panel-map{flex:1;position:relative;align-self:stretch;height:calc(100vh - 110px);min-height:420px;border-radius:20px;overflow:hidden;box-shadow:var(--shadow);z-index:1;position:-webkit-sticky;position:sticky;top:88px;}
+  .panel-map{flex:1;position:-webkit-sticky;position:sticky;top:88px;align-self:flex-start;height:calc(100vh - 110px);min-height:420px;border-radius:20px;overflow:hidden;box-shadow:var(--shadow);z-index:1;}
   #map{height:100%;width:100%;}
 
   .legend{position:absolute;bottom:16px;left:16px;z-index:400;background:rgba(255,255,255,0.94);backdrop-filter:blur(6px);border-radius:12px;padding:10px 14px;box-shadow:var(--shadow);font-size:11.5px;}
@@ -379,10 +379,6 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       <span class="btn-label">Statistiques</span>
     </button>
-    <button class="btn btn-inbox" id="activityLogBtn" style="display:none;">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
-      <span class="btn-label">Journal d'activité</span>
-    </button>
     <button class="btn btn-inbox" id="inboxBtn">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
       <span class="btn-label">Boîte de réception</span>
@@ -441,8 +437,6 @@
 
 <div class="overlay" id="inboxOverlay"></div>
 <div class="drawer" id="inboxDrawer"></div>
-<div class="overlay" id="activityLogOverlay"></div>
-<div class="drawer" id="activityLogDrawer" style="width:480px;"></div>
 <div class="analytics-overlay hidden" id="analyticsOverlay"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -517,15 +511,6 @@ async function loadPropertyViews(){
   (data || []).forEach(r => { VIEWS_BY_PROPERTY[r.property_id] = (VIEWS_BY_PROPERTY[r.property_id]||0) + 1; });
 }
 
-let FAVS_BY_PROPERTY = {};
-async function loadPropertyFavorites(){
-  // Même logique que les vues : RLS ne renvoie que les favoris des biens
-  // dont l'utilisateur connecté est propriétaire (ou tout, pour l'admin).
-  const { data } = await db.from('favorite_events').select('property_id').eq('action','add');
-  FAVS_BY_PROPERTY = {};
-  (data || []).forEach(r => { FAVS_BY_PROPERTY[r.property_id] = (FAVS_BY_PROPERTY[r.property_id]||0) + 1; });
-}
-
 async function loadProperties(){
   document.getElementById('list').innerHTML = `<div class="empty"><p style="margin:0;color:var(--ink-soft);font-size:13px;">Chargement de vos biens…</p></div>`;
   const { data, error } = await db.from('properties')
@@ -537,10 +522,9 @@ async function loadProperties(){
     return;
   }
   PROPERTIES = (data || []).map(mapRow);
-  await Promise.all([loadPropertyViews(), loadPropertyFavorites()]);
+  await loadPropertyViews();
   renderStats();
   render();
-  setTimeout(refreshMapSize, 100);
 }
 
 const fcfa = n => n.toLocaleString('fr-FR') + ' FCFA';
@@ -562,33 +546,14 @@ function baseSet(){
 let map = null;
 try {
   map = L.map('map', { zoomControl:true }).setView([14.72,-17.15], 9);
-  // Fournisseur de tuiles principal : CARTO (rapide, permissif, pas de blocage
-  // par référent comme le serveur OSM standard peut en imposer).
-  const tiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; OpenStreetMap contributors &copy; CARTO', maxZoom:19, subdomains:'abcd'
-  });
-  tiles.on('tileerror', function once(){
-    // Si CARTO échoue, on retombe sur le serveur OpenStreetMap standard.
-    tiles.off('tileerror', once);
-    tiles.setUrl('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
-    map.options && (map.options.subdomains = 'abc');
-  });
-  tiles.addTo(map);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors', maxZoom:19, subdomains:'abc'
+  }).addTo(map);
 } catch(e){
   console.error('Carte indisponible (Leaflet non chargé) :', e);
   const mapEl = document.getElementById('map');
   if(mapEl){ mapEl.innerHTML = '<div style="padding:20px;font-size:13px;color:var(--ink-soft);text-align:center;">Carte momentanément indisponible.</div>'; }
 }
-
-// Leaflet calcule la taille de la carte au moment de son initialisation.
-// Si le conteneur n'a pas encore sa taille finale (police en cours de
-// chargement, mise en page pas terminée…), la moitié de la carte reste
-// blanche. On force donc un recalcul après le premier rendu, au chargement
-// complet de la page, et à chaque redimensionnement de la fenêtre.
-function refreshMapSize(){ if(map) map.invalidateSize(); }
-setTimeout(refreshMapSize, 300);
-window.addEventListener('load', refreshMapSize);
-window.addEventListener('resize', refreshMapSize);
 
 function markerIcon(p, selected){
   return L.divIcon({
@@ -661,18 +626,12 @@ function renderStats(){
   const res = active.filter(p=>p.status==='Réservé').length;
   const clot = active.filter(p=>p.status==='Vendu'||p.status==='Loué').length;
   const valeur = active.filter(p=>p.operation==='Vente').reduce((s,p)=>s+p.price,0);
-  const publies = active.filter(p=>p.is_published).length;
-  const totalVues = active.reduce((s,p)=>s+(VIEWS_BY_PROPERTY[p.id]||0), 0);
-  const totalFavs = active.reduce((s,p)=>s+(FAVS_BY_PROPERTY[p.id]||0), 0);
   const items = [
     ['Biens au total', total, '#1B4F91'],
     ['Disponibles', dispo, '#3F7A49'],
     ['Réservés', res, '#B8842A'],
     ['Vendus / Loués', clot, '#8B9199'],
     ['Valeur (ventes)', fcfa(valeur), '#B24A2C'],
-    ['Biens publiés', publies, '#1F7A73'],
-    ['Vues totales', totalVues, '#2563EB'],
-    ['Favoris totaux', totalFavs, '#EF4444'],
   ];
   document.getElementById('stats').innerHTML = items.map(([lbl,val,col])=>`
     <div class="stat">
@@ -1746,61 +1705,6 @@ document.getElementById('inboxOverlay').onclick = closeInbox;
 document.getElementById('inboxBtn').onclick = openInbox;
 
 // ============================================================
-// JOURNAL D'ACTIVITÉ (admin uniquement)
-// ============================================================
-const ACTION_LABELS = {
-  create_property: 'a créé le bien',
-  update_property: 'a modifié le bien',
-  update_status: 'a changé le statut du bien',
-  archive_property: 'a archivé le bien',
-  restore_property: 'a restauré le bien',
-  delete_property_permanent: 'a supprimé définitivement le bien'
-};
-async function openActivityLog(){
-  const overlay = document.getElementById('activityLogOverlay');
-  const drawer = document.getElementById('activityLogDrawer');
-  drawer.innerHTML = `
-    <div class="drawer-content" style="padding:0;">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 20px 0;">
-        <h2 style="font-size:18px;margin:0;">Journal d'activité</h2>
-        <button class="drawer-close" id="activityLogCloseBtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#161B22" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-      </div>
-      <p style="margin:4px 20px 0;font-size:12px;color:var(--ink-soft);">Les 100 dernières actions sur vos biens, tous collaborateurs confondus.</p>
-      <div class="inbox-list" id="activityLogList"><p style="text-align:center;color:var(--ink-soft);padding:30px 0;">Chargement…</p></div>
-    </div>`;
-  document.getElementById('activityLogCloseBtn').onclick = closeActivityLog;
-  overlay.classList.add('open');
-  drawer.classList.add('open');
-
-  const { data, error } = await db.from('activity_logs')
-    .select('*')
-    .order('created_at', { ascending:false })
-    .limit(100);
-  const listEl = document.getElementById('activityLogList');
-  if(error){ listEl.innerHTML = `<div class="inbox-empty">Erreur : ${esc(error.message)}</div>`; return; }
-  if(!data || !data.length){ listEl.innerHTML = '<div class="inbox-empty">Aucune activité enregistrée pour l’instant.</div>'; return; }
-  listEl.innerHTML = data.map(log => {
-    const who = ownerLabel(log.actor_id);
-    const label = ACTION_LABELS[log.action] || log.action;
-    const ref = log.details && log.details.ref ? log.details.ref : '';
-    const extra = (log.action === 'update_status' && log.details)
-      ? ` (${esc(log.details.old_status || '?')} → ${esc(log.details.new_status || '?')})`
-      : '';
-    return `
-      <div class="inbox-item">
-        <div class="ii-top"><span class="ii-name">${esc(who)}</span><span class="ii-date">${fmtDate(log.created_at)}</span></div>
-        <div class="ii-body">${esc(who)} ${label} <strong>${esc(ref)}</strong>${extra}</div>
-      </div>`;
-  }).join('');
-}
-function closeActivityLog(){
-  document.getElementById('activityLogOverlay').classList.remove('open');
-  document.getElementById('activityLogDrawer').classList.remove('open');
-}
-document.getElementById('activityLogOverlay').onclick = closeActivityLog;
-document.getElementById('activityLogBtn').onclick = openActivityLog;
-
-// ============================================================
 // TABLEAU DE BORD ANALYTIQUE
 // ============================================================
 let analyticsCharts = [];
@@ -2037,7 +1941,6 @@ async function checkAuth(){
     IS_ADMIN = session.user.id === ADMIN_ID;
     document.getElementById('inboxBtn').style.display = IS_ADMIN ? '' : 'none';
     document.getElementById('analyticsBtn').style.display = IS_ADMIN ? '' : 'none';
-    document.getElementById('activityLogBtn').style.display = IS_ADMIN ? '' : 'none';
     if(IS_ADMIN) await loadCollaborators();
     loadProperties();
     if(IS_ADMIN) loadInboxCounts();
@@ -2058,7 +1961,6 @@ document.getElementById('authSubmit').onclick = async () => {
   IS_ADMIN = data.user.id === ADMIN_ID;
   document.getElementById('inboxBtn').style.display = IS_ADMIN ? '' : 'none';
   document.getElementById('analyticsBtn').style.display = IS_ADMIN ? '' : 'none';
-  document.getElementById('activityLogBtn').style.display = IS_ADMIN ? '' : 'none';
   if(IS_ADMIN) await loadCollaborators();
   loadProperties();
   if(IS_ADMIN) loadInboxCounts();
