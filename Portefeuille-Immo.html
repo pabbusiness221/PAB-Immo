@@ -253,6 +253,8 @@
   .auth-input{width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 15px;font-size:13.5px;font-family:'Inter',sans-serif;color:var(--ink);outline:none;margin-bottom:10px;transition:border-color .2s var(--ease), box-shadow .2s var(--ease);}
   .auth-input:focus{border-color:var(--accent);box-shadow:var(--focus-ring);}
   .auth-error{color:var(--danger);font-size:12px;margin:8px 0 0;min-height:14px;}
+  .auth-retour{display:block;text-align:center;margin-top:14px;font-size:12.5px;font-weight:600;color:var(--ink-soft);text-decoration:none;padding:6px;border-radius:8px;transition:color .2s var(--ease);}
+  .auth-retour:hover{color:var(--gold);}
 
   /* ---------- Formulaire d'un bien ---------- */
   .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
@@ -510,6 +512,9 @@
     <input class="auth-input" id="authPassword" type="password" placeholder="Mot de passe" />
     <button class="btn btn-primary" id="authSubmit" style="width:100%;justify-content:center;">Se connecter</button>
     <p class="auth-error" id="authError"></p>
+    <!-- Sans ce lien, qui arrive ici par erreur reste coincé devant un mur de
+         connexion, sans aucun moyen de rejoindre le site public. -->
+    <a class="auth-retour" href="Biens-Immo.html">← Retour au site public</a>
   </div>
 </div>
 
@@ -547,6 +552,10 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       <span class="btn-label">Ajouter un bien</span>
     </button>
+    <a class="btn btn-inbox" id="vitrineBtn" href="Biens-Immo.html" title="Voir le site public">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 010 18a15 15 0 010-18z"/></svg>
+      <span class="btn-label">Vitrine</span>
+    </a>
     <button class="btn-logout" id="logoutBtn">Déconnexion</button>
   </div>
 </header>

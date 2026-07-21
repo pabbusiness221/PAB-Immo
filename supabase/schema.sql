@@ -567,6 +567,10 @@ create policy "Suppression alertes reservee a l'admin" on public.alert_subscript
 
 create policy "Collaborateurs visibles par l'admin" on public.collaborators
   for select to public using (is_admin());
+-- La vitrine doit reconnaître qu'un compte connecté est un collaborateur pour
+-- lui proposer le retour vers son espace. Strictement limité à SA ligne.
+create policy "Un collaborateur lit sa propre fiche" on public.collaborators
+  for select to authenticated using (user_id = auth.uid());
 create policy "Admin gere les collaborateurs" on public.collaborators
   for all to public using (is_admin()) with check (is_admin());
 
