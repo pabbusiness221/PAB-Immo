@@ -317,6 +317,29 @@
   .inbox-item .ii-actions select, .inbox-filter-select{background-image:none;padding-right:12px;}
   .inbox-empty{padding:44px 20px;text-align:center;color:var(--ink-soft);font-size:13px;}
 
+  /* ---------- Journal d'activité ---------- */
+  #journalDrawer{left:auto;width:520px;max-width:94vw;border-radius:var(--radius-xl) 0 0 var(--radius-xl);background:var(--bg);}
+  .journal-tete{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:22px 20px 0;}
+  .journal-tete strong{font-family:'Manrope',sans-serif;font-size:18px;letter-spacing:-0.02em;}
+  .journal-tete p{margin:3px 0 0;font-size:12.5px;color:var(--ink-soft);}
+  .journal-tete .drawer-close{position:static;flex-shrink:0;}
+  .journal-filtres{display:flex;gap:7px;overflow-x:auto;padding:16px 20px 4px;}
+  .journal-filtres .chip{padding:8px 14px;font-size:12px;}
+  .journal-liste{padding:14px 20px 26px;display:flex;flex-direction:column;gap:8px;}
+  .journal-item{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:13px 14px;}
+  .journal-puce{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0;line-height:1;}
+  .journal-corps{flex:1;min-width:0;}
+  .journal-ligne1{display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+  .journal-ligne1 strong{font-size:13.5px;font-weight:800;}
+  .journal-ref{font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:600;border:1px solid var(--border);background:var(--surface-alt);color:var(--ink);border-radius:999px;padding:3px 10px;cursor:pointer;transition:all .18s var(--ease);}
+  .journal-ref:hover{border-color:var(--accent);color:var(--gold);background:var(--accent-soft);}
+  /* Bien supprimé : la référence reste lisible mais n'est plus cliquable. */
+  .journal-ref-morte{cursor:default;opacity:.55;text-decoration:line-through;}
+  .journal-ref-morte:hover{border-color:var(--border);color:var(--ink);background:var(--surface-alt);}
+  .journal-transition{display:inline-block;margin-top:5px;font-size:12px;font-weight:700;color:var(--gold);background:var(--accent-soft);border-radius:999px;padding:3px 11px;}
+  .journal-meta{margin-top:6px;font-size:11.5px;color:var(--ink-soft);}
+  .journal-liste .list-pager{margin-top:10px;}
+
   /* ---------- Agenda des rendez-vous ---------- */
   .cal-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
   .cal-nav{border:1px solid var(--border);background:var(--surface);border-radius:10px;width:30px;height:30px;cursor:pointer;font-size:16px;line-height:1;color:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s var(--ease);}
@@ -481,6 +504,10 @@
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input id="search" placeholder="Rechercher une commune, une région, une référence…" />
     </div>
+    <button class="btn btn-inbox" id="journalBtn" style="display:none;" title="Journal d'activité">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <span class="btn-label">Journal</span>
+    </button>
     <button class="btn btn-inbox" id="analyticsBtn" style="display:none;">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       <span class="btn-label">Statistiques</span>
@@ -543,6 +570,8 @@
 
 <div class="overlay" id="inboxOverlay"></div>
 <div class="drawer" id="inboxDrawer"></div>
+<div class="overlay" id="journalOverlay"></div>
+<div class="drawer" id="journalDrawer"></div>
 <div class="analytics-overlay hidden" id="analyticsOverlay"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1890,6 +1919,166 @@ document.getElementById('inboxOverlay').onclick = closeInbox;
 document.getElementById('inboxBtn').onclick = openInbox;
 
 // ============================================================
+// JOURNAL D'ACTIVITÉ
+// ============================================================
+// La table activity_logs est alimentée par un déclencheur en base
+// (log_property_activity), pas par cette page : le journal enregistre donc
+// aussi ce qui est fait hors interface, par exemple depuis la console
+// Supabase. Sa lecture est réservée à l'admin par les règles de sécurité.
+
+const JOURNAL_PAR_PAGE = 25;
+let JOURNAL_ROWS = [];
+let journalFiltre = 'Tous';
+let journalPage = 1;
+
+// Libellé, couleur et icône de chaque type d'événement enregistré par le
+// déclencheur. Un type inconnu (ajouté plus tard en base) reste affiché
+// tel quel plutôt que d'être ignoré silencieusement.
+const JOURNAL_ACTIONS = {
+  create_property:          { label:'Bien créé',            couleur:'#2F7A4E', icone:'+' },
+  update_property:          { label:'Bien modifié',         couleur:'#6B7772', icone:'✎' },
+  update_status:            { label:'Statut changé',        couleur:'#C8871A', icone:'⇄' },
+  archive_property:         { label:'Bien archivé',         couleur:'#8B9199', icone:'▤' },
+  restore_property:         { label:'Bien restauré',        couleur:'#1F7A73', icone:'↺' },
+  delete_property_permanent:{ label:'Suppression définitive',couleur:'#C4432F', icone:'✕' }
+};
+
+function journalActionInfo(action){
+  return JOURNAL_ACTIONS[action] || { label: action, couleur:'#6B7772', icone:'•' };
+}
+
+function journalActeur(actorId){
+  if(!actorId) return 'Système';           // modification hors session (SQL, migration)
+  if(actorId === ADMIN_ID) return 'Vous';
+  return COLLABORATORS[actorId] || 'Collaborateur (non nommé)';
+}
+
+// Date lisible : l'heure exacte compte dans un journal d'audit.
+function journalDate(iso){
+  const d = new Date(iso);
+  const auj = new Date();
+  const memeJour = d.toDateString() === auj.toDateString();
+  const heure = d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+  if(memeJour) return `Aujourd'hui à ${heure}`;
+  return d.toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' }) + ` à ${heure}`;
+}
+
+async function loadJournalData(){
+  const { data, error } = await db.from('activity_logs')
+    .select('id, actor_id, action, entity_type, entity_id, details, created_at')
+    .order('created_at', { ascending:false })
+    .limit(500);
+  if(error){ JOURNAL_ROWS = null; return; }
+  JOURNAL_ROWS = data || [];
+}
+
+function renderJournal(){
+  const d = document.getElementById('journalDrawer');
+
+  if(JOURNAL_ROWS === null){
+    d.innerHTML = `
+      <div class="inbox-tabs"><strong style="font-family:'Manrope',sans-serif;font-size:17px;">Journal d'activité</strong></div>
+      <div class="inbox-empty">Lecture du journal impossible. Cette page est réservée à l'administrateur.</div>`;
+    return;
+  }
+
+  const lignes = journalFiltre === 'Tous'
+    ? JOURNAL_ROWS
+    : JOURNAL_ROWS.filter(r => r.action === journalFiltre);
+
+  const totalPages = Math.max(1, Math.ceil(lignes.length / JOURNAL_PAR_PAGE));
+  journalPage = Math.min(Math.max(1, journalPage), totalPages);
+  const debut = (journalPage - 1) * JOURNAL_PAR_PAGE;
+  const page = lignes.slice(debut, debut + JOURNAL_PAR_PAGE);
+
+  // On ne propose que les filtres réellement présents dans le journal.
+  const presentes = [...new Set(JOURNAL_ROWS.map(r => r.action))];
+
+  d.innerHTML = `
+    <div class="journal-tete">
+      <div>
+        <strong>Journal d'activité</strong>
+        <p>${JOURNAL_ROWS.length} événement${JOURNAL_ROWS.length>1?'s':''} enregistré${JOURNAL_ROWS.length>1?'s':''}</p>
+      </div>
+      <button type="button" class="drawer-close" id="journalClose" aria-label="Fermer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="journal-filtres">
+      <button type="button" class="chip ${journalFiltre==='Tous'?'active':''}" data-journal-filtre="Tous">Tout <span class="count">${JOURNAL_ROWS.length}</span></button>
+      ${presentes.map(a=>{
+        const info = journalActionInfo(a);
+        const n = JOURNAL_ROWS.filter(r=>r.action===a).length;
+        return `<button type="button" class="chip ${journalFiltre===a?'active':''}" data-journal-filtre="${esc(a)}">${esc(info.label)} <span class="count">${n}</span></button>`;
+      }).join('')}
+    </div>
+
+    ${lignes.length === 0 ? `<div class="inbox-empty">Aucun événement pour ce filtre.</div>` : `
+      <div class="journal-liste">
+        ${page.map(r=>{
+          const info = journalActionInfo(r.action);
+          const det = r.details || {};
+          const ref = det.ref ? esc(det.ref) : null;
+          // Le bien peut avoir été supprimé depuis : la référence conservée
+          // dans details reste lisible même quand la fiche n'existe plus.
+          const existe = ref && PROPERTIES.some(p => String(p.id) === String(r.entity_id));
+          const changement = (det.old_status || det.new_status)
+            ? `<span class="journal-transition">${esc(det.old_status || '—')} <span aria-hidden="true">→</span> ${esc(det.new_status || '—')}</span>` : '';
+          return `
+            <div class="journal-item">
+              <span class="journal-puce" style="background:${info.couleur}1F;color:${info.couleur};" aria-hidden="true">${info.icone}</span>
+              <div class="journal-corps">
+                <div class="journal-ligne1">
+                  <strong>${esc(info.label)}</strong>
+                  ${ref ? (existe
+                      ? `<button type="button" class="journal-ref" data-journal-bien="${esc(String(r.entity_id))}">${ref}</button>`
+                      : `<span class="journal-ref journal-ref-morte" title="Ce bien n'existe plus">${ref}</span>`) : ''}
+                </div>
+                ${changement}
+                <div class="journal-meta">${esc(journalActeur(r.actor_id))} · ${esc(journalDate(r.created_at))}</div>
+              </div>
+            </div>`;
+        }).join('')}
+        ${totalPages > 1 ? `
+          <nav class="list-pager" aria-label="Pagination du journal">
+            <button type="button" class="pager-btn" data-journal-page="-1" ${journalPage===1?'disabled':''}>‹ Précédent</button>
+            <span class="pager-status">Page ${journalPage} sur ${totalPages}<small>${debut+1}–${debut+page.length} sur ${lignes.length}</small></span>
+            <button type="button" class="pager-btn" data-journal-page="1" ${journalPage===totalPages?'disabled':''}>Suivant ›</button>
+          </nav>` : ''}
+      </div>`}
+  `;
+
+  document.getElementById('journalClose').onclick = closeJournal;
+  d.querySelectorAll('[data-journal-filtre]').forEach(b=>{
+    b.onclick = () => { journalFiltre = b.dataset.journalFiltre; journalPage = 1; renderJournal(); };
+  });
+  d.querySelectorAll('[data-journal-page]').forEach(b=>{
+    b.onclick = () => { journalPage += Number(b.dataset.journalPage); renderJournal(); d.scrollTop = 0; };
+  });
+  d.querySelectorAll('[data-journal-bien]').forEach(b=>{
+    b.onclick = () => {
+      const p = PROPERTIES.find(x => String(x.id) === String(b.dataset.journalBien));
+      if(p){ closeJournal(); openDrawer(p); }
+    };
+  });
+}
+
+async function openJournal(){
+  journalPage = 1;
+  await loadJournalData();
+  renderJournal();
+  document.getElementById('journalDrawer').classList.add('open');
+  document.getElementById('journalOverlay').classList.add('open');
+}
+function closeJournal(){
+  document.getElementById('journalDrawer').classList.remove('open');
+  document.getElementById('journalOverlay').classList.remove('open');
+}
+document.getElementById('journalOverlay').onclick = closeJournal;
+document.getElementById('journalBtn').onclick = openJournal;
+
+// ============================================================
 // TABLEAU DE BORD ANALYTIQUE
 // ============================================================
 let analyticsCharts = [];
@@ -2168,6 +2357,9 @@ async function checkAuth(){
     document.getElementById('authOverlay').style.display = 'none';
     IS_ADMIN = session.user.id === ADMIN_ID;
     document.getElementById('inboxBtn').style.display = IS_ADMIN ? '' : 'none';
+  // Le journal trace qui a fait quoi sur les biens de tout le monde :
+  // il reste reserve a l'admin, comme la regle de lecture en base.
+  document.getElementById('journalBtn').style.display = IS_ADMIN ? '' : 'none';
     // Les statistiques sont ouvertes aux collaborateurs : les règles de
   // sécurité de la base restreignent d'elles-mêmes les chiffres à leurs
   // propres biens. La boîte de réception reste réservée à l'admin.
@@ -2191,6 +2383,9 @@ document.getElementById('authSubmit').onclick = async () => {
   document.getElementById('authOverlay').style.display = 'none';
   IS_ADMIN = data.user.id === ADMIN_ID;
   document.getElementById('inboxBtn').style.display = IS_ADMIN ? '' : 'none';
+  // Le journal trace qui a fait quoi sur les biens de tout le monde :
+  // il reste reserve a l'admin, comme la regle de lecture en base.
+  document.getElementById('journalBtn').style.display = IS_ADMIN ? '' : 'none';
   // Les statistiques sont ouvertes aux collaborateurs : les règles de
   // sécurité de la base restreignent d'elles-mêmes les chiffres à leurs
   // propres biens. La boîte de réception reste réservée à l'admin.
