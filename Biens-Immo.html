@@ -120,9 +120,19 @@
   header .btn-outline:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.34);}
 
   /* ---------- Hero ---------- */
+  /* Vue aérienne d'un quartier résidentiel de Dakar en fond — villas,
+     jardins et immeubles, c'est-à-dire le parc que vend l'agence.
+     Image du domaine public (Wikimedia Commons), 1600 px de large :
+     elle est réduite à l'affichage, jamais agrandie. Le voile sombre est
+     plus dense à gauche, derrière le texte, et s'éclaircit à droite pour
+     laisser respirer la ville. Le dégradé nuit reste en dernière couche :
+     c'est lui qu'on voit tant que la photo n'est pas chargée. */
   .hero{background:
+      linear-gradient(103deg, rgba(9,17,14,0.95) 0%, rgba(10,20,16,0.90) 34%, rgba(11,21,17,0.74) 62%, rgba(12,22,19,0.62) 100%),
       radial-gradient(900px 420px at 78% -10%, rgba(226,162,44,0.16), transparent 62%),
+      url('assets/dakar-aerienne.jpg') center 45% / cover no-repeat,
       linear-gradient(155deg, var(--night) 0%, var(--night-2) 58%, #1A1710 100%);
+    background-color:var(--night);
     padding:58px 22px 92px;position:relative;overflow:hidden;}
   .hero::after{content:'';position:absolute;inset:0;background:
     repeating-linear-gradient(0deg, rgba(255,255,255,0.032) 0px, rgba(255,255,255,0.032) 1px, transparent 1px, transparent 34px),
@@ -426,7 +436,16 @@
     /* Sur téléphone, l'enjeu est d'amener les annonces au-dessus de la
        ligne de flottaison : le hero et la barre de filtres sont
        resserrés, sans rien retirer de leur contenu. */
-    .hero{padding:22px 16px 56px;}
+    /* Sur téléphone le bandeau est presque carré : `cover` cadre alors
+       une colonne centrale de la photo. Le voile est monté d'un cran,
+       le texte occupant toute la largeur au lieu du seul tiers gauche. */
+    .hero{padding:22px 16px 56px;
+      background:
+        linear-gradient(168deg, rgba(9,17,14,0.94) 0%, rgba(10,20,16,0.89) 42%, rgba(11,21,17,0.80) 100%),
+        radial-gradient(600px 300px at 82% -8%, rgba(226,162,44,0.16), transparent 62%),
+        url('assets/dakar-aerienne.jpg') center center / cover no-repeat,
+        linear-gradient(155deg, var(--night) 0%, var(--night-2) 58%, #1A1710 100%);
+      background-color:var(--night);}
     .hero-eyebrow{font-size:10px;letter-spacing:.12em;margin-bottom:8px;}
     .hero h2{max-width:100%;font-size:clamp(27px,7.8vw,34px);margin-bottom:8px;}
     .hero p{font-size:13.5px;margin-bottom:16px;line-height:1.5;}
@@ -731,7 +750,7 @@
       </div>
     </div>
   </div>
-  <div class="footer-bottom">PAB Immo · Dakar &amp; Thiès · Visites sur rendez-vous · +221 77 849 41 11</div>
+  <div class="footer-bottom">PAB Immo · Dakar &amp; Thiès · Visites sur rendez-vous · +221 77 849 41 11 · Vue aérienne de Dakar : Ji-Elle, domaine public</div>
 </footer>
 
 <div class="overlay" id="overlay"></div>
