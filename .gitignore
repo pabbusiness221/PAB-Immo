@@ -1,0 +1,3 @@
+# Réglages Claude Code propres à un poste (permissions accordées localement)
+.claude/settings.local.json
+.claude/worktrees/
