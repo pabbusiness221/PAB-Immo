@@ -436,13 +436,16 @@ create policy "Tout le monde peut enregistrer une visite" on public.site_visits
 create policy "Visites reservees a l'admin" on public.site_visits
   for select to public using (is_admin());
 
--- Prospects : le public dépose, seul l'admin relit.
--- NOTE : un collaborateur ne peut donc PAS voir les demandes portant sur ses
--- propres biens. C'est le point qui bloque les statistiques Collaborateur.
+-- Prospects : le public dépose et ne relit jamais. L'admin voit tout ;
+-- un collaborateur voit les demandes portant sur ses propres biens, en
+-- lecture seule (la modification et la suppression restent à l'admin).
 create policy "Tout le monde peut envoyer un message" on public.contact_messages
   for insert to anon, authenticated with check (true);
 create policy "Messages reserves a l'admin" on public.contact_messages
   for select to public using (is_admin());
+create policy "Messages visibles par le proprietaire du bien" on public.contact_messages
+  for select to public
+  using (exists (select 1 from properties p where p.id = contact_messages.property_id and p.owner_id = auth.uid()));
 create policy "Maj messages reservee a l'admin" on public.contact_messages
   for update to public using (is_admin()) with check (is_admin());
 create policy "Suppression messages reservee a l'admin" on public.contact_messages
@@ -452,6 +455,9 @@ create policy "Tout le monde peut demander un RDV" on public.appointments
   for insert to anon, authenticated with check (true);
 create policy "RDV reserves a l'admin" on public.appointments
   for select to public using (is_admin());
+create policy "RDV visibles par le proprietaire du bien" on public.appointments
+  for select to public
+  using (exists (select 1 from properties p where p.id = appointments.property_id and p.owner_id = auth.uid()));
 create policy "Maj RDV reservee a l'admin" on public.appointments
   for update to public using (is_admin()) with check (is_admin());
 create policy "Suppression RDV reservee a l'admin" on public.appointments

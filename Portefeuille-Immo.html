@@ -362,6 +362,10 @@
   .top-list-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .top-list-count{font-weight:800;font-family:'Manrope',sans-serif;color:var(--ink);flex-shrink:0;font-variant-numeric:tabular-nums;}
   .analytics-empty{text-align:center;color:var(--ink-soft);font-size:12.5px;padding:32px 10px;}
+  /* Note de lecture sous les indicateurs : sans elle, « visites organisées »
+     et « conversion prospects » se prêtent à des interprétations différentes. */
+  .analytics-note{margin:-14px 0 22px;font-size:12px;line-height:1.6;color:var(--ink-soft);background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:12px 15px;}
+  .analytics-note strong{color:var(--ink);font-weight:700;}
 
   /* ---------- Responsive ---------- */
   @media (max-width: 1180px){
@@ -1926,9 +1930,13 @@ async function loadAnalyticsData(){
     db.from('property_views').select('property_id'),
     db.from('favorite_events').select('property_id').eq('action','add'),
     db.from('contact_messages').select('id, created_at'),
-    db.from('appointments').select('id, created_at'),
+    db.from('appointments').select('id, created_at, status'),
     db.from('property_status_history').select('property_id, new_status, changed_at')
   ]);
+  // Chaque requête ci-dessus est filtrée par les règles de sécurité de la
+  // base : l'admin voit tout, un collaborateur ne voit que ce qui touche à
+  // ses propres biens. Aucun filtrage n'est fait ici, ce serait redondant et
+  // surtout contournable.
 
   const viewsByProperty = {};
   (viewRows||[]).forEach(r=>{ viewsByProperty[r.property_id] = (viewsByProperty[r.property_id]||0)+1; });
@@ -1943,6 +1951,18 @@ async function loadAnalyticsData(){
   // Plafonné à 100 % : les messages/RDV historiques (antérieurs au suivi des
   // visiteurs) peuvent gonfler le ratio au-delà de 100 %, ce qui n'aurait pas de sens.
   const conversionRate = uniqueVisitors > 0 ? Math.min(100, Math.round(((totalMsg+totalRdv)/uniqueVisitors)*1000)/10) : 0;
+
+  // Contacts générés : toute prise de contact, message ou demande de visite.
+  const totalContacts = totalMsg + totalRdv;
+  // Visites organisées : une demande de RDV confirmée. Faute d'un statut
+  // « Réalisée » dans la base, on ne peut pas savoir si la visite a bien eu
+  // lieu — c'est une visite planifiée, pas une visite effectuée.
+  const visitesOrganisees = (rdvRows||[]).filter(r => r.status === 'Confirmé').length;
+  const rdvAnnules = (rdvRows||[]).filter(r => r.status === 'Annulé').length;
+  // Conversion des prospects : part des contacts qui aboutissent à une visite
+  // confirmée. Indicateur provisoire — un vrai suivi d'affaire (contacté,
+  // négociation, gagné/perdu) donnera mieux.
+  const prospectRate = totalContacts > 0 ? Math.round((visitesOrganisees / totalContacts) * 1000) / 10 : 0;
 
   const salesByMonth = {}, rentalsByMonth = {};
   (statusHistory||[]).forEach(h=>{
@@ -1961,8 +1981,16 @@ async function loadAnalyticsData(){
     byCollaborator[label] = (byCollaborator[label]||0)+1;
   });
 
+  // Nombre d'agences actives : réservé à l'admin, et faute de notion d'agence
+  // dans la base, on compte les collaborateurs ayant au moins un bien non
+  // archivé. À revoir le jour où une vraie table d'agences existera.
+  const agencesActives = IS_ADMIN
+    ? new Set(PROPERTIES.filter(p=>!p.archived_at).map(p=>p.owner_id)).size
+    : null;
+
   return {
     uniqueVisitors, totalViews, totalFavAdds, totalMsg, totalRdv, conversionRate,
+    totalContacts, visitesOrganisees, rdvAnnules, prospectRate, agencesActives,
     salesByMonth, rentalsByMonth, msgByMonth, rdvByMonth,
     byRegion, byCollaborator, viewsByProperty, favByProperty
   };
@@ -2013,21 +2041,35 @@ function renderAnalytics(d){
   const months = lastNMonths(6);
   const monthLabels = months.map(m=>m.label);
 
+  // « Visiteurs » et « Taux de conversion » viennent de site_visits, qui reste
+  // réservée à l'admin : un collaborateur n'a aucun moyen de savoir combien de
+  // personnes ont visité le site. On masque ces deux cases plutôt que
+  // d'afficher un zéro trompeur.
   body.innerHTML = `
     <div class="kpi-grid">
-      <div class="kpi-card"><div class="kv">${d.uniqueVisitors}</div><div class="kl">Visiteurs</div></div>
+      ${IS_ADMIN ? `<div class="kpi-card"><div class="kv">${d.agencesActives}</div><div class="kl">Agences actives</div></div>` : ''}
+      ${IS_ADMIN ? `<div class="kpi-card"><div class="kv">${d.uniqueVisitors}</div><div class="kl">Visiteurs</div></div>` : ''}
       <div class="kpi-card"><div class="kv">${d.totalViews}</div><div class="kl">Biens consultés</div></div>
       <div class="kpi-card"><div class="kv">${d.totalFavAdds}</div><div class="kl">Mises en favoris</div></div>
-      <div class="kpi-card"><div class="kv">${d.totalRdv}</div><div class="kl">Demandes de RDV</div></div>
+      <div class="kpi-card"><div class="kv">${d.totalContacts}</div><div class="kl">Contacts générés</div></div>
+      <div class="kpi-card"><div class="kv">${d.visitesOrganisees}</div><div class="kl">Visites organisées</div></div>
+      <div class="kpi-card"><div class="kv">${d.prospectRate}%</div><div class="kl">Conversion prospects</div></div>
       <div class="kpi-card"><div class="kv">${d.totalMsg}</div><div class="kl">Messages reçus</div></div>
-      <div class="kpi-card"><div class="kv">${d.conversionRate}%</div><div class="kl">Taux de conversion</div></div>
+      <div class="kpi-card"><div class="kv">${d.totalRdv}</div><div class="kl">Demandes de RDV</div></div>
+      ${IS_ADMIN ? `<div class="kpi-card"><div class="kv">${d.conversionRate}%</div><div class="kl">Visiteurs → contact</div></div>` : ''}
     </div>
+    <p class="analytics-note">
+      <strong>Contacts générés</strong> : messages + demandes de visite.
+      <strong>Visites organisées</strong> : demandes de RDV confirmées${d.rdvAnnules ? ` (${d.rdvAnnules} annulée${d.rdvAnnules>1?'s':''} sur la période)` : ''}.
+      <strong>Conversion prospects</strong> : part des contacts aboutissant à une visite confirmée.
+      ${IS_ADMIN ? '' : 'Ces chiffres ne portent que sur vos biens.'}
+    </p>
     <div class="charts-grid">
       <div class="chart-card full"><h3>Évolution du portefeuille (biens cumulés, 6 derniers mois)</h3><canvas id="chartPortfolio"></canvas></div>
       <div class="chart-card"><h3>Ventes &amp; locations par mois</h3><canvas id="chartSalesRentals"></canvas></div>
       <div class="chart-card"><h3>Messages &amp; RDV par mois</h3><canvas id="chartLeads"></canvas></div>
       <div class="chart-card"><h3>Biens par région</h3><canvas id="chartRegion"></canvas></div>
-      <div class="chart-card"><h3>Biens par collaborateur</h3><canvas id="chartCollab"></canvas></div>
+      ${IS_ADMIN ? `<div class="chart-card"><h3>Biens par collaborateur</h3><canvas id="chartCollab"></canvas></div>` : ''}
       <div class="chart-card"><h3>Biens les plus consultés</h3>${topPropertiesList(d.viewsByProperty, 'Aucune consultation enregistrée pour l’instant.')}</div>
       <div class="chart-card"><h3>Biens les plus ajoutés en favoris</h3>${topPropertiesList(d.favByProperty, 'Aucun favori enregistré pour l’instant.')}</div>
     </div>
@@ -2092,7 +2134,7 @@ async function openAnalytics(){
   overlay.classList.remove('hidden');
   overlay.innerHTML = `
     <div class="analytics-header">
-      <div><h2>Statistiques</h2><p>Vue d'ensemble de votre activité — 6 derniers mois</p></div>
+      <div><h2>Statistiques</h2><p>${IS_ADMIN ? "Vue d'ensemble de l'activité" : 'Vos biens uniquement'} — 6 derniers mois</p></div>
       <button class="analytics-close" id="analyticsCloseBtn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F172A" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
@@ -2126,7 +2168,10 @@ async function checkAuth(){
     document.getElementById('authOverlay').style.display = 'none';
     IS_ADMIN = session.user.id === ADMIN_ID;
     document.getElementById('inboxBtn').style.display = IS_ADMIN ? '' : 'none';
-    document.getElementById('analyticsBtn').style.display = IS_ADMIN ? '' : 'none';
+    // Les statistiques sont ouvertes aux collaborateurs : les règles de
+  // sécurité de la base restreignent d'elles-mêmes les chiffres à leurs
+  // propres biens. La boîte de réception reste réservée à l'admin.
+  document.getElementById('analyticsBtn').style.display = '';
     if(IS_ADMIN) await loadCollaborators();
     loadProperties();
     if(IS_ADMIN) loadInboxCounts();
@@ -2146,7 +2191,10 @@ document.getElementById('authSubmit').onclick = async () => {
   document.getElementById('authOverlay').style.display = 'none';
   IS_ADMIN = data.user.id === ADMIN_ID;
   document.getElementById('inboxBtn').style.display = IS_ADMIN ? '' : 'none';
-  document.getElementById('analyticsBtn').style.display = IS_ADMIN ? '' : 'none';
+  // Les statistiques sont ouvertes aux collaborateurs : les règles de
+  // sécurité de la base restreignent d'elles-mêmes les chiffres à leurs
+  // propres biens. La boîte de réception reste réservée à l'admin.
+  document.getElementById('analyticsBtn').style.display = '';
   if(IS_ADMIN) await loadCollaborators();
   loadProperties();
   if(IS_ADMIN) loadInboxCounts();
