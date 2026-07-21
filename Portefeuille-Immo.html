@@ -55,7 +55,11 @@
     --focus-ring:0 0 0 3px rgba(226,162,44,0.45);
   }
   *{box-sizing:border-box;}
-  html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;}
+  /* Pas d'overflow-x ici : un `hidden`/`clip` sur html ou body fait de la
+     page un conteneur de défilement et neutralise le position:sticky de
+     la carte, qui défilait alors avec la liste. Le débordement latéral est
+     contenu localement, sur les blocs qui peuvent déborder. */
+  html,body{max-width:100%;}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
   h1,h2,h3,.num,.brand{font-family:'Manrope',sans-serif;}
   .mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;}
@@ -68,7 +72,10 @@
 
   /* ---------- Barre de travail ---------- */
   header{position:sticky;top:0;z-index:40;background:rgba(12,22,19,0.94);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.08);}
-  .header-inner{display:flex;align-items:center;gap:12px;padding:12px 22px;max-width:1400px;margin:0 auto;}
+  /* flex-wrap dès le départ : entre ~680 et ~1100 px, brand + recherche +
+     trois boutons + déconnexion ne tiennent pas sur une ligne. L'ancien
+     overflow-x:clip masquait le problème en coupant le bouton hors écran. */
+  .header-inner{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px 22px;max-width:1400px;margin:0 auto;}
   .brand{display:flex;align-items:center;gap:11px;flex-shrink:0;}
   .brand img{border-radius:11px;box-shadow:0 4px 14px rgba(0,0,0,0.35);}
   .brand h1{font-size:16px;font-weight:800;margin:0;letter-spacing:-0.01em;color:#fff;}
@@ -151,6 +158,15 @@
   .price{font-size:15px;font-weight:800;color:var(--ink);font-family:'Manrope',sans-serif;letter-spacing:-0.01em;}
 
   .empty{background:var(--surface);border-radius:var(--radius-lg);padding:56px 24px;text-align:center;box-shadow:var(--shadow);border:1px solid var(--border);animation:fadeInUp .35s var(--ease);}
+
+  /* Pagination du portefeuille — n'apparaît qu'au-delà d'une page. */
+  .list-pager{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:4px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow);}
+  .pager-btn{border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:999px;padding:10px 16px;font-size:12.5px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;white-space:nowrap;min-height:40px;transition:all .2s var(--ease);}
+  .pager-btn:hover:not(:disabled){border-color:var(--accent);color:var(--gold);background:var(--accent-soft);}
+  .pager-btn:active:not(:disabled){transform:scale(.97);}
+  .pager-btn:disabled{opacity:.4;cursor:not-allowed;}
+  .pager-status{text-align:center;font-size:12.5px;font-weight:800;line-height:1.3;font-family:'Manrope',sans-serif;}
+  .pager-status small{display:block;font-size:11px;font-weight:600;color:var(--ink-soft);margin-top:2px;font-family:'Inter',sans-serif;}
 
   /* ---------- Panneaux latéraux ---------- */
   .overlay{position:fixed;inset:0;background:rgba(10,18,15,0.5);backdrop-filter:blur(2px);z-index:900;opacity:0;pointer-events:none;transition:opacity .22s ease;}
@@ -349,7 +365,10 @@
 
   /* ---------- Responsive ---------- */
   @media (max-width: 1180px){
-    .searchbar{max-width:260px;}
+    .searchbar{max-width:260px;min-width:0;}
+    /* Les libellés des boutons partent avant la recherche : les icônes
+       restent explicites et l'en-tête tient sur une seule ligne. */
+    .btn-label{display:none;}
   }
   @media (max-width: 1023px){
     .panel-map{position:relative;top:0;height:min(60vh,480px);}
@@ -366,10 +385,25 @@
     .header-inner{flex-wrap:wrap;padding:12px 16px;gap:9px;}
     .brand h1{font-size:15px;}
     .brand p{display:none;}
-    .searchbar{order:3;flex:1 1 100%;max-width:none;margin-top:2px;}
+    /* La recherche et « Déconnexion » partagent la même ligne : le bouton
+       occupait une troisième ligne à lui seul sur un en-tête collant qui
+       mangeait déjà 154 px, soit un cinquième de l'écran en permanence. */
+    /* flex-basis en pourcentage et non `auto` : sinon la barre réclame la
+       largeur de son contenu, occupe la ligne entière et repousse le
+       bouton sur une troisième. */
+    .searchbar{order:3;flex:1 1 55%;min-width:0;max-width:none;margin-top:2px;}
     .btn-label{display:none;}
     .btn-primary, .btn-inbox{padding:10px 14px;}
-    .btn-logout{order:4;}
+    .btn-logout{order:4;flex:0 0 auto;white-space:nowrap;padding:11px 8px;min-height:40px;}
+    /* Indicateurs resserrés : on en voit trois d'un coup au lieu de deux. */
+    .stat{padding:12px 14px;min-width:112px;gap:10px;}
+    .stat-dot{width:34px;height:34px;border-radius:10px;}
+    .stat .lbl{font-size:11px;}
+    /* Bascule Liste/Carte pleine largeur, comme côté client. */
+    .view-toggle{width:100%;}
+    .view-toggle button{flex:1;min-height:40px;}
+    .list-pager{flex-direction:column;padding:14px;}
+    .pager-btn{width:100%;}
     .toolbar{padding:16px 16px 0;}
     .split{padding:0 16px;}
     .stat{padding:13px 15px;min-width:120px;}
@@ -599,7 +633,9 @@ const fcfa = n => n.toLocaleString('fr-FR') + ' FCFA';
 function esc(s){
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-let state = { type:'Tous', status:'Tous', search:'', selected:null, showArchived:false };
+let state = { type:'Tous', status:'Tous', search:'', selected:null, showArchived:false, page:1 };
+// Les fiches du portefeuille sont en une colonne : dix par page = dix lignes.
+const PER_PAGE = 10;
 let markers = {};
 
 // Ensemble de base selon le mode : biens actifs (par défaut) OU biens archivés.
@@ -709,6 +745,16 @@ function renderStats(){
 }
 
 // ---- Liste ----
+function pagerHtml(total, totalPages, start, shown){
+  if(totalPages <= 1) return '';
+  return `
+    <nav class="list-pager" aria-label="Pagination du portefeuille">
+      <button type="button" class="pager-btn" data-page-step="-1" ${state.page===1?'disabled':''}>‹ Précédent</button>
+      <span class="pager-status">Page ${state.page} sur ${totalPages}<small>${start+1}–${start+shown} sur ${total} biens</small></span>
+      <button type="button" class="pager-btn" data-page-step="1" ${state.page===totalPages?'disabled':''}>Suivant ›</button>
+    </nav>`;
+}
+
 function renderList(){
   const items = filtered();
   const el = document.getElementById('list');
@@ -716,7 +762,14 @@ function renderList(){
     el.innerHTML = `<div class="empty"><h3 style="margin:0 0 6px;font-size:15px;">Aucun bien ne correspond</h3><p style="margin:0;color:var(--ink-soft);font-size:12.5px;">Essayez d'élargir la recherche ou de changer de filtre.</p></div>`;
     return;
   }
-  el.innerHTML = items.map(p=>{
+  // Découpage en pages. La borne est resserrée ici plutôt qu'au clic : un
+  // filtre ou un passage en archives peut rendre la page courante inexistante.
+  const totalPages = Math.max(1, Math.ceil(items.length / PER_PAGE));
+  state.page = Math.min(Math.max(1, state.page), totalPages);
+  const start = (state.page - 1) * PER_PAGE;
+  const pageItems = items.slice(start, start + PER_PAGE);
+
+  el.innerHTML = pageItems.map(p=>{
     const cover = coverUrl(p);
     return `
     <div class="card ${String(state.selected)===String(p.id)?'selected':''}" data-id="${p.id}" style="border-left-color:${STATUS_COLOR[p.status]}">
@@ -745,7 +798,17 @@ function renderList(){
         </div>
       </div>
     </div>`;
-  }).join('');
+  }).join('') + pagerHtml(items.length, totalPages, start, pageItems.length);
+
+  el.querySelectorAll('[data-page-step]').forEach(btn=>{
+    btn.onclick = () => {
+      state.page += Number(btn.dataset.pageStep);
+      renderList();
+      // On remonte en tête de liste, sinon on atterrit au milieu de la
+      // page suivante, là où se trouvait le bouton.
+      document.getElementById('split').scrollIntoView({ behavior:'smooth', block:'start' });
+    };
+  });
   el.querySelectorAll('.card').forEach(c=>{
     c.onclick=()=>{
       const p = PROPERTIES.find(x=>String(x.id)===String(c.dataset.id));
@@ -759,6 +822,11 @@ function renderList(){
 }
 function highlightCard(id){
   state.selected = id;
+  // La carte affiche tous les marqueurs, pages suivantes comprises : on
+  // bascule sur celle qui contient le bien, sinon sa fiche n'existe pas
+  // dans le DOM et rien ne défile.
+  const idx = filtered().findIndex(x => String(x.id) === String(id));
+  if(idx >= 0) state.page = Math.floor(idx / PER_PAGE) + 1;
   renderList();
   rebuildMarkers(filtered());
   const card = document.querySelector('.card.selected');
@@ -2000,6 +2068,9 @@ document.getElementById('analyticsBtn').onclick = openAnalytics;
 
 // ---- Rendu global ----
 function render(){
+  // Tout changement de filtre, de statut ou d'archives passe par ici : on
+  // repart de la première page, sinon on peut atterrir sur une page vide.
+  state.page = 1;
   renderChips();
   renderList();
   rebuildMarkers(filtered());
