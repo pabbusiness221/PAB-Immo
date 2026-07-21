@@ -56,8 +56,11 @@ async function findMatchingSubscriptions(property: Record<string, any>) {
 }
 
 function buildEmailHtml(property: Record<string, any>) {
+  // Lien direct vers la vitrine, et non vers share-preview : Supabase renvoie
+  // les réponses de ses fonctions Edge en text/plain avec nosniff, si bien que
+  // l'inscrit recevait le code source en texte brut au lieu de la page du bien.
   const link = LISTING_URL
-    ? `${SUPABASE_URL}/functions/v1/share-preview?bien=${encodeURIComponent(property.ref)}`
+    ? `${LISTING_URL}?bien=${encodeURIComponent(property.ref)}`
     : null;
   return `
     <div style="font-family:sans-serif;color:#161B22;max-width:480px;">
