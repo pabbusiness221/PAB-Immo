@@ -77,7 +77,14 @@ create table public.properties (
   updated_at timestamp with time zone default now() not null,
   departement text,
   archived_at timestamp with time zone,
+  -- Badges de confiance. verified_at ne peut être posé que par l'admin
+  -- (déclencheur trg_properties_verification) ; availability_checked_at est
+  -- déclaratif et rafraîchissable par le propriétaire du bien.
+  verified_at timestamp with time zone,
+  verified_by uuid,
+  availability_checked_at timestamp with time zone,
   constraint properties_pkey PRIMARY KEY (id),
+  constraint properties_verified_by_fkey FOREIGN KEY (verified_by) REFERENCES auth.users(id) ON DELETE SET NULL,
   constraint properties_ref_key UNIQUE (ref),
   constraint properties_owner_id_fkey FOREIGN KEY (owner_id) REFERENCES auth.users(id)
 );
@@ -198,7 +205,8 @@ create table public.activity_logs (
 create or replace view public.public_properties as
   select id, ref, type, operation, status, commune, region, quartier, departement,
          lat, lng, surface, price, description,
-         chambres, salons, salles_bain, cuisine, equipements
+         chambres, salons, salles_bain, cuisine, equipements,
+         verified_at, availability_checked_at
   from properties
   where is_published = true
     and status = any (array['Disponible'::property_status, 'Réservé'::property_status])
@@ -284,6 +292,42 @@ begin
 end;
 $function$;
 
+-- Garde-fou des badges de confiance. La sécurité au niveau des lignes
+-- autorise un collaborateur à modifier ses propres biens, toutes colonnes
+-- confondues : elle ne sait pas restreindre une colonne. Sans ce déclencheur,
+-- n'importe quel collaborateur pourrait s'attribuer le badge « vérifiée »,
+-- qui ne vaudrait alors plus rien.
+create or replace function public.enforce_verification_rights()
+returns trigger
+language plpgsql
+security definer
+set search_path to 'public'
+as $function$
+begin
+  if tg_op = 'INSERT' then
+    if (new.verified_at is not null or new.verified_by is not null) and not is_admin() then
+      raise exception 'Seul l''administrateur peut certifier une annonce.';
+    end if;
+  elsif tg_op = 'UPDATE' then
+    if (new.verified_at is distinct from old.verified_at
+        or new.verified_by is distinct from old.verified_by)
+       and not is_admin() then
+      raise exception 'Seul l''administrateur peut certifier une annonce.';
+    end if;
+  end if;
+
+  -- L'auteur de la certification est déduit, jamais fourni par le client.
+  if new.verified_at is not null and (tg_op = 'INSERT' or new.verified_at is distinct from old.verified_at) then
+    new.verified_by := auth.uid();
+  end if;
+  if new.verified_at is null then
+    new.verified_by := null;
+  end if;
+
+  return new;
+end;
+$function$;
+
 -- Prévient par email à chaque nouveau message, RDV ou inscription alerte.
 -- Appelle la fonction Edge notify-lead (voir supabase/functions/).
 create or replace function public.notify_lead_webhook()
@@ -353,6 +397,7 @@ $function$;
 -- ----------------------------------------------------------------------------
 -- 7. Déclencheurs
 -- ----------------------------------------------------------------------------
+create trigger trg_properties_verification      before insert or update on public.properties for each row execute function enforce_verification_rights();
 create trigger trg_properties_updated_at        before update on public.properties            for each row execute function set_updated_at();
 create trigger trg_properties_status_history    after update  on public.properties            for each row execute function log_status_change();
 create trigger trg_properties_activity          after insert or update or delete on public.properties for each row execute function log_property_activity();
@@ -369,6 +414,7 @@ create index properties_owner_idx            on public.properties using btree (o
 create index properties_status_idx           on public.properties using btree (status);
 create index properties_type_idx             on public.properties using btree (type);
 create index properties_archived_idx         on public.properties using btree (archived_at);
+create index properties_verified_idx         on public.properties using btree (verified_at);
 create index properties_location_idx         on public.properties using gist (location);
 create index property_photos_property_idx    on public.property_photos using btree (property_id);
 create index property_views_property_idx     on public.property_views using btree (property_id);
