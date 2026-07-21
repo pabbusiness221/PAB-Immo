@@ -237,6 +237,20 @@ create or replace view public.public_property_photos as
     and p.archived_at is null;
 
 
+-- Chiffres affichables sur la vitrine. UNIQUEMENT des agrégats : aucun nom,
+-- aucun identifiant, aucune donnée personnelle.
+create or replace view public.public_stats as
+  select
+    (select count(*) from collaborators where verified_at is not null)      as agences_verifiees,
+    (select count(*) from properties
+      where is_published = true and archived_at is null
+        and status = any (array['Disponible'::property_status,'Réservé'::property_status])) as biens_publies,
+    (select count(*) from property_status_history
+      where new_status in ('Vendu','Loué'))                                 as transactions_conclues;
+
+grant select on public.public_stats to anon, authenticated;
+
+
 -- ----------------------------------------------------------------------------
 -- 6. Fonctions de déclenchement
 -- ----------------------------------------------------------------------------
