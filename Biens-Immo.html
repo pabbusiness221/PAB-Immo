@@ -181,7 +181,10 @@
 
   /* ---------- Liste + carte ---------- */
   .split{max-width:1400px;margin:22px auto 48px;padding:0 20px;display:flex;gap:20px;align-items:flex-start;}
-  .panel-list{flex:0 0 45%;display:grid;grid-template-columns:1fr;gap:14px;align-content:start;}
+  /* Deux annonces par ligne, comme sur téléphone : dans les ~605 px de la
+     colonne de gauche, ça donne des cartes de ~295 px et deux fois plus
+     de biens visibles sans faire défiler. */
+  .panel-list{flex:0 0 45%;display:grid;grid-template-columns:repeat(2,1fr);gap:14px;align-content:start;}
   .panel-list .empty{grid-column:1/-1;}
   .panel-map{flex:1;position:-webkit-sticky;position:sticky;top:86px;align-self:flex-start;height:calc(100vh - 108px);min-height:440px;border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--border);z-index:1;}
   #map{height:100%;width:100%;}
@@ -206,6 +209,15 @@
 
   .empty{background:var(--surface);border-radius:var(--radius-lg);padding:56px 24px;text-align:center;box-shadow:var(--shadow);border:1px solid var(--border);position:relative;animation:fadeInUp .35s var(--ease);}
   .empty h3{color:var(--ink);}
+
+  /* Pagination de la liste — n'apparaît qu'au-delà d'une page. */
+  .list-pager{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow);}
+  .pager-btn{border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:999px;padding:10px 16px;font-size:12.5px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;white-space:nowrap;min-height:40px;transition:all .2s var(--ease);}
+  .pager-btn:hover:not(:disabled){border-color:var(--accent);color:var(--gold);background:var(--accent-soft);}
+  .pager-btn:active:not(:disabled){transform:scale(.97);}
+  .pager-btn:disabled{opacity:.4;cursor:not-allowed;}
+  .pager-status{text-align:center;font-size:12.5px;font-weight:800;line-height:1.3;font-family:'Manrope',sans-serif;}
+  .pager-status small{display:block;font-size:11px;font-weight:600;color:var(--ink-soft);margin-top:2px;font-family:'Inter',sans-serif;}
 
   /* ---------- Fiche détaillée (drawer) ---------- */
   .overlay{position:fixed;inset:0;background:rgba(10,18,15,0.5);backdrop-filter:blur(2px);z-index:900;opacity:0;pointer-events:none;transition:opacity .22s ease;}
@@ -473,8 +485,21 @@
     .view-toggle{width:100%;margin-top:8px !important;padding:3px;}
     .view-toggle button{flex:1;padding:9px 12px;min-height:40px;}
     .split{padding:0 16px;margin-top:16px;}
-    .panel-list{grid-template-columns:1fr;}
-    .card-photo{aspect-ratio:16/11;}
+    /* Deux annonces par ligne sur téléphone : la vignette prime, on
+       resserre donc la typographie et on empile surface et prix, qui ne
+       tiennent plus côte à côte dans ~160 px de large. */
+    .panel-list{grid-template-columns:repeat(2,1fr);gap:10px;}
+    .card-photo{aspect-ratio:4/3;}
+    .card-body{padding:10px 11px 12px;}
+    .card-top h3{font-size:13px;line-height:1.25;}
+    .card-meta{font-size:11px;margin-top:5px;gap:4px;}
+    .card-foot{flex-direction:column;align-items:flex-start;gap:3px;margin-top:9px;padding-top:9px;}
+    .price{font-size:13.5px;}
+    .surface-txt{font-size:11px;}
+    .card-photo .fav-btn{width:36px;height:36px;top:8px;right:8px;}
+    .card-photo .pill{font-size:9.5px;padding:3px 8px;}
+    .list-pager{flex-direction:column;padding:14px;}
+    .pager-btn{width:100%;}
     .drawer{
       top:auto;bottom:0;right:0;left:0;width:100% !important;max-width:100% !important;
       height:92vh;border-radius:22px 22px 0 0;
@@ -888,8 +913,11 @@ const fcfa = n => n.toLocaleString('fr-FR') + ' FCFA';
 function esc(s){
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-let state = { type:'Tous', op:'Tous', search:'', selected:null, favOnly:false,
+let state = { type:'Tous', op:'Tous', search:'', selected:null, favOnly:false, page:1,
   region:'', departement:'', commune:'', quartier:'', centerLat:null, centerLng:null, radiusKm:null };
+// Nombre d'annonces par page de liste. Sur téléphone la grille en affiche
+// deux par ligne, soit dix lignes.
+const PER_PAGE = 20;
 let isRestoringFromURL = false;
 let markers = {};
 let searchCircle = null;
@@ -1255,6 +1283,16 @@ function initAdvancedSearch(){
   };
 }
 
+function pagerHtml(total, totalPages, start, shown){
+  if(totalPages <= 1) return '';
+  return `
+    <nav class="list-pager" aria-label="Pagination des annonces">
+      <button type="button" class="pager-btn" data-page-step="-1" ${state.page===1?'disabled':''}>‹ Précédent</button>
+      <span class="pager-status">Page ${state.page} sur ${totalPages}<small>${start+1}–${start+shown} sur ${total} biens</small></span>
+      <button type="button" class="pager-btn" data-page-step="1" ${state.page===totalPages?'disabled':''}>Suivant ›</button>
+    </nav>`;
+}
+
 function renderList(){
   const items = filtered();
   const el = document.getElementById('list');
@@ -1262,7 +1300,15 @@ function renderList(){
     el.innerHTML = `<div class="empty"><h3 style="margin:0 0 6px;font-size:15px;">Aucun bien ne correspond</h3><p style="margin:0;color:var(--ink-soft);font-size:12.5px;">Essayez d'élargir la recherche ou de changer de filtre.</p></div>`;
     return;
   }
-  el.innerHTML = items.map(p=>{
+  // Découpage en pages. La borne est resserrée ici plutôt qu'au moment du
+  // clic : un filtre qui réduit la liste peut rendre la page courante
+  // inexistante.
+  const totalPages = Math.max(1, Math.ceil(items.length / PER_PAGE));
+  state.page = Math.min(Math.max(1, state.page), totalPages);
+  const start = (state.page - 1) * PER_PAGE;
+  const pageItems = items.slice(start, start + PER_PAGE);
+
+  el.innerHTML = pageItems.map(p=>{
     const cover = coverUrl(p);
     return `
     <div class="card ${state.selected===p.id?'selected':''}" data-id="${p.id}">
@@ -1287,7 +1333,17 @@ function renderList(){
         </div>
       </div>
     </div>`;
-  }).join('');
+  }).join('') + pagerHtml(items.length, totalPages, start, pageItems.length);
+
+  el.querySelectorAll('[data-page-step]').forEach(btn=>{
+    btn.onclick = () => {
+      state.page += Number(btn.dataset.pageStep);
+      renderList();
+      // On remonte en tête de liste, sinon le visiteur atterrit au milieu
+      // de la page suivante, là où il avait cliqué.
+      document.getElementById('split').scrollIntoView({ behavior:'smooth', block:'start' });
+    };
+  });
   el.querySelectorAll('.card').forEach(c=>{
     c.onclick=()=>{
       const p = PROPERTIES.find(x=>x.id==c.dataset.id);
@@ -1308,6 +1364,11 @@ function renderList(){
 }
 function highlightCard(id){
   state.selected = id;
+  // Le clic vient de la carte : tous les marqueurs y sont affichés, y
+  // compris ceux des pages suivantes. On bascule sur la page qui contient
+  // le bien, sinon sa fiche n'existe pas dans le DOM et rien ne défile.
+  const idx = filtered().findIndex(x => String(x.id) === String(id));
+  if(idx >= 0) state.page = Math.floor(idx / PER_PAGE) + 1;
   renderList();
   rebuildMarkers(filtered());
   const card = document.querySelector('.card.selected');
@@ -1597,6 +1658,9 @@ function initDrawerMap(p){
 document.getElementById('overlay').onclick = closeDrawer;
 
 function render(){
+  // Tout changement de filtre ou de recherche passe par ici : on repart de
+  // la première page, sinon on peut se retrouver sur une page vide.
+  state.page = 1;
   renderChips();
   renderList();
   rebuildMarkers(filtered());
