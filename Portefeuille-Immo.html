@@ -595,13 +595,57 @@ function mapRow(r){
   };
 }
 
-function publicPhotoUrl(path){
-  return db.storage.from('property-photos').getPublicUrl(path).data.publicUrl;
+// Les photos sont stockées telles que téléversées : jusqu'à 2 Mo et
+// 2480x3509 px. La pastille d'une fiche de portefeuille fait 48 px : lui
+// servir l'original était absurde. Supabase redimensionne à la volée, on
+// lui demande la taille réellement affichée. Sans `width`, l'original.
+// Le redimensionnement à la volée dépend de l'offre Supabase. S'il n'est
+// pas disponible, on repasse tout le site sur les fichiers d'origine
+// plutôt que d'afficher des images cassées.
+let PHOTO_RESIZE_OK = true;
+let photoResizeChecked = false;
+
+function originalPhotoUrl(u){
+  return String(u).split('?')[0]
+    .replace('/storage/v1/render/image/public/', '/storage/v1/object/public/');
 }
-function coverUrl(p){
+
+// Filet par image : un fichier isolé peut échouer (format exotique, upload
+// corrompu) sans que le service soit en cause.
+function photoFallback(img){
+  img.onerror = null;
+  const orig = originalPhotoUrl(img.src);
+  if(orig !== img.src) img.src = orig;
+}
+
+// Sonde unique, sur une miniature minuscule : si le service ne répond pas,
+// on bascule et on redessine avec les originaux.
+async function checkPhotoResize(){
+  if(photoResizeChecked || !PHOTO_RESIZE_OK) return;
+  photoResizeChecked = true;
+  const withPhoto = PROPERTIES.find(p => p.photos && p.photos.length);
+  if(!withPhoto) return;
+  try{
+    const r = await fetch(photoUrl(withPhoto.photos[0].storage_path, 32, 40), { cache:'no-store' });
+    if(r.ok) return;
+  }catch(e){ /* service injoignable */ }
+  PHOTO_RESIZE_OK = false;
+  render();
+}
+
+function photoUrl(path, width, quality){
+  const url = db.storage.from('property-photos').getPublicUrl(path).data.publicUrl;
+  if(!width || !PHOTO_RESIZE_OK) return url;
+  return url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/')
+    + `?width=${width}&quality=${quality || 65}`;
+}
+function publicPhotoUrl(path){
+  return photoUrl(path);
+}
+function coverUrl(p, width, quality){
   if(!p.photos || !p.photos.length) return null;
   const cover = p.photos.find(ph=>ph.is_cover) || p.photos[0];
-  return publicPhotoUrl(cover.storage_path);
+  return photoUrl(cover.storage_path, width, quality);
 }
 
 let VIEWS_BY_PROPERTY = {};
@@ -627,6 +671,7 @@ async function loadProperties(){
   await loadPropertyViews();
   renderStats();
   render();
+  checkPhotoResize();
 }
 
 const fcfa = n => n.toLocaleString('fr-FR') + ' FCFA';
@@ -770,7 +815,7 @@ function renderList(){
   const pageItems = items.slice(start, start + PER_PAGE);
 
   el.innerHTML = pageItems.map(p=>{
-    const cover = coverUrl(p);
+    const cover = coverUrl(p, 200, 60);
     return `
     <div class="card ${String(state.selected)===String(p.id)?'selected':''}" data-id="${p.id}" style="border-left-color:${STATUS_COLOR[p.status]}">
       <div class="card-icon" style="background:${cover?`center/cover no-repeat url('${cover}')`:TYPE_COLOR[p.type]}">${cover?'':ICON_SVG[p.type]}</div>
@@ -843,7 +888,7 @@ function highlightCard(id){
 function getPropertyPhotos(p){
   const photos = Array.isArray(p.photos) ? [...p.photos] : [];
   return photos
-    .map(ph => ({ ...ph, url: publicPhotoUrl(ph.storage_path) }))
+    .map(ph => ({ ...ph, url: photoUrl(ph.storage_path, 1600, 75), thumb: photoUrl(ph.storage_path, 200, 60) }))
     .sort((a,b) => (a.position ?? 0) - (b.position ?? 0));
 }
 
@@ -865,7 +910,7 @@ function openPhotoGallery(p, startIndex = 0){
           <div class="gallery-counter">${currentIndex + 1}/${photos.length}</div>
         </div>
         <div class="gallery-thumbs">
-          ${photos.map((ph, idx) => `<button type="button" class="${idx===currentIndex?'active':''}" data-index="${idx}"><img src="${ph.url}" alt="Miniature ${idx + 1}" /></button>`).join('')}
+          ${photos.map((ph, idx) => `<button type="button" class="${idx===currentIndex?'active':''}" data-index="${idx}"><img src="${ph.thumb}" alt="Miniature ${idx + 1}" loading="lazy" decoding="async" onerror="photoFallback(this)" /></button>`).join('')}
         </div>
       </div>`;
 
@@ -900,7 +945,7 @@ function updateScrollLock(){
 
 function openDrawer(p){
   state.selected = p.id;
-  const cover = coverUrl(p);
+  const cover = coverUrl(p, 1000, 72);
   const photos = getPropertyPhotos(p);
   const d = document.getElementById('drawer');
   d.innerHTML = `
@@ -923,7 +968,7 @@ function openDrawer(p){
       <div class="photo-strip">
         ${photos.map((ph, idx) => `
           <button type="button" class="thumb-btn" data-open-gallery="${idx}">
-            <img src="${ph.url}" alt="Photo ${idx + 1}" />
+            <img src="${ph.thumb}" alt="Photo ${idx + 1}" loading="lazy" decoding="async" onerror="photoFallback(this)" />
             ${idx === 0 && photos.length > 1 ? `<span class="thumb-count">+${photos.length - 1}</span>` : ''}
           </button>`).join('')}
       </div>` : ''}
@@ -1136,7 +1181,7 @@ function renderPhotoGrid(){
   const el = document.getElementById('photoGrid');
   const existingHtml = editingPhotos.map(ph => `
     <div class="photo-thumb">
-      <img src="${publicPhotoUrl(ph.storage_path)}" />
+      <img src="${photoUrl(ph.storage_path, 200, 60)}" loading="lazy" decoding="async" onerror="photoFallback(this)" />
       ${ph.is_cover ? '<span class="cov-badge">Couverture</span>' : ''}
       <button type="button" class="rm" data-remove-existing="${ph.id}">×</button>
     </div>`).join('');
@@ -2114,7 +2159,16 @@ document.getElementById('logoutBtn').onclick = async () => {
 
 checkAuth();
 
-document.getElementById('search').addEventListener('input', e=>{ state.search = e.target.value; render(); });
+// Recherche temporisée : chaque frappe reconstruisait la liste et
+// détruisait puis recréait tous les marqueurs Leaflet. Taper « Dakar »
+// déclenchait cinq reconstructions complètes. On attend une courte pause
+// dans la frappe avant de rendre.
+let searchTimer = null;
+document.getElementById('search').addEventListener('input', e=>{
+  state.search = e.target.value;
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(render, 180);
+});
 document.getElementById('statusFilter').addEventListener('change', e=>{ state.status = e.target.value; render(); });
 document.getElementById('archiveToggleBtn').onclick = () => {
   state.showArchived = !state.showArchived;
