@@ -1725,7 +1725,7 @@ function openDrawer(p){
     const btn = document.getElementById('msgSubmitBtn');
     btn.disabled = true; btn.textContent = 'Envoi…';
     const { error } = await db.from('contact_messages').insert({ property_id: p.id, name, contact, message, is_read: false });
-    if(error){ errEl.textContent = "Échec de l'envoi : " + error.message; btn.disabled = false; btn.textContent = 'Envoyer le message'; return; }
+    if(error){ errEl.textContent = messageErreurEnvoi(error, "Échec de l'envoi :"); btn.disabled = false; btn.textContent = 'Envoyer le message'; return; }
     document.getElementById('panel-message').innerHTML = '<p class="sf-success">Message envoyé ! On vous recontacte rapidement.</p>';
   };
   document.getElementById('rdvSubmitBtn').onclick = async () => {
@@ -1744,7 +1744,7 @@ function openDrawer(p){
     const btn = document.getElementById('rdvSubmitBtn');
     btn.disabled = true; btn.textContent = 'Envoi…';
     const { error } = await db.from('appointments').insert({ property_id: p.id, name, contact, preferred_date: date, preferred_time: time, message: message || null, status: 'En attente' });
-    if(error){ errEl.textContent = "Échec de l'envoi : " + error.message; btn.disabled = false; btn.textContent = 'Demander ce rendez-vous'; return; }
+    if(error){ errEl.textContent = messageErreurEnvoi(error, "Échec de l'envoi :"); btn.disabled = false; btn.textContent = 'Demander ce rendez-vous'; return; }
     document.getElementById('panel-rdv').innerHTML = '<p class="sf-success">Demande envoyée ! On vous confirme le créneau rapidement.</p>';
   };
   document.getElementById('drawer').classList.add('open');
@@ -1804,6 +1804,14 @@ function render(){
   rebuildMarkers(filtered());
 }
 // ---- Lien direct / partageable par bien ----
+// Message d'erreur destiné au visiteur. Le frein anti-abus renvoie le code
+// 23514 avec un texte déjà rédigé pour lui : on l'affiche tel quel, sans le
+// préfixer d'un « Échec de l'envoi » qui ferait croire à une panne.
+function messageErreurEnvoi(error, prefixe){
+  if(error && error.code === '23514') return error.message;
+  return prefixe + ' ' + (error && error.message ? error.message : '');
+}
+
 async function shareProperty(p){
   const directUrl = new URL(window.location);
   directUrl.searchParams.set('bien', p.ref);
@@ -1949,7 +1957,7 @@ document.getElementById('alertSubmitBtn').onclick = async () => {
     budget_max: document.getElementById('alert_budget').value ? Number(document.getElementById('alert_budget').value) : null
   };
   const { error } = await db.from('alert_subscriptions').insert(payload);
-  if(error){ errEl.textContent = "Échec de l'inscription : " + error.message; btn.disabled = false; btn.textContent = "M'inscrire aux alertes"; return; }
+  if(error){ errEl.textContent = messageErreurEnvoi(error, "Échec de l'inscription :"); btn.disabled = false; btn.textContent = "M'inscrire aux alertes"; return; }
   document.getElementById('alertForm').innerHTML = '<div class="alert-form-inner" style="display:block;text-align:center;"><p class="sf-success" style="margin:0;">Inscription confirmée ! Vous serez recontacté(e) dès qu\'un bien correspond.</p></div>';
 };
 document.querySelectorAll('#viewToggle button').forEach(b=>{

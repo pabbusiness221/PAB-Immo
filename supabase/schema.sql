@@ -216,6 +216,17 @@ create table public.site_settings (
 );
 
 
+-- Journal du frein anti-abus. Ne contient JAMAIS d'adresse IP : seulement une
+-- empreinte non réversible, suffisante pour compter, inutilisable pour
+-- identifier quelqu'un. Purgé automatiquement au-delà de deux heures.
+create table public.submission_log (
+  id bigserial primary key,
+  bucket text not null,
+  client_hash text not null,
+  created_at timestamptz not null default now()
+);
+
+
 -- ----------------------------------------------------------------------------
 -- 5. Vues publiques
 -- ----------------------------------------------------------------------------
@@ -416,6 +427,63 @@ begin
 end;
 $function$;
 
+-- Frein anti-abus des formulaires publics. Chaque insertion déclenchant un
+-- email, une insertion anonyme illimitée permettait d'épuiser le quota
+-- d'envoi et de priver d'emails les vrais prospects.
+--
+-- PIÈGE : dans une fonction SECURITY DEFINER, current_user vaut le
+-- propriétaire (postgres), jamais l'appelant. Seul auth.role() distingue le
+-- public d'une personne connectée. Une première version testait current_user
+-- et ne bloquait donc rien.
+create or replace function public.enforce_submission_rate_limit()
+returns trigger
+language plpgsql
+security definer
+set search_path to public, extensions
+as $function$
+declare
+  entetes json;
+  ip text;
+  empreinte text;
+  par_appareil int;
+  au_total int;
+  plafond_appareil int;
+  plafond_global int := 200;
+begin
+  if coalesce(auth.role(), '') <> 'anon' then
+    return new;
+  end if;
+
+  plafond_appareil := case tg_table_name when 'alert_subscriptions' then 3 else 5 end;
+
+  entetes := nullif(current_setting('request.headers', true), '')::json;
+  ip := coalesce(entetes ->> 'cf-connecting-ip',
+                 entetes ->> 'sb-forwarded-for',
+                 entetes ->> 'x-forwarded-for',
+                 'inconnu');
+  empreinte := encode(extensions.digest(ip || '::pab-immo-v1', 'sha256'), 'hex');
+
+  select count(*) into par_appareil from public.submission_log
+   where bucket = tg_table_name and client_hash = empreinte
+     and created_at > now() - interval '1 hour';
+  if par_appareil >= plafond_appareil then
+    raise exception 'Vous avez déjà envoyé plusieurs demandes récemment. Merci de patienter une heure, ou de nous joindre directement par WhatsApp.'
+      using errcode = 'check_violation';
+  end if;
+
+  select count(*) into au_total from public.submission_log
+   where bucket = tg_table_name and created_at > now() - interval '1 hour';
+  if au_total >= plafond_global then
+    raise exception 'Le formulaire est momentanément indisponible. Merci de nous joindre par WhatsApp au +221 77 849 41 11.'
+      using errcode = 'check_violation';
+  end if;
+
+  insert into public.submission_log (bucket, client_hash) values (tg_table_name, empreinte);
+  delete from public.submission_log where created_at < now() - interval '2 hours';
+  return new;
+end;
+$function$;
+
 -- Prévient par email à chaque nouveau message, RDV ou inscription alerte.
 -- Appelle la fonction Edge notify-lead (voir supabase/functions/).
 create or replace function public.notify_lead_webhook()
@@ -485,6 +553,9 @@ $function$;
 -- ----------------------------------------------------------------------------
 -- 7. Déclencheurs
 -- ----------------------------------------------------------------------------
+create trigger trg_contact_messages_rate_limit    before insert on public.contact_messages    for each row execute function enforce_submission_rate_limit();
+create trigger trg_appointments_rate_limit        before insert on public.appointments        for each row execute function enforce_submission_rate_limit();
+create trigger trg_alert_subscriptions_rate_limit before insert on public.alert_subscriptions for each row execute function enforce_submission_rate_limit();
 create trigger trg_site_settings_stamp           before insert or update on public.site_settings for each row execute function stamp_site_setting();
 create trigger trg_collaborators_verification  before insert or update on public.collaborators for each row execute function enforce_agency_verification_rights();
 create trigger trg_properties_verification      before insert or update on public.properties for each row execute function enforce_verification_rights();
@@ -518,6 +589,7 @@ create index site_visits_session_idx         on public.site_visits using btree (
 create index site_visits_created_idx         on public.site_visits using btree (created_at desc);
 create index activity_logs_actor_idx         on public.activity_logs using btree (actor_id);
 create index activity_logs_created_idx       on public.activity_logs using btree (created_at desc);
+create index submission_log_lookup_idx       on public.submission_log (bucket, client_hash, created_at desc);
 
 
 -- ----------------------------------------------------------------------------
@@ -539,6 +611,7 @@ alter table public.collaborators          enable row level security;
 alter table public.site_visits            enable row level security;
 alter table public.activity_logs          enable row level security;
 alter table public.site_settings          enable row level security;
+alter table public.submission_log         enable row level security;
 
 -- Biens et photos : propriétaire ou admin, en lecture comme en écriture.
 create policy "Acces biens : proprietaire ou admin" on public.properties
@@ -623,6 +696,9 @@ create policy "Journal reserve a l'admin" on public.activity_logs
 -- qui n'expose que les clés délibérément choisies.
 create policy "Reglages reserves a l'admin" on public.site_settings
   for all to public using (is_admin()) with check (is_admin());
+
+create policy "Journal anti-abus reserve a l'admin" on public.submission_log
+  for select to public using (is_admin());
 
 
 -- ----------------------------------------------------------------------------
