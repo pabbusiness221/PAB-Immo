@@ -178,7 +178,12 @@ create table public.collaborators (
   user_id uuid not null,
   display_name text not null,
   created_at timestamp with time zone default now() not null,
+  -- Décision métier : un collaborateur EST une agence. Certification réservée
+  -- à l'admin (déclencheur trg_collaborators_verification).
+  verified_at timestamp with time zone,
+  verified_by uuid,
   constraint collaborators_pkey PRIMARY KEY (user_id),
+  constraint collaborators_verified_by_fkey FOREIGN KEY (verified_by) REFERENCES auth.users(id) ON DELETE SET NULL,
   constraint collaborators_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 );
 
@@ -210,14 +215,18 @@ create table public.activity_logs (
 -- Les colonnes internes (notes, date d'acquisition, propriétaire) sont exclues.
 
 create or replace view public.public_properties as
-  select id, ref, type, operation, status, commune, region, quartier, departement,
-         lat, lng, surface, price, description,
-         chambres, salons, salles_bain, cuisine, equipements,
-         verified_at, availability_checked_at
-  from properties
-  where is_published = true
-    and status = any (array['Disponible'::property_status, 'Réservé'::property_status])
-    and archived_at is null;
+  select p.id, p.ref, p.type, p.operation, p.status, p.commune, p.region, p.quartier, p.departement,
+         p.lat, p.lng, p.surface, p.price, p.description,
+         p.chambres, p.salons, p.salles_bain, p.cuisine, p.equipements,
+         p.verified_at, p.availability_checked_at,
+         -- Seul le badge est public : ni le nom de l'agence ni l'identité de
+         -- son responsable ne sont exposés, ce sont des données personnelles.
+         exists (select 1 from collaborators c
+                 where c.user_id = p.owner_id and c.verified_at is not null) as agence_verifiee
+  from properties p
+  where p.is_published = true
+    and p.status = any (array['Disponible'::property_status, 'Réservé'::property_status])
+    and p.archived_at is null;
 
 create or replace view public.public_property_photos as
   select pp.id, pp.property_id, pp.storage_path, pp."position", pp.is_cover
@@ -335,6 +344,38 @@ begin
 end;
 $function$;
 
+-- Même garde-fou pour les agences : une agence qui se certifie elle-même
+-- rendrait le badge sans valeur.
+create or replace function public.enforce_agency_verification_rights()
+returns trigger
+language plpgsql
+security definer
+set search_path to 'public'
+as $function$
+begin
+  if tg_op = 'INSERT' then
+    if (new.verified_at is not null or new.verified_by is not null) and not is_admin() then
+      raise exception 'Seul l''administrateur peut certifier une agence.';
+    end if;
+  elsif tg_op = 'UPDATE' then
+    if (new.verified_at is distinct from old.verified_at
+        or new.verified_by is distinct from old.verified_by)
+       and not is_admin() then
+      raise exception 'Seul l''administrateur peut certifier une agence.';
+    end if;
+  end if;
+
+  if new.verified_at is not null and (tg_op = 'INSERT' or new.verified_at is distinct from old.verified_at) then
+    new.verified_by := auth.uid();
+  end if;
+  if new.verified_at is null then
+    new.verified_by := null;
+  end if;
+
+  return new;
+end;
+$function$;
+
 -- Prévient par email à chaque nouveau message, RDV ou inscription alerte.
 -- Appelle la fonction Edge notify-lead (voir supabase/functions/).
 create or replace function public.notify_lead_webhook()
@@ -404,6 +445,7 @@ $function$;
 -- ----------------------------------------------------------------------------
 -- 7. Déclencheurs
 -- ----------------------------------------------------------------------------
+create trigger trg_collaborators_verification  before insert or update on public.collaborators for each row execute function enforce_agency_verification_rights();
 create trigger trg_properties_verification      before insert or update on public.properties for each row execute function enforce_verification_rights();
 create trigger trg_properties_updated_at        before update on public.properties            for each row execute function set_updated_at();
 create trigger trg_properties_status_history    after update  on public.properties            for each row execute function log_status_change();
