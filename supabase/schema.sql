@@ -61,7 +61,11 @@ create table public.properties (
   quartier text,
   lat double precision not null,
   lng double precision not null,
-  location geography(Point,4326) default (st_setsrid(st_makepoint(lng, lat), 4326))::geography,
+  -- Colonne GÉNÉRÉE, pas une valeur par défaut : PostgreSQL refuse qu'un
+  -- DEFAULT référence d'autres colonnes. L'extraction initiale l'avait
+  -- transcrite en `default`, ce qui rendait ce fichier irrestaurable ;
+  -- l'erreur n'est apparue qu'en rejouant réellement le script.
+  location geography(Point,4326) generated always as ((st_setsrid(st_makepoint(lng, lat), 4326))::geography) stored,
   surface numeric(10,1) not null,
   price numeric(14,0) not null,
   description text,

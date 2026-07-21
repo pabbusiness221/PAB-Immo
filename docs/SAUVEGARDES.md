@@ -110,21 +110,50 @@ L'ordre n'est pas négociable : chaque étape dépend de la précédente.
 
 Une sauvegarde jamais restaurée n'est pas une sauvegarde. Le test se fait sur un **projet Supabase vierge**, jamais sur la production.
 
-Liste de contrôle :
+### Résultat du dernier test — 21 juillet 2026
 
-- [ ] `schema.sql` s'exécute sans erreur sur une base vide
-- [ ] Les 11 tables, 2 vues, 6 fonctions et 7 déclencheurs sont présents
-- [ ] `is_admin()` renvoie bien `true` pour le compte admin recréé
-- [ ] Un collaborateur ne voit que ses propres biens
-- [ ] Un visiteur anonyme peut envoyer un message mais **ne peut en lire aucun**
-- [ ] Les photos s'affichent (bucket public + redimensionnement disponible)
-- [ ] Un nouveau message déclenche bien l'email de notification
+✅ **Restauration rejouée de bout en bout** sur un projet Supabase vierge.
 
-### État actuel de ce test
+| Contrôle | Résultat |
+|---|---|
+| `schema.sql` s'exécute sans erreur sur une base vide | ✅ |
+| 11 tables, 2 vues, 7 fonctions, 8 déclencheurs, 18 index, 25 politiques | ✅ identiques à la production |
+| 30 colonnes sur `properties`, 3 types énumérés | ✅ |
+| Colonne générée `location` calculée automatiquement | ✅ |
+| Déclencheur du journal d'activité alimenté à l'insertion | ✅ |
+| Un collaborateur ne voit que ses propres biens | ✅ 1 bien sur 2 |
+| Un collaborateur voit les messages portant sur ses biens | ✅ |
+| Le journal reste invisible au collaborateur | ✅ 0 ligne |
+| Un visiteur anonyme ne lit **rien** | ✅ 0 bien, 0 message, 0 journal |
+| Un visiteur anonyme peut déposer un message | ✅ |
+| Un collaborateur ne peut pas certifier son propre bien | ✅ refusé par le déclencheur |
+| Un collaborateur peut confirmer la disponibilité | ✅ |
 
-⚠️ **La restauration n'a pas encore été exécutée de bout en bout.** Le fichier `schema.sql` est extrait fidèlement de la production, mais il n'a pas été rejoué sur une base vierge, ce qui demande un projet Supabase jetable.
+**Un défaut réel a été trouvé et corrigé grâce à ce test** : la colonne `location`
+était transcrite en `default (st_setsrid(...))` alors qu'il s'agit d'une colonne
+**générée**. PostgreSQL refuse qu'un `DEFAULT` référence d'autres colonnes, si
+bien que le fichier était **irrestaurable**. Ni la relecture ni l'analyse
+syntaxique ne l'avaient vu : seule l'exécution réelle l'a révélé. C'est
+exactement la raison d'être de ce test.
 
-Tant que ce test n'est pas fait, considérer la sauvegarde comme **documentée mais non vérifiée**.
+Reste non testé, faute d'être reproductible sans les vrais services :
+le bucket de stockage, les fonctions Edge et l'envoi d'emails.
+
+### Comment refaire ce test
+
+Deux vérifications gratuites avant tout, sans créer de projet :
+
+```bash
+pip install pglast
+python -c "import pglast,io; pglast.parse_sql(io.open('supabase/schema.sql',encoding='utf-8').read()); print('syntaxe valide')"
+```
+
+Puis, sur un projet Supabase vierge (l'offre gratuite en autorise deux par
+organisation, coût 0 €) : jouer `schema.sql`, comparer les comptes d'objets à
+la production, et rejouer le tableau ci-dessus.
+
+⚠️ Le projet de test doit être **supprimé après usage** depuis le tableau de
+bord Supabase.
 
 ---
 
