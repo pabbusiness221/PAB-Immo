@@ -156,6 +156,9 @@ create table public.appointments (
   status text default 'En attente'::text not null,
   created_at timestamp with time zone default now() not null,
   constraint appointments_pkey PRIMARY KEY (id),
+  -- Quatre valeurs seulement : la colonne est du texte libre, une faute de
+  -- frappe y créait sinon un statut fantôme, exclu des filtres et des comptages.
+  constraint appointments_status_check CHECK (status in ('En attente', 'Confirmé', 'Réalisée', 'Annulé')),
   constraint appointments_property_id_fkey FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE SET NULL
 );
 

@@ -399,6 +399,10 @@
      et « conversion prospects » se prêtent à des interprétations différentes. */
   .analytics-note{margin:-14px 0 22px;font-size:12px;line-height:1.6;color:var(--ink-soft);background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:12px 15px;}
   .analytics-note strong{color:var(--ink);font-weight:700;}
+  /* Rappel d'action : des RDV confirmés dont la date est passée faussent
+     silencieusement le taux de conversion tant qu'on ne les requalifie pas. */
+  .analytics-rappel{margin:-8px 0 22px;font-size:12.5px;line-height:1.6;color:var(--ink);background:var(--accent-soft);border:1px solid rgba(226,162,44,0.45);border-left:3px solid var(--accent);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:12px 15px;}
+  .analytics-rappel strong{font-weight:800;}
 
   /* ---------- Responsive ---------- */
   @media (max-width: 1180px){
@@ -1706,7 +1710,7 @@ let INBOX = { messages: [], appointments: [], alerts: [] };
 let inboxTab = 'messages';
 let inboxSearch = '';
 let inboxMsgFilter = 'all';   // all | unread | read
-let inboxRdvFilter = 'all';   // all | En attente | Confirmé | Annulé
+let inboxRdvFilter = 'all';   // all | En attente | Confirmé | Réalisée | Annulé
 let rdvView = 'list'; // 'list' ou 'calendar'
 let rdvFilteredItems = []; // RDV après application du filtre statut + recherche, utilisé par la liste ET le calendrier
 let calendarMonth = (() => { const d = new Date(); d.setDate(1); d.setHours(0,0,0,0); return d; })();
@@ -1785,6 +1789,7 @@ function renderInbox(){
             <option value="all" ${inboxRdvFilter==='all'?'selected':''}>Tous statuts</option>
             <option value="En attente" ${inboxRdvFilter==='En attente'?'selected':''}>En attente</option>
             <option value="Confirmé" ${inboxRdvFilter==='Confirmé'?'selected':''}>Confirmé</option>
+            <option value="Réalisée" ${inboxRdvFilter==='Réalisée'?'selected':''}>Réalisée</option>
             <option value="Annulé" ${inboxRdvFilter==='Annulé'?'selected':''}>Annulé</option>
           </select>` : ''}
       </div>
@@ -1813,7 +1818,7 @@ function renderInbox(){
   renderInboxList();
 }
 
-const RDV_STATUS_COLOR = { 'En attente':'#B8842A', 'Confirmé':'#16A34A', 'Annulé':'#8B9199' };
+const RDV_STATUS_COLOR = { 'En attente':'#B8842A', 'Confirmé':'#16A34A', 'Réalisée':'#123027', 'Annulé':'#8B9199' };
 
 // Rendu réutilisable d'une liste de RDV (vue Liste ET détail du jour sélectionné en vue Calendrier)
 function renderRdvItems(container, items){
@@ -1828,6 +1833,7 @@ function renderRdvItems(container, items){
         <select data-action="status">
           <option value="En attente" ${a.status==='En attente'?'selected':''}>En attente</option>
           <option value="Confirmé" ${a.status==='Confirmé'?'selected':''}>Confirmé</option>
+          <option value="Réalisée" ${a.status==='Réalisée'?'selected':''}>Réalisée</option>
           <option value="Annulé" ${a.status==='Annulé'?'selected':''}>Annulé</option>
         </select>
         <button data-action="delete">Supprimer</button>
@@ -2211,7 +2217,7 @@ async function loadAnalyticsData(){
     db.from('property_views').select('property_id'),
     db.from('favorite_events').select('property_id').eq('action','add'),
     db.from('contact_messages').select('id, created_at'),
-    db.from('appointments').select('id, created_at, status'),
+    db.from('appointments').select('id, created_at, status, preferred_date'),
     db.from('property_status_history').select('property_id, new_status, changed_at')
   ]);
   // Chaque requête ci-dessus est filtrée par les règles de sécurité de la
@@ -2235,15 +2241,22 @@ async function loadAnalyticsData(){
 
   // Contacts générés : toute prise de contact, message ou demande de visite.
   const totalContacts = totalMsg + totalRdv;
-  // Visites organisées : une demande de RDV confirmée. Faute d'un statut
-  // « Réalisée » dans la base, on ne peut pas savoir si la visite a bien eu
-  // lieu — c'est une visite planifiée, pas une visite effectuée.
-  const visitesOrganisees = (rdvRows||[]).filter(r => r.status === 'Confirmé').length;
-  const rdvAnnules = (rdvRows||[]).filter(r => r.status === 'Annulé').length;
+  // Visites réalisées : la visite a effectivement eu lieu. C'est un fait
+  // constaté, pas une intention — à ne pas confondre avec les rendez-vous
+  // confirmés, qui ne sont encore que des promesses.
+  const visitesRealisees  = (rdvRows||[]).filter(r => r.status === 'Réalisée').length;
+  const visitesPlanifiees = (rdvRows||[]).filter(r => r.status === 'Confirmé').length;
+  const rdvAnnules        = (rdvRows||[]).filter(r => r.status === 'Annulé').length;
+  // Rendez-vous confirmés dont la date est passée : ni réalisés ni annulés,
+  // donc en attente d'un constat. Ils faussent les chiffres tant qu'ils
+  // traînent, d'où le rappel affiché sous les indicateurs.
+  const aujourdhui = new Date().toISOString().slice(0,10);
+  const aRequalifier = (rdvRows||[]).filter(r => r.status === 'Confirmé'
+                                             && r.preferred_date && r.preferred_date < aujourdhui).length;
   // Conversion des prospects : part des contacts qui aboutissent à une visite
-  // confirmée. Indicateur provisoire — un vrai suivi d'affaire (contacté,
-  // négociation, gagné/perdu) donnera mieux.
-  const prospectRate = totalContacts > 0 ? Math.round((visitesOrganisees / totalContacts) * 1000) / 10 : 0;
+  // réellement effectuée. Indicateur provisoire — un vrai suivi d'affaire
+  // (contacté, négociation, gagné/perdu) donnera mieux.
+  const prospectRate = totalContacts > 0 ? Math.round((visitesRealisees / totalContacts) * 1000) / 10 : 0;
 
   const salesByMonth = {}, rentalsByMonth = {};
   (statusHistory||[]).forEach(h=>{
@@ -2271,7 +2284,7 @@ async function loadAnalyticsData(){
 
   return {
     uniqueVisitors, totalViews, totalFavAdds, totalMsg, totalRdv, conversionRate,
-    totalContacts, visitesOrganisees, rdvAnnules, prospectRate, agencesActives,
+    totalContacts, visitesRealisees, visitesPlanifiees, rdvAnnules, aRequalifier, prospectRate, agencesActives,
     salesByMonth, rentalsByMonth, msgByMonth, rdvByMonth,
     byRegion, byCollaborator, viewsByProperty, favByProperty
   };
@@ -2333,7 +2346,8 @@ function renderAnalytics(d){
       <div class="kpi-card"><div class="kv">${d.totalViews}</div><div class="kl">Biens consultés</div></div>
       <div class="kpi-card"><div class="kv">${d.totalFavAdds}</div><div class="kl">Mises en favoris</div></div>
       <div class="kpi-card"><div class="kv">${d.totalContacts}</div><div class="kl">Contacts générés</div></div>
-      <div class="kpi-card"><div class="kv">${d.visitesOrganisees}</div><div class="kl">Visites organisées</div></div>
+      <div class="kpi-card"><div class="kv">${d.visitesRealisees}</div><div class="kl">Visites réalisées</div></div>
+      <div class="kpi-card"><div class="kv">${d.visitesPlanifiees}</div><div class="kl">Visites planifiées</div></div>
       <div class="kpi-card"><div class="kv">${d.prospectRate}%</div><div class="kl">Conversion prospects</div></div>
       <div class="kpi-card"><div class="kv">${d.totalMsg}</div><div class="kl">Messages reçus</div></div>
       <div class="kpi-card"><div class="kv">${d.totalRdv}</div><div class="kl">Demandes de RDV</div></div>
@@ -2341,10 +2355,18 @@ function renderAnalytics(d){
     </div>
     <p class="analytics-note">
       <strong>Contacts générés</strong> : messages + demandes de visite.
-      <strong>Visites organisées</strong> : demandes de RDV confirmées${d.rdvAnnules ? ` (${d.rdvAnnules} annulée${d.rdvAnnules>1?'s':''} sur la période)` : ''}.
-      <strong>Conversion prospects</strong> : part des contacts aboutissant à une visite confirmée.
+      <strong>Visites réalisées</strong> : rendez-vous marqués comme ayant eu lieu — un fait constaté.
+      <strong>Visites planifiées</strong> : rendez-vous confirmés à venir, pas encore honorés${d.rdvAnnules ? ` (${d.rdvAnnules} annulé${d.rdvAnnules>1?'s':''} sur la période)` : ''}.
+      <strong>Conversion prospects</strong> : part des contacts aboutissant à une visite réellement effectuée.
       ${IS_ADMIN ? '' : 'Ces chiffres ne portent que sur vos biens.'}
     </p>
+    ${d.aRequalifier ? `
+    <p class="analytics-rappel">
+      <strong>${d.aRequalifier} rendez-vous confirmé${d.aRequalifier>1?'s':''} dont la date est passée</strong>
+      ${d.aRequalifier>1?'attendent':'attend'} un constat. Tant ${d.aRequalifier>1?'qu\'ils restent':'qu\'il reste'} en « Confirmé »,
+      ${d.aRequalifier>1?'ils ne comptent':'il ne compte'} ni dans les visites réalisées ni dans les annulations, et
+      ${d.aRequalifier>1?'faussent':'fausse'} le taux de conversion. À passer en « Réalisée » ou « Annulé » depuis la boîte de réception.
+    </p>` : ''}
     <div class="charts-grid">
       <div class="chart-card full"><h3>Évolution du portefeuille (biens cumulés, 6 derniers mois)</h3><canvas id="chartPortfolio"></canvas></div>
       <div class="chart-card"><h3>Ventes &amp; locations par mois</h3><canvas id="chartSalesRentals"></canvas></div>
