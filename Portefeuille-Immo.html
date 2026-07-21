@@ -414,6 +414,17 @@
   .analytics-rappel{margin:-8px 0 22px;font-size:12.5px;line-height:1.6;color:var(--ink);background:var(--accent-soft);border:1px solid rgba(226,162,44,0.45);border-left:3px solid var(--accent);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:12px 15px;}
   .analytics-rappel strong{font-weight:800;}
 
+  /* Réglage de la vitrine, réservé à l'admin. */
+  .reglage-vitrine{margin:-8px 0 22px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 18px;box-shadow:var(--shadow);}
+  .reglage-txt strong{display:block;font-size:13.5px;font-weight:800;}
+  .reglage-txt span{display:block;font-size:12px;color:var(--ink-soft);margin-top:4px;line-height:1.55;}
+  .reglage-saisie{display:flex;gap:9px;margin-top:12px;flex-wrap:wrap;}
+  .reglage-saisie .form-input{flex:1 1 160px;min-width:0;}
+  .reglage-saisie .btn{flex-shrink:0;padding:10px 18px;font-size:12.5px;min-height:0;}
+  .reglage-retour{margin:9px 0 0;font-size:12px;font-weight:600;min-height:15px;}
+  .reglage-retour.ok{color:var(--success);}
+  .reglage-retour.erreur{color:var(--danger);}
+
   /* ---------- Responsive ---------- */
   @media (max-width: 1180px){
     .searchbar{max-width:260px;min-width:0;}
@@ -2399,9 +2410,18 @@ async function loadAnalyticsData(){
     ? new Set(PROPERTIES.filter(p=>!p.archived_at).map(p=>p.owner_id)).size
     : null;
 
+  // Chiffre déclaratif affiché sur la vitrine. Réservé à l'admin : la table
+  // des réglages lui est fermée, inutile d'interroger pour rien.
+  let clientsAccompagnes = null;
+  if(IS_ADMIN){
+    const { data: reglage } = await db.from('site_settings')
+      .select('value').eq('key','clients_accompagnes').maybeSingle();
+    if(reglage && reglage.value != null) clientsAccompagnes = Number(reglage.value);
+  }
+
   return {
     uniqueVisitors, totalViews, totalFavAdds, totalMsg, totalRdv, conversionRate,
-    totalContacts, visitesRealisees, visitesPlanifiees, rdvAnnules, aRequalifier, prospectRate, agencesActives,
+    totalContacts, visitesRealisees, visitesPlanifiees, rdvAnnules, aRequalifier, prospectRate, agencesActives, clientsAccompagnes,
     salesByMonth, rentalsByMonth, msgByMonth, rdvByMonth,
     byRegion, byCollaborator, viewsByProperty, favByProperty
   };
@@ -2477,6 +2497,19 @@ function renderAnalytics(d){
       <strong>Conversion prospects</strong> : part des contacts aboutissant à une visite réellement effectuée.
       ${IS_ADMIN ? '' : 'Ces chiffres ne portent que sur vos biens.'}
     </p>
+    ${IS_ADMIN ? `
+    <div class="reglage-vitrine">
+      <div class="reglage-txt">
+        <strong>Clients accompagnés — chiffre affiché sur la vitrine</strong>
+        <span>Aucune donnée ne le mesure : c'est une affirmation de l'agence, sous votre responsabilité. Laissez vide pour n'afficher aucun chiffre.</span>
+      </div>
+      <div class="reglage-saisie">
+        <input type="number" min="0" step="1" id="clientsAccompagnes" class="form-input"
+               placeholder="ex : 120" value="${d.clientsAccompagnes != null ? d.clientsAccompagnes : ''}" />
+        <button type="button" class="btn btn-primary" id="clientsAccompagnesSave">Enregistrer</button>
+      </div>
+      <p class="reglage-retour" id="clientsAccompagnesRetour"></p>
+    </div>` : ''}
     ${d.aRequalifier ? `
     <p class="analytics-rappel">
       <strong>${d.aRequalifier} rendez-vous confirmé${d.aRequalifier>1?'s':''} dont la date est passée</strong>
@@ -2494,6 +2527,37 @@ function renderAnalytics(d){
       <div class="chart-card"><h3>Biens les plus ajoutés en favoris</h3>${topPropertiesList(d.favByProperty, 'Aucun favori enregistré pour l’instant.')}</div>
     </div>
   `;
+
+  // Enregistrement du chiffre déclaratif. Vider le champ le retire de la
+  // vitrine : mieux vaut aucun chiffre qu'un chiffre périmé.
+  const saveBtn = document.getElementById('clientsAccompagnesSave');
+  if(saveBtn){
+    saveBtn.onclick = async () => {
+      const champ = document.getElementById('clientsAccompagnes');
+      const retour = document.getElementById('clientsAccompagnesRetour');
+      const brut = champ.value.trim();
+      const n = brut === '' ? null : Number(brut);
+      if(n !== null && (!Number.isInteger(n) || n < 0)){
+        retour.textContent = 'Merci de saisir un nombre entier positif, ou de laisser vide.';
+        retour.className = 'reglage-retour erreur';
+        return;
+      }
+      saveBtn.disabled = true;
+      const { error } = n === null
+        ? await db.from('site_settings').delete().eq('key','clients_accompagnes')
+        : await db.from('site_settings').upsert({ key:'clients_accompagnes', value: n }, { onConflict:'key' });
+      saveBtn.disabled = false;
+      if(error){
+        retour.textContent = 'Enregistrement impossible : ' + error.message;
+        retour.className = 'reglage-retour erreur';
+        return;
+      }
+      retour.textContent = n === null
+        ? "Chiffre retiré : plus aucun nombre affiché sur la vitrine."
+        : n + ' clients accompagnés — visible sur la vitrine.';
+      retour.className = 'reglage-retour ok';
+    };
+  }
 
   analyticsCharts.forEach(c=>{ try{ c.destroy(); }catch(e){} });
   analyticsCharts = [];

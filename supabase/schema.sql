@@ -207,6 +207,15 @@ create table public.activity_logs (
 );
 
 
+create table public.site_settings (
+  key text primary key,
+  value jsonb not null,
+  updated_at timestamptz default now() not null,
+  updated_by uuid,
+  constraint site_settings_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES auth.users(id) ON DELETE SET NULL
+);
+
+
 -- ----------------------------------------------------------------------------
 -- 5. Vues publiques
 -- ----------------------------------------------------------------------------
@@ -246,7 +255,10 @@ create or replace view public.public_stats as
       where is_published = true and archived_at is null
         and status = any (array['Disponible'::property_status,'Réservé'::property_status])) as biens_publies,
     (select count(*) from property_status_history
-      where new_status in ('Vendu','Loué'))                                 as transactions_conclues;
+      where new_status in ('Vendu','Loué'))                                 as transactions_conclues,
+    -- Chiffre déclaratif, saisi depuis l'espace d'administration : aucune
+    -- donnée ne le mesure, c'est l'agence qui l'affirme.
+    (select (value #>> '{}')::int from site_settings where key = 'clients_accompagnes') as clients_accompagnes;
 
 grant select on public.public_stats to anon, authenticated;
 
@@ -390,6 +402,20 @@ begin
 end;
 $function$;
 
+-- L'auteur et la date d'un réglage sont déduits, jamais fournis par le client.
+create or replace function public.stamp_site_setting()
+returns trigger
+language plpgsql
+security definer
+set search_path to 'public'
+as $function$
+begin
+  new.updated_at := now();
+  new.updated_by := auth.uid();
+  return new;
+end;
+$function$;
+
 -- Prévient par email à chaque nouveau message, RDV ou inscription alerte.
 -- Appelle la fonction Edge notify-lead (voir supabase/functions/).
 create or replace function public.notify_lead_webhook()
@@ -459,6 +485,7 @@ $function$;
 -- ----------------------------------------------------------------------------
 -- 7. Déclencheurs
 -- ----------------------------------------------------------------------------
+create trigger trg_site_settings_stamp           before insert or update on public.site_settings for each row execute function stamp_site_setting();
 create trigger trg_collaborators_verification  before insert or update on public.collaborators for each row execute function enforce_agency_verification_rights();
 create trigger trg_properties_verification      before insert or update on public.properties for each row execute function enforce_verification_rights();
 create trigger trg_properties_updated_at        before update on public.properties            for each row execute function set_updated_at();
@@ -511,6 +538,7 @@ alter table public.alert_subscriptions    enable row level security;
 alter table public.collaborators          enable row level security;
 alter table public.site_visits            enable row level security;
 alter table public.activity_logs          enable row level security;
+alter table public.site_settings          enable row level security;
 
 -- Biens et photos : propriétaire ou admin, en lecture comme en écriture.
 create policy "Acces biens : proprietaire ou admin" on public.properties
@@ -590,6 +618,11 @@ create policy "Admin gere les collaborateurs" on public.collaborators
 
 create policy "Journal reserve a l'admin" on public.activity_logs
   for select to public using (is_admin());
+
+-- Réglages entièrement privés : la lecture publique passe par public_stats,
+-- qui n'expose que les clés délibérément choisies.
+create policy "Reglages reserves a l'admin" on public.site_settings
+  for all to public using (is_admin()) with check (is_admin());
 
 
 -- ----------------------------------------------------------------------------

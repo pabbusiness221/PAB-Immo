@@ -858,13 +858,9 @@ const SUPABASE_KEY = 'sb_publishable_nAQnS82ru9h-beIDPKMqPA_JO_aSYc-'; // clé "
 const SHARE_PREVIEW_URL = SUPABASE_URL + '/functions/v1/share-preview'; // aperçu WhatsApp/Facebook dynamique par bien
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ---- Chiffre des clients accompagnés ---------------------------------------
-// À SAISIR À LA MAIN, sous votre responsabilité : rien dans la base ne mesure
-// la satisfaction ni ne compte les clients accompagnés depuis la création de
-// l'agence. Tant que cette valeur reste à null, le bloc affiche son libellé
-// sans chiffre — mieux vaut pas de nombre qu'un nombre inventé.
-// Exemple : const CLIENTS_ACCOMPAGNES = 120;
-const CLIENTS_ACCOMPAGNES = null;
+// Le nombre de clients accompagnés se règle depuis l'espace d'administration
+// (Statistiques → Clients accompagnés) et non plus dans ce fichier. Il reste
+// déclaratif : rien ne le mesure, c'est l'agence qui l'affirme.
 
 // ============================================================
 // SUIVI ANALYTIQUE (visites, consultations, favoris)
@@ -1882,12 +1878,15 @@ recordSiteVisit();
     const el = document.querySelector('#' + id + ' strong');
     if(el) el.textContent = gabarit(nombre);
   };
-  poser('trustClients', CLIENTS_ACCOMPAGNES, n => `${n} clients accompagnés`);
   try {
-    const { data } = await db.from('public_stats').select('agences_verifiees').single();
-    if(data) poser('trustAgences', data.agences_verifiees,
-                   n => n > 1 ? `${n} collaborateurs de confiance` : '1 collaborateur de confiance');
-  } catch(e){ /* chiffre indisponible : le libellé seul reste juste */ }
+    const { data } = await db.from('public_stats')
+      .select('agences_verifiees, clients_accompagnes').single();
+    if(data){
+      poser('trustClients', data.clients_accompagnes, n => `${n} clients accompagnés`);
+      poser('trustAgences', data.agences_verifiees,
+            n => n > 1 ? `${n} collaborateurs de confiance` : '1 collaborateur de confiance');
+    }
+  } catch(e){ /* chiffres indisponibles : les libellés seuls restent justes */ }
 })();
 
 // Les deux pages partagent le même domaine, donc la même session Supabase :
