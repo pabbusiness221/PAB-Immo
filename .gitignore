@@ -1,3 +1,12 @@
 # Réglages Claude Code propres à un poste (permissions accordées localement)
 .claude/settings.local.json
 .claude/worktrees/
+
+# Exports de données. Le dépôt est PUBLIC et les tables contact_messages,
+# appointments et alert_subscriptions contiennent des noms, téléphones et
+# emails de personnes réelles. Ces fichiers vont dans un stockage privé.
+# Voir docs/SAUVEGARDES.md
+sauvegardes/
+*.csv
+*.dump
+*.sql.gz
