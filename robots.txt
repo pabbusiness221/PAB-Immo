@@ -1,5 +1,8 @@
+# Ce fichier ne prend effet qu'avec un nom de domaine propre.
+# Sur github.io, seul le robots.txt de la racine du domaine est lu.
+
 User-agent: *
-Disallow: /PAB-Immo/
-# Site en cours de mise à jour : indexation suspendue.
+Disallow: /Portefeuille-Immo.html
+Allow: /
 
 Sitemap: https://pabbusiness221.github.io/PAB-Immo/sitemap.xml

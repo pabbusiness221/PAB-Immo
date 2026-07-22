@@ -45,6 +45,12 @@ TEL = "+221778494111"
 TEL_AFFICHE = "+221 77 849 41 11"
 AGENCE = "PAB Immo"
 
+# Jeton de validation Google Search Console. Le récupérer dans Search Console
+# (Ajouter une propriété > Préfixe d'URL > Balise HTML), coller ici la valeur
+# du champ content, puis relancer le script. Laisser vide tant qu'on ne l'a
+# pas : une balise vide serait invalide.
+GOOGLE_VERIFICATION = ""
+
 # Tant que la vitrine est derrière la page de maintenance, les pages générées
 # ne doivent pas être indexées : elles renverraient vers un site en travaux.
 # Passer à False le jour du retour en ligne, puis relancer le script.
@@ -223,6 +229,7 @@ def page_bien(b, photos):
 <title>{esc(titre)} | {AGENCE}</title>
 <meta name="description" content="{esc(desc)}" />
 <link rel="canonical" href="{url}" />
+{f'<meta name="google-site-verification" content="{GOOGLE_VERIFICATION}" />' if GOOGLE_VERIFICATION else ''}
 {'<meta name="robots" content="noindex, follow" />' if EN_MAINTENANCE else '<meta name="robots" content="index, follow, max-image-preview:large" />'}
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="{AGENCE}" />
@@ -357,18 +364,32 @@ def main():
     print(f"  sitemap.xml : {len(urls) + 1} adresses")
 
     # --- robots.txt ---------------------------------------------------------
-    # L'espace de gestion n'a rien à faire dans un index de recherche.
-    regles = ["User-agent: *"]
-    if EN_MAINTENANCE:
-        regles.append("Disallow: /PAB-Immo/")
-        regles.append("# Site en cours de mise à jour : indexation suspendue.")
-    else:
-        regles += ["Disallow: /PAB-Immo/Portefeuille-Immo.html",
-                   "Allow: /"]
-    regles += ["", f"Sitemap: {SITE}/sitemap.xml", ""]
+    # ATTENTION : sur GitHub Pages, ce fichier n'est PAS lu par les robots.
+    # Ils ne consultent que https://pabbusiness221.github.io/robots.txt, à la
+    # racine du domaine, qui appartient à un autre dépôt. Vérifié : 404.
+    # Ce fichier ne deviendra effectif qu'avec un nom de domaine propre.
+    #
+    # C'est pourquoi la suspension d'indexation repose sur les balises
+    # noindex des pages, et non sur ce fichier. C'est de toute façon le bon
+    # outil : un robots.txt bloquant empêcherait Google de LIRE le noindex,
+    # et il pourrait alors indexer l'adresse malgré tout, sur la foi d'un
+    # lien externe.
+    regles = [
+        "# Ce fichier ne prend effet qu'avec un nom de domaine propre.",
+        "# Sur github.io, seul le robots.txt de la racine du domaine est lu.",
+        "",
+        "User-agent: *",
+        "Disallow: /Portefeuille-Immo.html",   # l'espace de gestion n'a rien à faire dans un index
+        "Allow: /",
+        "",
+        f"Sitemap: {SITE}/sitemap.xml",
+        "",
+    ]
     with open(os.path.join(RACINE, "robots.txt"), "w", encoding="utf-8") as f:
         f.write("\n".join(regles))
-    print(f"  robots.txt  : {'indexation suspendue (maintenance)' if EN_MAINTENANCE else 'indexation ouverte'}")
+    print("  robots.txt  : écrit (sans effet sur github.io — voir le commentaire)")
+    if EN_MAINTENANCE:
+        print("  indexation  : suspendue par les balises noindex des pages")
 
     print("\nTerminé. Relancer ce script après chaque publication ou modification de bien.")
 
