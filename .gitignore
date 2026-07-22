@@ -10,3 +10,7 @@ sauvegardes/
 *.csv
 *.dump
 *.sql.gz
+
+# Fichiers compilés Python, produits par les scripts de outils/
+__pycache__/
+*.pyc
