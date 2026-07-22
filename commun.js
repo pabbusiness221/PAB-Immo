@@ -23,7 +23,9 @@ const SUPABASE_URL = 'https://avanktgaxepzpqmsiauz.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_nAQnS82ru9h-beIDPKMqPA_JO_aSYc-';
 
 // ---- Repères métier --------------------------------------------------------
-const TYPE_COLOR = { Terrain:'#B24A2C', Maison:'#2E4A61', Appartement:'#1F7A73', 'Champ agricole':'#6B8E23' };
+// L'ordre suit celui de l'énumération en base : Terrain, Maison, Appartement,
+// Studio, Champ agricole.
+const TYPE_COLOR = { Terrain:'#B24A2C', Maison:'#2E4A61', Appartement:'#1F7A73', Studio:'#6E5480', 'Champ agricole':'#6B8E23' };
 
 const fcfa = n => n.toLocaleString('fr-FR') + ' FCFA';
 const surfaceUnit = type => type === 'Champ agricole' ? 'ha' : 'm²';
@@ -42,6 +44,9 @@ const ICON_PATHS = {
   Terrain:          '<rect x="3" y="3" width="18" height="18" rx="1"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/>',
   Maison:           '<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>',
   Appartement:      '<rect x="4" y="3" width="16" height="18"/><line x1="9" y1="8" x2="9" y2="8"/><line x1="15" y1="8" x2="15" y2="8"/><line x1="9" y1="13" x2="9" y2="13"/><line x1="15" y1="13" x2="15" y2="13"/>',
+  // Une pièce unique meublée : le trait distingue le coin nuit du reste, ce qui
+  // évite de confondre l'icône avec celle de l'appartement à petite taille.
+  Studio:           '<rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 14h18"/><path d="M7 14v-3h4v3"/>',
   'Champ agricole': '<path d="M12 21V11"/><path d="M12 11Q6 11 6 5Q12 5 12 11Z"/><path d="M12 11Q18 11 18 5Q12 5 12 11Z"/>'
 };
 

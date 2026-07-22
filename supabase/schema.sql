@@ -25,7 +25,11 @@ create extension if not exists "postgis"     with schema public;      -- colonne
 -- ----------------------------------------------------------------------------
 -- 2. Types énumérés
 -- ----------------------------------------------------------------------------
-create type public.property_type   as enum ('Terrain', 'Maison', 'Appartement', 'Champ agricole');
+-- L'ordre des valeurs est celui des tris. Studio est placé entre Appartement
+-- et Champ agricole, et non ajouté à la fin : sur la base de production il a
+-- fallu « alter type … add value 'Studio' before 'Champ agricole' » pour
+-- obtenir ce rang. Une reconstruction depuis ce fichier l'obtient d'emblée.
+create type public.property_type   as enum ('Terrain', 'Maison', 'Appartement', 'Studio', 'Champ agricole');
 create type public.operation_type  as enum ('Vente', 'Location');
 create type public.property_status as enum ('Disponible', 'Réservé', 'Vendu', 'Loué');
 

@@ -112,7 +112,7 @@ def couleurs_types():
     # nom — « Maison » devenait « Maison » précédé d'un blanc, aucune
     # correspondance, et toutes les vignettes tombaient sur la couleur de repli.
     # On vérifie donc les clés elles-mêmes.
-    attendus = {"Terrain", "Maison", "Appartement", "Champ agricole"}
+    attendus = {"Terrain", "Maison", "Appartement", "Studio", "Champ agricole"}
     manquants = attendus - set(couleurs)
     assert not manquants, f"TYPE_COLOR mal lu, types manquants : {manquants} (lu : {couleurs})"
     return couleurs

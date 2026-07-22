@@ -527,6 +527,7 @@
       <button type="button" class="nav-link" data-type="Terrain">Terrains</button>
       <button type="button" class="nav-link" data-type="Maison">Maisons</button>
       <button type="button" class="nav-link" data-type="Appartement">Appartements</button>
+      <button type="button" class="nav-link" data-type="Studio">Studios</button>
       <button type="button" class="nav-link" data-type="Champ agricole">Champs agricoles</button>
     </nav>
     <!-- Retour vers l'espace de gestion. Masqué par défaut : n'apparaît que
@@ -694,6 +695,7 @@
           <option value="Terrain">Terrain</option>
           <option value="Maison">Maison</option>
           <option value="Appartement">Appartement</option>
+          <option value="Studio">Studio</option>
           <option value="Champ agricole">Champ agricole</option>
         </select>
       </div>
@@ -728,6 +730,7 @@
       <div class="legend-row"><span class="legend-dot" style="background:#B24A2C"></span>Terrain</div>
       <div class="legend-row"><span class="legend-dot" style="background:#2E4A61"></span>Maison</div>
       <div class="legend-row"><span class="legend-dot" style="background:#1F7A73"></span>Appartement</div>
+      <div class="legend-row"><span class="legend-dot" style="background:#6E5480"></span>Studio</div>
       <div class="legend-row"><span class="legend-dot" style="background:#6B8E23"></span>Champ agricole</div>
     </div>
   </div>
@@ -746,6 +749,7 @@
         <a href="#split" data-type="Terrain">Terrains</a>
         <a href="#split" data-type="Maison">Maisons</a>
         <a href="#split" data-type="Appartement">Appartements</a>
+        <a href="#split" data-type="Studio">Studios</a>
         <a href="#split" data-type="Champ agricole">Champs agricoles</a>
       </div>
     </div>
@@ -1140,7 +1144,7 @@ function filtered(){
   });
 }
 
-const NAV = [['Tous','Tous les biens'],['Terrain','Terrains'],['Maison','Maisons'],['Appartement','Appartements'],['Champ agricole','Champs agricoles']];
+const NAV = [['Tous','Tous les biens'],['Terrain','Terrains'],['Maison','Maisons'],['Appartement','Appartements'],['Studio','Studios'],['Champ agricole','Champs agricoles']];
 const OPS = [['Tous','Vente & location'],['Vente','Vente'],['Location','Location']];
 function renderChips(){
   document.getElementById('chipsType').innerHTML = NAV.map(([key,label])=>

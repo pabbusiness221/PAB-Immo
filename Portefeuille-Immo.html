@@ -514,6 +514,7 @@
       <div class="legend-row"><span class="legend-dot" style="background:#B24A2C"></span>Terrain</div>
       <div class="legend-row"><span class="legend-dot" style="background:#2E4A61"></span>Maison</div>
       <div class="legend-row"><span class="legend-dot" style="background:#1F7A73"></span>Appartement</div>
+      <div class="legend-row"><span class="legend-dot" style="background:#6E5480"></span>Studio</div>
       <div class="legend-row"><span class="legend-dot" style="background:#6B8E23"></span>Champ agricole</div>
     </div>
   </div>
@@ -716,10 +717,10 @@ function filtered(){
 }
 
 // ---- Chips ----
-const NAV = [['Tous','Tous'],['Terrain','Terrains'],['Maison','Maisons'],['Appartement','Appartements'],['Champ agricole','Champs agricoles']];
+const NAV = [['Tous','Tous'],['Terrain','Terrains'],['Maison','Maisons'],['Appartement','Appartements'],['Studio','Studios'],['Champ agricole','Champs agricoles']];
 function renderChips(){
   const set = baseSet();
-  const counts = {Terrain:0,Maison:0,Appartement:0,'Champ agricole':0};
+  const counts = {Terrain:0,Maison:0,Appartement:0,Studio:0,'Champ agricole':0};
   set.forEach(p=>counts[p.type]++);
   const el = document.getElementById('chips');
   el.innerHTML = NAV.map(([key,label])=>{
@@ -1419,7 +1420,7 @@ function useCurrentPosition(){
 }
 
 function generatePropertyRef(type){
-  const prefix = type === 'Terrain' ? 'TF' : type === 'Maison' ? 'MA' : type === 'Champ agricole' ? 'CH' : 'AP';
+  const prefix = type === 'Terrain' ? 'TF' : type === 'Maison' ? 'MA' : type === 'Champ agricole' ? 'CH' : type === 'Studio' ? 'ST' : 'AP';
   const year = new Date().getFullYear();
   const suffix = Math.floor(Math.random() * 9000 + 1000);
   return `${prefix}-${year}-${suffix}`;
@@ -1442,7 +1443,7 @@ function openForm(existing){
       <div class="form-grid" style="margin-top:16px;">
         <div class="form-field"><label class="form-label">Référence</label><input class="form-input" id="f_ref" value="${esc(initialRef)}" placeholder="TF-2024-XXXX"/></div>
         <div class="form-field"><label class="form-label">Type</label>
-          <select class="form-select" id="f_type">${['Terrain','Maison','Appartement','Champ agricole'].map(t=>`<option value="${t}" ${p.type===t?'selected':''}>${t}</option>`).join('')}</select>
+          <select class="form-select" id="f_type">${['Terrain','Maison','Appartement','Studio','Champ agricole'].map(t=>`<option value="${t}" ${p.type===t?'selected':''}>${t}</option>`).join('')}</select>
         </div>
         <div class="form-field"><label class="form-label">Opération</label>
           <select class="form-select" id="f_operation">${['Vente','Location'].map(t=>`<option value="${t}" ${p.operation===t?'selected':''}>${t}</option>`).join('')}</select>
