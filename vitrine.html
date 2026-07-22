@@ -828,13 +828,35 @@ function dispoLabel(p){
 
 
 
+// ---- Fiches statiques ------------------------------------------------------
+// outils/generer-pages.py écrit une vraie page HTML par bien dans bien/, plus
+// un index des références qu'il a effectivement écrites. On lit cet index
+// plutôt que de reconstruire le nom du fichier ici : un bien publié ce matin
+// n'a pas encore de fiche, et un lien calculé pointerait vers une page absente.
+// Tant que l'index n'est pas chargé — ou s'il manque — FICHES reste vide et
+// tout continue de fonctionner comme avant, sans lien.
+let FICHES = {};
+
+async function chargerFiches(){
+  try{
+    const r = await fetch('bien/index.json', { cache:'no-cache' });
+    if(r.ok) FICHES = await r.json();
+  }catch(e){ /* pas de fiches disponibles : on s'en passe */ }
+}
+
+function ficheUrl(p){
+  const nom = FICHES[p.ref];
+  return nom ? new URL('bien/' + nom, window.location.href).toString() : null;
+}
+
 async function loadProperties(){
   document.getElementById('list').innerHTML = `<div class="empty"><p style="margin:0;color:var(--ink-soft);font-size:13px;">Chargement des biens…</p></div>`;
   // "public_properties" et "public_property_photos" sont des vues : elles ne renvoient
   // que les biens publiés et Disponible/Réservé, sans jamais exposer vos données privées.
   const [{ data: props, error: e1 }, { data: photos, error: e2 }] = await Promise.all([
     db.from('public_properties').select('*'),
-    db.from('public_property_photos').select('*').order('position', { ascending:true })
+    db.from('public_property_photos').select('*').order('position', { ascending:true }),
+    chargerFiches()   // en parallèle : son absence ne doit jamais retarder la liste
   ]);
   if(e1 || e2){
     const msg = (e1 || e2).message;
@@ -1419,6 +1441,11 @@ function openDrawer(p){
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg>
           <span id="shareBtnLabel">Partager ce bien</span>
         </button>
+        ${ficheUrl(p) ? `
+        <a class="btn" href="${esc(ficheUrl(p))}" style="width:100%;justify-content:center;margin-top:8px;background:transparent;border:1.5px solid var(--border);color:var(--ink-soft);font-weight:600;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3h7v7"/><path d="M10 14L21 3"/><path d="M21 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h5"/></svg>
+          Ouvrir la fiche imprimable
+        </a>` : ''}
       </div>
 
       <div class="subform-tabs">
@@ -1582,21 +1609,22 @@ function messageErreurEnvoi(error, prefixe){
 }
 
 async function shareProperty(p){
+  // On partage en priorité la fiche statique du bien : c'est la seule adresse
+  // qui porte, dans son code source, les balises Open Graph de CE bien — sa
+  // photo, son titre, son prix. WhatsApp et Facebook lisent le code source
+  // sans exécuter de JavaScript, donc un lien vers la vitrine ne leur montre
+  // que l'aperçu générique du site.
+  //
+  // C'était la limite qu'on avait dû accepter quand l'aperçu dynamique
+  // (share-preview) est tombé : Supabase réécrit les réponses de ses fonctions
+  // Edge en text/plain avec nosniff, et le destinataire recevait du code source
+  // en texte brut. Les pages générées règlent le problème pour de bon.
+  //
+  // Repli sur la vitrine si le bien n'a pas encore de fiche — un bien publié
+  // avant la dernière génération, par exemple.
   const directUrl = new URL(window.location);
   directUrl.searchParams.set('bien', p.ref);
-  // On partage l'adresse de la vitrine, pas la fonction d'aperçu.
-  //
-  // L'aperçu dynamique (share-preview) produisait bien les balises Open Graph
-  // du bien, mais Supabase réécrit les réponses de ses fonctions Edge en
-  // text/plain avec nosniff : le destinataire recevait le code source en
-  // texte brut au lieu d'être redirigé. C'est une protection anti-abus de
-  // leur domaine, rien dans la fonction ne peut la contourner.
-  //
-  // Conséquence assumée : l'aperçu WhatsApp montre l'image générique du site
-  // et non la photo du bien. Un lien qui marche avec un aperçu générique vaut
-  // mieux qu'un joli aperçu sur un lien cassé. Pour retrouver l'aperçu par
-  // bien, il faudrait héberger cette page ailleurs que sur supabase.co.
-  const shareUrl = directUrl.toString();
+  const shareUrl = ficheUrl(p) || directUrl.toString();
   const shareData = {
     title: `${p.type} — ${p.commune}`,
     text: `${p.type} à ${p.commune} — ${fcfa(p.price)}${p.operation==='Location'?'/mois':''}`,
