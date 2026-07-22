@@ -25,64 +25,12 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="commun.css" />
 <style>
-  /* ============================================================
-     PAB IMMO — Interface client
-     Direction : « immobilier premium ». Bandeau nuit (header + hero)
-     puis contenu sur fond clair pour la lisibilité des annonces.
-     Accent or chaud pour les actions et les prix.
-     Règle absolue : aucun id / classe utilisé par le JS n'est modifié.
-     ============================================================ */
-  :root{
-    /* Fonds & texte */
-    --bg:#F6F5F2;
-    --surface:#FFFFFF;
-    --surface-alt:#F2F0EA;
-    --ink:#131A17;
-    --ink-soft:#6B7772;
-    --border:#E6E3DB;
-
-    /* Actions */
-    --primary:#123027;
-    --primary-dark:#0B1F19;
-    --accent:#E2A22C;
-    --accent-dark:#C8871A;
-    --accent-soft:#FBF2DF;
-
-    /* Sémantique */
-    --success:#2F7A4E;
-    --warning:#D08A16;
-    --danger:#C4432F;
-
-    /* Couleurs métier (types de biens, cohérentes avec TYPE_COLOR en JS) */
-    --brick:#B24A2C;
-    --navy:#2E4A61;
-    --teal:#1F7A73;
-    --gold:#8F6414;
-    --sage:#3F7A49;
-
-    /* Bandeau nuit */
-    --night:#0C1613;
-    --night-2:#14261F;
-
-    --radius-sm:12px;
-    --radius-md:16px;
-    --radius-lg:20px;
-    --radius-xl:28px;
-    --ease:cubic-bezier(.4,0,.2,1);
-    --shadow:0 1px 2px rgba(18,48,39,0.04), 0 10px 24px -14px rgba(18,48,39,0.20);
-    --shadow-lg:0 28px 60px -24px rgba(12,22,19,0.34);
-    --focus-ring:0 0 0 3px rgba(226,162,44,0.45);
-  }
-  *{box-sizing:border-box;}
   html,body{max-width:100%;overflow-x:hidden;overflow-x:clip;}
   html{scroll-behavior:smooth;}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;padding-bottom:0;}
-  h1,h2,h3,.num,.brand{font-family:'Manrope',sans-serif;}
-  .mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;}
-  a{color:inherit;}
   img{max-width:100%;}
-  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{outline:none;box-shadow:var(--focus-ring);border-radius:10px;}
   @media (prefers-reduced-motion: reduce){
     html{scroll-behavior:auto;}
     *{animation-duration:0.001ms !important;animation-iteration-count:1 !important;transition-duration:0.001ms !important;}
@@ -93,8 +41,6 @@
   header{position:sticky;top:0;z-index:40;background:rgba(12,22,19,0.92);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.08);}
   .header-inner{display:flex;align-items:center;gap:20px;padding:12px 22px;max-width:1400px;margin:0 auto;}
   .brand{display:flex;align-items:center;gap:11px;margin-right:auto;}
-  .brand img{border-radius:11px;box-shadow:0 4px 14px rgba(0,0,0,0.35);}
-  .brand h1{font-size:16px;font-weight:800;margin:0;letter-spacing:-0.01em;color:#fff;}
   .brand h1 span{color:var(--accent);}
   .brand p{margin:1px 0 0;font-size:10.5px;color:rgba(255,255,255,0.58);letter-spacing:.08em;text-transform:uppercase;font-weight:600;}
 
@@ -107,13 +53,6 @@
   /* ---------- Boutons ---------- */
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:999px;font-weight:700;font-size:13px;cursor:pointer;padding:11px 20px;font-family:'Inter',sans-serif;transition:transform .2s var(--ease), box-shadow .2s var(--ease), background-color .2s var(--ease), filter .2s var(--ease);text-decoration:none;line-height:1.2;}
   .btn:hover{transform:translateY(-1px);box-shadow:0 10px 22px -12px rgba(12,22,19,0.55);}
-  .btn:active{transform:translateY(0);}
-  .btn-primary{background:var(--accent);color:#1E1607;box-shadow:0 8px 22px -14px rgba(226,162,44,0.9);}
-  .btn-primary:hover{background:var(--accent-dark);}
-  .btn-outline{background:var(--surface);color:var(--ink);border:1px solid var(--border);box-shadow:none;}
-  .btn-outline:hover{background:var(--surface-alt);border-color:#D5D0C6;}
-  .btn-success{background:var(--success);color:#fff;}
-  .btn-success:hover{filter:brightness(0.94);}
   /* Retour vers l'espace de gestion : posé sur le bandeau nuit, discret,
      il ne doit pas concurrencer WhatsApp qui reste l'appel à l'action. */
   .btn-espace{background:rgba(255,255,255,0.10);color:#fff;border:1px solid rgba(255,255,255,0.22);}
@@ -169,8 +108,6 @@
   .chips-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between;}
   .chips{display:flex;gap:8px;overflow-x:auto;width:auto;min-width:0;-webkit-overflow-scrolling:touch;padding:2px;}
   .chip{flex-shrink:0;border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:10px 17px;font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer;white-space:nowrap;transition:all .22s var(--ease);font-family:'Inter',sans-serif;}
-  .chip:hover{border-color:#CFCABE;background:var(--surface-alt);color:var(--ink);}
-  .chip.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 12px 26px -18px rgba(18,48,39,0.9);}
   .chip-group{display:flex;flex-direction:column;gap:7px;min-width:0;}
   .chip-group-label{display:none;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);opacity:.8;padding-left:4px;}
   .fav-chip{background:var(--accent-soft);color:var(--gold);border-color:rgba(226,162,44,0.35);}
@@ -191,24 +128,17 @@
   .panel-list{flex:0 0 45%;display:grid;grid-template-columns:repeat(2,1fr);gap:14px;align-content:start;}
   .panel-list .empty{grid-column:1/-1;}
   .panel-map{flex:1;position:-webkit-sticky;position:sticky;top:86px;align-self:flex-start;height:calc(100vh - 108px);min-height:440px;border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--border);z-index:1;}
-  #map{height:100%;width:100%;}
-  .legend{position:absolute;bottom:16px;left:16px;z-index:400;background:rgba(255,255,255,0.95);backdrop-filter:blur(8px);border-radius:14px;padding:11px 15px;box-shadow:var(--shadow);font-size:11.5px;border:1px solid var(--border);}
-  .legend-row{display:flex;align-items:center;gap:8px;margin:4px 0;font-weight:600;}
-  .legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
 
   /* ---------- Carte d'annonce ---------- */
   .card{position:relative;background:var(--surface);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow);cursor:pointer;transition:transform .28s var(--ease), box-shadow .28s var(--ease), border-color .28s var(--ease);border:1px solid var(--border);animation:fadeInUp .4s var(--ease) backwards;}
   .card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:#D6D1C6;}
-  .card.selected{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent), var(--shadow-lg);}
   .card-photo{aspect-ratio:16/10;height:auto;display:flex;align-items:center;justify-content:center;position:relative;background-color:var(--surface-alt);}
   .card-photo::after{content:'';position:absolute;inset:auto 0 0 0;height:56%;background:linear-gradient(to top, rgba(10,18,15,0.55), transparent);pointer-events:none;}
   .pill{font-size:10.5px;font-weight:800;padding:5px 11px;border-radius:999px;white-space:nowrap;letter-spacing:.01em;z-index:2;backdrop-filter:blur(4px);}
   .card-body{padding:15px 16px 16px;}
-  .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
   .card-top h3{font-size:15.5px;font-weight:800;margin:0;letter-spacing:-0.012em;}
   .card-meta{display:flex;align-items:center;gap:6px;color:var(--ink-soft);font-size:12.5px;margin-top:6px;flex-wrap:wrap;}
   .card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
-  .surface-txt{font-size:12px;color:var(--ink-soft);font-weight:600;}
   .price{font-size:16px;font-weight:800;color:var(--ink);font-family:'Manrope',sans-serif;letter-spacing:-0.01em;}
 
   /* ---------- Badges de confiance ---------- */
@@ -232,25 +162,7 @@
 
   /* Pagination de la liste — n'apparaît qu'au-delà d'une page. */
   .list-pager{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow);}
-  .pager-btn{border:1px solid var(--border);background:var(--surface);color:var(--ink);border-radius:999px;padding:10px 16px;font-size:12.5px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;white-space:nowrap;min-height:40px;transition:all .2s var(--ease);}
-  .pager-btn:hover:not(:disabled){border-color:var(--accent);color:var(--gold);background:var(--accent-soft);}
-  .pager-btn:active:not(:disabled){transform:scale(.97);}
-  .pager-btn:disabled{opacity:.4;cursor:not-allowed;}
-  .pager-status{text-align:center;font-size:12.5px;font-weight:800;line-height:1.3;font-family:'Manrope',sans-serif;}
-  .pager-status small{display:block;font-size:11px;font-weight:600;color:var(--ink-soft);margin-top:2px;font-family:'Inter',sans-serif;}
-
-  /* ---------- Fiche détaillée (drawer) ---------- */
-  .overlay{position:fixed;inset:0;background:rgba(10,18,15,0.5);backdrop-filter:blur(2px);z-index:900;opacity:0;pointer-events:none;transition:opacity .22s ease;}
-  .overlay.open{opacity:1;pointer-events:auto;}
-  .drawer{position:fixed;top:0;right:0;left:0;height:100%;width:100%;max-width:100%;background:var(--bg);z-index:901;transform:translateX(100%);transition:transform .32s var(--ease);overflow-y:auto;box-shadow:var(--shadow-lg);border-radius:0;}
-  .drawer.open{transform:translateX(0);}
   .drawer-banner{height:190px;display:flex;align-items:center;justify-content:center;position:relative;background-color:var(--surface-alt);}
-  .drawer-close{position:absolute;top:14px;right:14px;background:rgba(12,22,19,0.72);border:none;border-radius:50%;width:42px;height:42px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(0,0,0,0.28);backdrop-filter:blur(6px);transition:transform .15s ease, background-color .15s ease;z-index:3;color:#fff;}
-  .drawer-close svg{width:18px;height:18px;}
-  .drawer-close svg, .drawer-close svg *{stroke:#fff;fill:#fff;}
-  .drawer-close:hover{transform:translateY(-2px);background:var(--danger);}
-  .drawer-content{padding:22px 20px 40px;}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px;}
 
   /* Grand écran : on exploite la largeur au lieu d'étirer une colonne. */
   @media (min-width: 900px){
@@ -259,43 +171,10 @@
     #drawer .grid2{grid-template-columns:repeat(4,1fr);}
     #drawer .photo-strip{grid-template-columns:repeat(6,1fr);}
   }
-  .info-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:13px 15px;}
   .info-box .k{font-size:10.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;font-weight:700;}
-  .info-box .v{font-size:14.5px;font-weight:800;margin-top:4px;}
-
-  .features{display:flex;gap:10px;margin-top:18px;}
-  .feature{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:13px 8px;text-align:center;transition:transform .2s var(--ease), box-shadow .2s var(--ease);}
-  .feature:hover{transform:translateY(-2px);box-shadow:var(--shadow);}
-  .feature .fi{width:30px;height:30px;border-radius:10px;background:var(--primary);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;}
-  .feature .fv{font-size:16px;font-weight:800;font-family:'Manrope',sans-serif;}
-  .feature .fl{font-size:10px;color:var(--ink-soft);margin-top:2px;font-weight:600;}
-  .section-title{font-size:11px;font-weight:800;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em;margin:24px 0 10px;}
-  .tags{display:flex;flex-wrap:wrap;gap:7px;}
-  .tag{background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:6px 13px;font-size:11.5px;font-weight:700;color:var(--ink);}
   .photo-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(62px,80px));justify-content:start;gap:8px;margin-top:8px;}
-  .photo-strip .thumb-btn{position:relative;width:100%;max-width:80px;aspect-ratio:4/3;border:none;padding:0;border-radius:12px;overflow:hidden;cursor:pointer;background:var(--surface-alt);box-shadow:inset 0 0 0 1px var(--border);transition:transform .2s var(--ease);}
-  .photo-strip .thumb-btn:hover{transform:translateY(-2px);}
-  .photo-strip .thumb-btn img{width:100%;height:100%;object-fit:cover;display:block;}
-  .photo-strip .thumb-btn .thumb-count{position:absolute;inset:0;background:rgba(12,22,19,0.55);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11.5px;font-weight:800;}
   .detail-map{width:100%;height:240px;border-radius:var(--radius-md);overflow:hidden;background:var(--surface-alt);box-shadow:inset 0 0 0 1px var(--border);margin-top:12px;}
-
-  /* ---------- Galerie photo ---------- */
-  .gallery-modal{position:fixed;inset:0;background:rgba(8,14,12,0.88);backdrop-filter:blur(4px);z-index:1100;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;}
-  .gallery-modal.hidden{display:none;}
-  .gallery-shell{width:min(980px,100%);background:#fff;border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow-lg);}
-  .gallery-main{position:relative;display:flex;align-items:center;justify-content:center;min-height:420px;background:#0D1512;padding:16px;}
-  .gallery-main img{max-width:100%;max-height:64vh;object-fit:contain;border-radius:12px;}
-  .gallery-nav,.gallery-close{position:absolute;border:none;cursor:pointer;background:rgba(255,255,255,0.94);color:var(--ink);width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);font-size:21px;transition:transform .15s ease;}
   .gallery-nav:hover,.gallery-close:hover{transform:scale(1.06);}
-  .gallery-nav:disabled{opacity:.35;cursor:not-allowed;}
-  .gallery-nav{top:50%;transform:translateY(-50%);} .gallery-nav.prev{left:16px;} .gallery-nav.next{right:16px;}
-  .gallery-nav:hover{transform:translateY(-50%) scale(1.06);}
-  .gallery-close{top:16px;right:16px;}
-  .gallery-counter{position:absolute;left:16px;bottom:16px;background:rgba(12,22,19,0.78);color:#fff;padding:7px 12px;border-radius:999px;font-size:11.5px;font-weight:700;}
-  .gallery-thumbs{display:flex;gap:8px;padding:12px;overflow-x:auto;background:var(--surface-alt);}
-  .gallery-thumbs button{border:2px solid transparent;border-radius:10px;padding:0;width:78px;height:58px;overflow:hidden;cursor:pointer;background:#fff;flex-shrink:0;}
-  .gallery-thumbs button.active{border-color:var(--accent);}
-  .gallery-thumbs img{width:100%;height:100%;object-fit:cover;display:block;}
 
   /* ---------- Bloc contact ---------- */
   .contact-box{margin-top:26px;background:
@@ -388,22 +267,11 @@
   .saved-search-item .ssi-crit{color:var(--ink-soft);font-size:11.5px;}
   .saved-search-item button{border:none;background:none;color:var(--ink-soft);cursor:pointer;font-size:15px;padding:2px 6px;border-radius:8px;}
   .saved-search-item button:hover{color:var(--danger);background:var(--surface-alt);}
-
-  /* ---------- Carte Leaflet ---------- */
-  .custom-marker{display:flex;align-items:center;justify-content:center;border-radius:50%;box-shadow:0 3px 10px rgba(0,0,0,0.28);border:2.5px solid #fff;}
-  .custom-marker.pulse{animation:pulse 1.1s ease-out infinite;}
   @keyframes pulse{
     0%{box-shadow:0 0 0 0 rgba(226,162,44,0.55),0 3px 10px rgba(0,0,0,0.28);}
     70%{box-shadow:0 0 0 16px rgba(226,162,44,0),0 3px 10px rgba(0,0,0,0.28);}
     100%{box-shadow:0 0 0 0 rgba(226,162,44,0),0 3px 10px rgba(0,0,0,0.28);}
   }
-  .leaflet-popup-content-wrapper{border-radius:14px;box-shadow:var(--shadow-lg);}
-  .leaflet-popup-content{margin:13px 15px;}
-  .popup-card{min-width:158px;}
-  .popup-card .pt{font-family:'Manrope',sans-serif;font-weight:800;font-size:13.5px;color:var(--ink);margin:0 0 3px;}
-  .popup-card .pm{font-size:11.5px;color:var(--ink-soft);}
-  .popup-card .pp{font-family:'Manrope',sans-serif;font-weight:800;font-size:14px;color:var(--ink);margin-top:6px;}
-  .popup-card .plink{display:inline-block;margin-top:9px;font-size:11.5px;font-weight:800;color:var(--gold);cursor:pointer;}
 
   /* ---------- Pied de page ---------- */
   footer{background:var(--night);color:rgba(255,255,255,0.62);margin-top:8px;}
@@ -563,16 +431,11 @@
     .feature{flex:1 1 40%;}
     .sf-row2, .alert-form-inner{grid-template-columns:1fr;}
   }
-
-  /* ---------- Détails transverses ---------- */
-  /* Le JS bascule .disabled / disabled pendant l'envoi d'un formulaire. */
-  .btn:disabled, button:disabled{opacity:.55;cursor:not-allowed;transform:none !important;box-shadow:none !important;}
   .btn:disabled:hover{transform:none;}
 
   /* Barres de défilement horizontales fines et discrètes. */
   .chips, .gallery-thumbs, .drawer{scrollbar-width:thin;scrollbar-color:#D5D0C6 transparent;}
   .chips::-webkit-scrollbar, .gallery-thumbs::-webkit-scrollbar{height:6px;}
-  .drawer::-webkit-scrollbar{width:6px;}
   .chips::-webkit-scrollbar-thumb, .gallery-thumbs::-webkit-scrollbar-thumb, .drawer::-webkit-scrollbar-thumb{background:#D5D0C6;border-radius:999px;}
   .chips::-webkit-scrollbar-track, .gallery-thumbs::-webkit-scrollbar-track{background:transparent;}
 
@@ -832,29 +695,24 @@
 
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Code partage par les deux pages : voir l en-tete de commun.js -->
+<script src="commun.js"></script>
 <script>
-const TYPE_COLOR = { Terrain:'#B24A2C', Maison:'#2E4A61', Appartement:'#1F7A73', 'Champ agricole':'#6B8E23' };
-function surfaceUnit(type){ return type === 'Champ agricole' ? 'ha' : 'm²'; }
+
+
 const STATUS_LABEL = { Disponible:'Disponible', 'Réservé':'Sous offre' };
 const STATUS_COLOR = { Disponible:'#3F7A49', 'Réservé':'#B8842A' };
-const ICON_SVG = {
-  Terrain: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg>',
-  Maison: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>',
-  Appartement: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="4" y="3" width="16" height="18"/><line x1="9" y1="8" x2="9" y2="8"/><line x1="15" y1="8" x2="15" y2="8"/><line x1="9" y1="13" x2="9" y2="13"/><line x1="15" y1="13" x2="15" y2="13"/></svg>',
-  'Champ agricole': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 21V11"/><path d="M12 11Q6 11 6 5Q12 5 12 11Z"/><path d="M12 11Q18 11 18 5Q12 5 12 11Z"/></svg>'
-};
+
 // Repli si un type de bien n'a pas d'icône : le bandeau de la fiche appelle
 // .replace() sur l'icône, donc sur undefined si la clé manque.
-function typeIcon(type){
-  return ICON_SVG[type] || '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>';
-}
+
 
 // ===== CONFIGURATION SUPABASE =====
 // Mêmes identifiants que le tableau de bord privé — la clé "publishable"
 // est sans danger ici : seule la vue "public_properties" (lecture seule,
 // filtrée, sans champs privés) est interrogée depuis cette page.
-const SUPABASE_URL = 'https://avanktgaxepzpqmsiauz.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_nAQnS82ru9h-beIDPKMqPA_JO_aSYc-'; // clé "publishable" (ou "anon" pour les anciens projets)
+
+ // clé "publishable" (ou "anon" pour les anciens projets)
 const SHARE_PREVIEW_URL = SUPABASE_URL + '/functions/v1/share-preview'; // aperçu WhatsApp/Facebook dynamique par bien
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -952,51 +810,22 @@ function dispoLabel(p){
 // Le redimensionnement à la volée dépend de l'offre Supabase. S'il n'est
 // pas disponible, on repasse tout le site sur les fichiers d'origine
 // plutôt que d'afficher des images cassées.
-let PHOTO_RESIZE_OK = true;
-let photoResizeChecked = false;
 
-function originalPhotoUrl(u){
-  return String(u).split('?')[0]
-    .replace('/storage/v1/render/image/public/', '/storage/v1/object/public/');
-}
+
+
+
 
 // Filet par image : un fichier isolé peut échouer (format exotique, upload
 // corrompu) sans que le service soit en cause.
-function photoFallback(img){
-  img.onerror = null;
-  const orig = originalPhotoUrl(img.src);
-  if(orig !== img.src) img.src = orig;
-}
+
 
 // Sonde unique, sur une miniature minuscule : si le service ne répond pas,
 // on bascule et on redessine avec les originaux.
-async function checkPhotoResize(){
-  if(photoResizeChecked || !PHOTO_RESIZE_OK) return;
-  photoResizeChecked = true;
-  const withPhoto = PROPERTIES.find(p => p.photos && p.photos.length);
-  if(!withPhoto) return;
-  try{
-    const r = await fetch(photoUrl(withPhoto.photos[0].storage_path, 32, 40), { cache:'no-store' });
-    if(r.ok) return;
-  }catch(e){ /* service injoignable */ }
-  PHOTO_RESIZE_OK = false;
-  render();
-}
 
-function photoUrl(path, width, quality){
-  const url = db.storage.from('property-photos').getPublicUrl(path).data.publicUrl;
-  if(!width || !PHOTO_RESIZE_OK) return url;
-  return url.replace('/storage/v1/object/public/', '/storage/v1/render/image/public/')
-    + `?width=${width}&quality=${quality || 65}`;
-}
-function publicPhotoUrl(path){
-  return photoUrl(path);
-}
-function coverUrl(p, width, quality){
-  if(!p.photos || !p.photos.length) return null;
-  const cover = p.photos.find(ph=>ph.is_cover) || p.photos[0];
-  return photoUrl(cover.storage_path, width, quality);
-}
+
+
+
+
 
 async function loadProperties(){
   document.getElementById('list').innerHTML = `<div class="empty"><p style="margin:0;color:var(--ink-soft);font-size:13px;">Chargement des biens…</p></div>`;
@@ -1023,10 +852,8 @@ async function loadProperties(){
   checkPhotoResize();
 }
 
-const fcfa = n => n.toLocaleString('fr-FR') + ' FCFA';
-function esc(s){
-  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
+
+
 let state = { type:'Tous', op:'Tous', search:'', selected:null, favOnly:false, page:1,
   region:'', departement:'', commune:'', quartier:'', centerLat:null, centerLng:null, radiusKm:null };
 // Nombre d'annonces par page de liste. Sur téléphone la grille en affiche
@@ -1081,14 +908,7 @@ try {
   if(mapEl){ mapEl.innerHTML = '<div style="padding:20px;font-size:13px;color:#5C6470;text-align:center;">Carte momentanément indisponible.</div>'; }
 }
 
-function markerIcon(p, selected){
-  return L.divIcon({
-    className:'',
-    html:`<div class="custom-marker ${selected?'pulse':''}" style="width:${selected?38:32}px;height:${selected?38:32}px;background:${TYPE_COLOR[p.type]}">${typeIcon(p.type)}</div>`,
-    iconSize:[selected?38:32, selected?38:32],
-    iconAnchor:[selected?19:16, selected?19:16]
-  });
-}
+
 function popupContent(p){
   return `<div class="popup-card">
     <div class="pt">${p.type} — ${esc(p.commune)}</div>
@@ -1397,15 +1217,7 @@ function initAdvancedSearch(){
   };
 }
 
-function pagerHtml(total, totalPages, start, shown){
-  if(totalPages <= 1) return '';
-  return `
-    <nav class="list-pager" aria-label="Pagination des annonces">
-      <button type="button" class="pager-btn" data-page-step="-1" ${state.page===1?'disabled':''}>‹ Précédent</button>
-      <span class="pager-status">Page ${state.page} sur ${totalPages}<small>${start+1}–${start+shown} sur ${total} biens</small></span>
-      <button type="button" class="pager-btn" data-page-step="1" ${state.page===totalPages?'disabled':''}>Suivant ›</button>
-    </nav>`;
-}
+
 
 function renderList(){
   const items = filtered();
@@ -1453,7 +1265,7 @@ function renderList(){
         </div>
       </div>
     </div>`;
-  }).join('') + pagerHtml(items.length, totalPages, start, pageItems.length);
+  }).join('') + pagerHtml(items.length, totalPages, start, pageItems.length, 'Pagination des annonces');
 
   el.querySelectorAll('[data-page-step]').forEach(btn=>{
     btn.onclick = () => {
@@ -1501,12 +1313,7 @@ function highlightCard(id){
   }
 }
 
-function getPropertyPhotos(p){
-  const photos = Array.isArray(p.photos) ? [...p.photos] : [];
-  return photos
-    .map(ph => ({ ...ph, url: photoUrl(ph.storage_path, 1600, 75), thumb: photoUrl(ph.storage_path, 200, 60) }))
-    .sort((a,b) => (a.position ?? 0) - (b.position ?? 0));
-}
+
 
 function updateScrollLock(){
   const drawerOpen = document.getElementById('drawer').classList.contains('open');
@@ -1514,48 +1321,9 @@ function updateScrollLock(){
   document.body.style.overflow = (drawerOpen || galleryOpen) ? 'hidden' : '';
 }
 
-function openPhotoGallery(p, startIndex = 0){
-  const photos = getPropertyPhotos(p);
-  if(!photos.length) return;
-  const modal = document.getElementById('galleryModal');
-  let currentIndex = Math.max(0, Math.min(startIndex, photos.length - 1));
 
-  function renderGallery(){
-    const current = photos[currentIndex];
-    modal.innerHTML = `
-      <div class="gallery-shell">
-        <div class="gallery-main">
-          <button type="button" class="gallery-nav prev" data-action="prev" ${currentIndex===0?'disabled':''}>‹</button>
-          <img src="${current.url}" alt="Photo ${currentIndex + 1}" />
-          <button type="button" class="gallery-nav next" data-action="next" ${currentIndex===photos.length - 1?'disabled':''}>›</button>
-          <button type="button" class="gallery-close" data-action="close">×</button>
-          <div class="gallery-counter">${currentIndex + 1}/${photos.length}</div>
-        </div>
-        <div class="gallery-thumbs">
-          ${photos.map((ph, idx) => `<button type="button" class="${idx===currentIndex?'active':''}" data-index="${idx}"><img src="${ph.thumb}" alt="Miniature ${idx + 1}" loading="lazy" decoding="async" onerror="photoFallback(this)" /></button>`).join('')}
-        </div>
-      </div>`;
 
-    modal.querySelector('[data-action="prev"]').onclick = () => { currentIndex = Math.max(0, currentIndex - 1); renderGallery(); };
-    modal.querySelector('[data-action="next"]').onclick = () => { currentIndex = Math.min(photos.length - 1, currentIndex + 1); renderGallery(); };
-    modal.querySelector('[data-action="close"]').onclick = closePhotoGallery;
-    modal.querySelectorAll('[data-index]').forEach(btn => {
-      btn.onclick = () => { currentIndex = Number(btn.dataset.index); renderGallery(); };
-    });
-  }
 
-  renderGallery();
-  modal.classList.remove('hidden');
-  updateScrollLock();
-  modal.onclick = (e) => { if(e.target === modal) closePhotoGallery(); };
-}
-
-function closePhotoGallery(){
-  const modal = document.getElementById('galleryModal');
-  modal.classList.add('hidden');
-  modal.innerHTML = '';
-  updateScrollLock();
-}
 
 function openDrawer(p){
   state.selected = p.id;
@@ -1566,7 +1334,7 @@ function openDrawer(p){
   const waText = encodeURIComponent(`Bonjour, je suis intéressé(e) par le bien ${p.ref} — ${p.type} à ${p.commune}.`);
   d.innerHTML = `
     <div class="drawer-banner" style="background:${cover?`center/cover no-repeat url('${cover}')`:`linear-gradient(135deg, ${TYPE_COLOR[p.type]}, #161B22)`}">
-      ${cover?'':typeIcon(p.type).replace('width="20" height="20"','width="34" height="34"')}
+      ${cover?'':typeIcon(p.type, 34)}
       <button class="drawer-close" id="drawerClose">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#161B22" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
