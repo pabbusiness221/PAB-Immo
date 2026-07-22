@@ -54,6 +54,39 @@ function escapeHtml(str: string) {
     .replace(/>/g, "&gt;");
 }
 
+// Consigne l'issue de chaque envoi. Sans cette trace, une panne d'email est
+// invisible : le prospect est bien enregistré, mais personne ne reçoit rien et
+// personne ne le sait. L'écriture ne doit jamais faire échouer la fonction —
+// mieux vaut un email envoyé sans trace qu'une trace qui bloque l'envoi.
+async function journaliser(
+  evenement: string,
+  statut: "envoye" | "echec",
+  destinataires: number,
+  detail?: string,
+) {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/notification_log`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({
+        source: "notify-lead",
+        evenement,
+        statut,
+        destinataires,
+        detail: detail ? String(detail).slice(0, 500) : null,
+      }),
+    });
+  } catch (err) {
+    console.error("Journalisation impossible:", err);
+  }
+}
+
 async function buildEmail(table: string, record: Record<string, any>) {
   const property =
     table === "contact_messages" || table === "appointments"
@@ -123,6 +156,8 @@ Deno.serve(async (req) => {
 
   if (!RESEND_API_KEY || !NOTIFY_EMAIL) {
     console.error("RESEND_API_KEY ou NOTIFY_EMAIL manquant dans les secrets.");
+    await journaliser("configuration", "echec", 0,
+      "RESEND_API_KEY ou NOTIFY_EMAIL manquant dans les secrets.");
     return new Response("Missing configuration", { status: 500 });
   }
 
@@ -165,8 +200,10 @@ Deno.serve(async (req) => {
   if (!resendRes.ok) {
     const errText = await resendRes.text();
     console.error("Échec envoi Resend:", errText);
+    await journaliser(table, "echec", 0, `Resend ${resendRes.status} : ${errText}`);
     return new Response("Resend error: " + errText, { status: 502 });
   }
 
+  await journaliser(table, "envoye", 1);
   return new Response("OK", { status: 200 });
 });

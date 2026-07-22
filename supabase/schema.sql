@@ -702,7 +702,50 @@ create policy "Journal anti-abus reserve a l'admin" on public.submission_log
 
 
 -- ----------------------------------------------------------------------------
--- 10. Verrou sur le référentiel géographique de PostGIS
+-- 10. Journal des envois d'email
+-- ----------------------------------------------------------------------------
+-- Une panne d'envoi est silencieuse : le prospect est enregistré, mais
+-- personne ne reçoit rien et personne ne le sait. pg_net garde bien le code
+-- HTTP de chaque appel, mais purge ses lignes au bout de quelques heures.
+-- D'où cette table, écrite par les fonctions Edge, qui connaissent la raison
+-- exacte d'un échec.
+
+create table public.notification_log (
+  id bigserial primary key,
+  source text not null,
+  evenement text,
+  statut text not null check (statut in ('envoye','echec')),
+  destinataires int default 0 not null,
+  detail text,
+  created_at timestamptz not null default now()
+);
+
+create index notification_log_recent_idx on public.notification_log (created_at desc);
+create index notification_log_echecs_idx on public.notification_log (statut, created_at desc)
+  where statut = 'echec';
+
+alter table public.notification_log enable row level security;
+
+create policy "Journal des envois reserve a l'admin" on public.notification_log
+  for select to public using (is_admin());
+
+-- Ce que l'interface interroge pour savoir s'il faut alerter.
+create or replace view public.notification_health as
+  select
+    count(*) filter (where statut = 'echec' and created_at > now() - interval '7 days')  as echecs_7j,
+    count(*) filter (where statut = 'envoye' and created_at > now() - interval '7 days') as envois_7j,
+    max(created_at) filter (where statut = 'envoye')                                     as dernier_envoi_reussi,
+    max(created_at) filter (where statut = 'echec')                                      as dernier_echec,
+    (select detail from notification_log where statut = 'echec'
+      order by created_at desc limit 1)                                                  as dernier_message
+  from notification_log;
+
+revoke all on public.notification_health from anon;
+grant select on public.notification_health to authenticated;
+
+
+-- ----------------------------------------------------------------------------
+-- 11. Verrou sur le référentiel géographique de PostGIS
 -- ----------------------------------------------------------------------------
 -- spatial_ref_sys, installée par PostGIS, est exposée à l'API publique avec
 -- les droits INSERT, UPDATE, DELETE et TRUNCATE pour le rôle anonyme — donc
@@ -738,7 +781,7 @@ create trigger trg_spatial_ref_sys_pas_de_truncate
 
 
 -- ----------------------------------------------------------------------------
--- 11. Règles du bucket de stockage
+-- 12. Règles du bucket de stockage
 -- ----------------------------------------------------------------------------
 -- Ces règles vivent dans le schéma `storage`, pas dans `public` : elles
 -- échappaient donc à cette sauvegarde. Sans elles, une base restaurée ne
@@ -785,7 +828,7 @@ create policy "Listing photos : proprietaire ou admin"
 
 
 -- ----------------------------------------------------------------------------
--- 12. Ce que ce fichier ne couvre PAS
+-- 13. Ce que ce fichier ne couvre PAS
 -- ----------------------------------------------------------------------------
 -- · Les données (voir docs/SAUVEGARDES.md, elles ne vont jamais dans le dépôt)
 -- · Les comptes auth.users et leurs mots de passe

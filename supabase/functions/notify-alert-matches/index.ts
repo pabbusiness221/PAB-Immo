@@ -55,6 +55,37 @@ async function findMatchingSubscriptions(property: Record<string, any>) {
   return await res.json();
 }
 
+// Consigne l'issue de chaque campagne d'alerte. Sans cette trace, une panne
+// d'email est invisible : les inscrits ne recoivent rien et personne ne le
+// sait. L'ecriture ne doit jamais faire echouer la fonction.
+async function journaliser(
+  statut: "envoye" | "echec",
+  destinataires: number,
+  detail?: string,
+) {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/notification_log`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({
+        source: "notify-alert-matches",
+        evenement: "alert_subscriptions",
+        statut,
+        destinataires,
+        detail: detail ? String(detail).slice(0, 500) : null,
+      }),
+    });
+  } catch (err) {
+    console.error("Journalisation impossible:", err);
+  }
+}
+
 function buildEmailHtml(property: Record<string, any>) {
   // Lien direct vers la vitrine, et non vers share-preview : Supabase renvoie
   // les réponses de ses fonctions Edge en text/plain avec nosniff, si bien que
@@ -93,6 +124,7 @@ Deno.serve(async (req) => {
   }
   if (!RESEND_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     console.error("Secrets manquants (RESEND_API_KEY / SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY).");
+    await journaliser("echec", 0, "Secrets manquants (RESEND_API_KEY / SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY).");
     return new Response("Missing configuration", { status: 500 });
   }
 
@@ -145,6 +177,11 @@ Deno.serve(async (req) => {
       console.error(`Erreur réseau pour ${sub.email}:`, err);
     }
   }
+
+  // Un envoi partiel compte comme un echec : si un inscrit sur trois n'a rien
+  // recu, il faut le savoir.
+  await journaliser(failed > 0 ? "echec" : "envoye", sent,
+    failed > 0 ? `${failed} envoi(s) en echec sur ${subscriptions.length}` : undefined);
 
   return new Response(JSON.stringify({ matched: subscriptions.length, sent, failed }), {
     status: 200,
