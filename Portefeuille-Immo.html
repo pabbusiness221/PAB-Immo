@@ -2135,6 +2135,15 @@ async function checkNotificationHealth(){
   // Un collaborateur n'a pas accès au journal : pas d'alerte, pas de bruit.
   if(error || !data || !data.echecs_7j){ bandeau.classList.add('hidden'); return; }
 
+  // Le bandeau doit refléter l'état ACTUEL, pas une cicatrice. Si un envoi a
+  // réussi APRÈS le dernier échec, c'est que la panne est passée : on ne
+  // laisse pas l'alarme sonner sept jours de plus pour un incident déjà résolu.
+  // Sans cette règle, chaque échec, même isolé et suivi de succès, gardait le
+  // bandeau affiché jusqu'à sortir de la fenêtre de sept jours.
+  const retabli = data.dernier_envoi_reussi && data.dernier_echec
+    && new Date(data.dernier_envoi_reussi) >= new Date(data.dernier_echec);
+  if(retabli){ bandeau.classList.add('hidden'); return; }
+
   const quand = data.dernier_echec
     ? new Date(data.dernier_echec).toLocaleString('fr-FR', {day:'2-digit', month:'long', hour:'2-digit', minute:'2-digit'})
     : null;
