@@ -702,7 +702,43 @@ create policy "Journal anti-abus reserve a l'admin" on public.submission_log
 
 
 -- ----------------------------------------------------------------------------
--- 10. Règles du bucket de stockage
+-- 10. Verrou sur le référentiel géographique de PostGIS
+-- ----------------------------------------------------------------------------
+-- spatial_ref_sys, installée par PostGIS, est exposée à l'API publique avec
+-- les droits INSERT, UPDATE, DELETE et TRUNCATE pour le rôle anonyme — donc
+-- pour quiconque dispose de la clé publique. Un TRUNCATE empêcherait toute
+-- création ou modification de bien : la colonne générée `location` valide le
+-- SRID 4326 contre cette table à chaque écriture.
+--
+-- Ni REVOKE ni RLS ne sont possibles : la table appartient à supabase_admin,
+-- pas au rôle qui joue les migrations. On passe donc par un déclencheur, qui
+-- ne demande que le privilège TRIGGER. La lecture reste libre, PostGIS en a
+-- besoin.
+create or replace function public.bloquer_ecriture_referentiel()
+returns trigger
+language plpgsql
+as $function$
+begin
+  if coalesce(auth.role(), '') in ('anon', 'authenticated') then
+    raise exception 'Le référentiel géographique est en lecture seule.'
+      using errcode = 'insufficient_privilege';
+  end if;
+  return coalesce(new, old);
+end;
+$function$;
+
+create trigger trg_spatial_ref_sys_lecture_seule
+  before insert or update or delete on public.spatial_ref_sys
+  for each row execute function public.bloquer_ecriture_referentiel();
+
+-- TRUNCATE ignore les déclencheurs de ligne : il lui faut le sien.
+create trigger trg_spatial_ref_sys_pas_de_truncate
+  before truncate on public.spatial_ref_sys
+  for each statement execute function public.bloquer_ecriture_referentiel();
+
+
+-- ----------------------------------------------------------------------------
+-- 11. Règles du bucket de stockage
 -- ----------------------------------------------------------------------------
 -- Ces règles vivent dans le schéma `storage`, pas dans `public` : elles
 -- échappaient donc à cette sauvegarde. Sans elles, une base restaurée ne
@@ -749,7 +785,7 @@ create policy "Listing photos : proprietaire ou admin"
 
 
 -- ----------------------------------------------------------------------------
--- 11. Ce que ce fichier ne couvre PAS
+-- 12. Ce que ce fichier ne couvre PAS
 -- ----------------------------------------------------------------------------
 -- · Les données (voir docs/SAUVEGARDES.md, elles ne vont jamais dans le dépôt)
 -- · Les comptes auth.users et leurs mots de passe
