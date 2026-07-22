@@ -87,7 +87,15 @@ create table public.properties (
   verified_at timestamp with time zone,
   verified_by uuid,
   availability_checked_at timestamp with time zone,
+  -- Mise en avant payante. C'est l'échéance qui fait foi, pas un interrupteur :
+  -- une mise en avant sans fin cesse d'en être une, au bout de quelques mois
+  -- tout le catalogue serait sponsorisé et plus rien ne ressortirait.
+  -- Réservée à l'admin (déclencheur trg_properties_sponsoring).
+  sponsored_until timestamp with time zone,
+  sponsored_at timestamp with time zone,
+  sponsored_by uuid,
   constraint properties_pkey PRIMARY KEY (id),
+  constraint properties_sponsored_by_fkey FOREIGN KEY (sponsored_by) REFERENCES auth.users(id) ON DELETE SET NULL,
   constraint properties_verified_by_fkey FOREIGN KEY (verified_by) REFERENCES auth.users(id) ON DELETE SET NULL,
   constraint properties_ref_key UNIQUE (ref),
   constraint properties_owner_id_fkey FOREIGN KEY (owner_id) REFERENCES auth.users(id)
@@ -273,7 +281,17 @@ create or replace view public.public_properties as
          -- Seul le badge est public : ni le nom de l'agence ni l'identité de
          -- son responsable ne sont exposés, ce sont des données personnelles.
          exists (select 1 from collaborators c
-                 where c.user_id = p.owner_id and c.verified_at is not null) as agence_verifiee
+                 where c.user_id = p.owner_id and c.verified_at is not null) as agence_verifiee,
+         -- Ces deux colonnes sont en fin de liste, et doivent y rester :
+         -- « create or replace view » refuse d'en insérer au milieu, et
+         -- supprimer la vue pour la recréer lui ferait perdre ses droits.
+         --
+         -- Sans created_at, le catalogue n'avait AUCUN ordre : ni la vue ni la
+         -- vitrine ne triaient, l'ordre était celui que PostgreSQL renvoyait.
+         p.created_at,
+         -- Un booléen, pas la date : c'est le serveur qui tranche si la mise en
+         -- avant court encore. L'horloge d'un visiteur peut être fausse.
+         (p.sponsored_until is not null and p.sponsored_until > now()) as sponsorisee
   from properties p
   where p.is_published = true
     and p.status = any (array['Disponible'::property_status, 'Réservé'::property_status])
@@ -715,6 +733,44 @@ revoke all on function public.stats_prospects() from anon;
 grant execute on function public.stats_prospects() to authenticated;
 
 
+
+-- Le sponsoring est réservé à l'admin, exactement comme la certification : une
+-- agence qui se met elle-même en avant rendrait la mise en avant sans valeur.
+-- Le refus vient de la base, pas d'un test dans la page — une page se contourne.
+create or replace function public.enforce_sponsoring_rights()
+returns trigger
+language plpgsql
+security definer
+set search_path to 'public'
+as $function$
+begin
+  if tg_op = 'INSERT' then
+    if new.sponsored_until is not null and not is_admin() then
+      raise exception 'Seul l''administrateur peut sponsoriser une annonce.';
+    end if;
+  elsif tg_op = 'UPDATE' then
+    if new.sponsored_until is distinct from old.sponsored_until and not is_admin() then
+      raise exception 'Seul l''administrateur peut sponsoriser une annonce.';
+    end if;
+  end if;
+
+  -- Qui a accordé la mise en avant, et quand. Renseigné ici plutôt que par la
+  -- page : c'est la seule façon que ce soit vrai même si l'appel vient
+  -- d'ailleurs que du portefeuille.
+  if new.sponsored_until is not null
+     and (tg_op = 'INSERT' or new.sponsored_until is distinct from old.sponsored_until) then
+    new.sponsored_at := now();
+    new.sponsored_by := auth.uid();
+  end if;
+  if new.sponsored_until is null then
+    new.sponsored_at := null;
+    new.sponsored_by := null;
+  end if;
+
+  return new;
+end;
+$function$;
+
 -- ----------------------------------------------------------------------------
 -- 7. Déclencheurs
 -- ----------------------------------------------------------------------------
@@ -723,6 +779,7 @@ create trigger trg_appointments_rate_limit        before insert on public.appoin
 create trigger trg_alert_subscriptions_rate_limit before insert on public.alert_subscriptions for each row execute function enforce_submission_rate_limit();
 create trigger trg_site_settings_stamp           before insert or update on public.site_settings for each row execute function stamp_site_setting();
 create trigger trg_collaborators_verification  before insert or update on public.collaborators for each row execute function enforce_agency_verification_rights();
+create trigger trg_properties_sponsoring          before insert or update on public.properties  for each row execute function enforce_sponsoring_rights();
 -- Rattachement automatique des prospects. Sans lui, personne ne créerait les
 -- fiches à la main et le pipeline resterait vide.
 create trigger trg_messages_lead                  after insert on public.contact_messages     for each row execute function rattacher_lead();
@@ -754,6 +811,7 @@ create index favorite_events_property_idx    on public.favorite_events using btr
 create index favorite_events_created_idx     on public.favorite_events using btree (created_at desc);
 create index contact_messages_created_idx    on public.contact_messages using btree (created_at desc);
 create index appointments_created_idx        on public.appointments using btree (created_at desc);
+create index properties_sponsored_idx        on public.properties using btree (sponsored_until) where sponsored_until is not null;
 create index leads_stage_idx                 on public.leads using btree (stage);
 create index leads_activity_idx              on public.leads using btree (last_activity_at desc);
 create index alert_subscriptions_created_idx on public.alert_subscriptions using btree (created_at desc);

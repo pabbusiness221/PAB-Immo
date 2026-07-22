@@ -258,6 +258,12 @@
      boîte, d'où les coins et la bordure du haut supprimés. */
   .adv-search-grid-suite{border-radius:0;border-top:none;padding-top:0;box-shadow:none;}
   .sf-aide{margin:5px 0 0;font-size:11px;line-height:1.35;color:var(--ink-soft);}
+  /* Une annonce mise en avant contre paiement doit être identifiable comme
+     telle. L'étiquette est lisible, pas discrète : la masquer tromperait le
+     visiteur sur la raison de sa position en tête de liste. */
+  /* Décalée sous le bouton favori, qui occupe déjà le coin haut-droit. */
+  .pill-sponso{position:absolute;top:56px;right:12px;background:var(--night);color:var(--accent);
+    border:1px solid rgba(226,162,44,.45);letter-spacing:.03em;}
   /* Lien d'évitement : invisible tant qu'on ne l'atteint pas au clavier. Il
      évite de traverser l'en-tête et les filtres à chaque fois. */
   .saut-contenu{position:absolute;left:-9999px;top:0;z-index:9999;background:var(--night);color:#fff;
@@ -857,8 +863,41 @@ function mapRow(r){
     verified_at: r.verified_at || null,
     availability_checked_at: r.availability_checked_at || null,
     agence_verifiee: !!r.agence_verifiee,
+    // C'est le serveur qui a tranché si la mise en avant court encore :
+    // l'horloge d'un visiteur peut être fausse, l'échéance ne doit pas en
+    // dépendre.
+    sponsorisee: !!r.sponsorisee,
+    created_at: r.created_at || '',
     rooms: (r.chambres != null || (r.equipements && r.equipements.length)) ? { chambres:r.chambres, salons:r.salons, sdb:r.salles_bain, cuisine:r.cuisine, autres:r.equipements || [] } : null
   };
+}
+
+// ---- Ordre d'affichage -----------------------------------------------------
+// Le catalogue n'avait aucun ordre : ni la vue ni cette page ne triaient, et
+// PostgreSQL renvoie les lignes dans l'ordre qui l'arrange. Deux visiteurs
+// pouvaient voir deux catalogues différents, et le même visiteur un ordre
+// différent d'un rechargement à l'autre.
+//
+// Ordre de base : les annonces les plus récentes d'abord.
+const SPONSO_MAX = 3;
+
+function ordonner(items){
+  const parDate = [...items].sort((a, b) => {
+    const parDate = String(b.created_at).localeCompare(String(a.created_at));
+    // Départage indispensable : plusieurs biens partagent la même date de
+    // création. À égalité, le tri conserve l'ordre d'arrivée — c'est-à-dire
+    // celui, arbitraire, que ce classement doit justement remplacer. On tranche
+    // donc sur l'identifiant, qui est unique et ne bouge pas.
+    return parDate !== 0 ? parDate : String(a.id).localeCompare(String(b.id));
+  });
+  const misEnAvant = parDate.filter(p => p.sponsorisee).slice(0, SPONSO_MAX);
+  if(!misEnAvant.length) return parDate;
+  // Les mises en avant sont retirées de leur position naturelle avant d'être
+  // replacées en tête : sans cela elles apparaîtraient deux fois. Comme la
+  // pagination découpe cette liste telle quelle, elles se retrouvent en haut
+  // de la première page et nulle part ailleurs.
+  const misEnAvantIds = new Set(misEnAvant.map(p => p.id));
+  return [...misEnAvant, ...parDate.filter(p => !misEnAvantIds.has(p.id))];
 }
 
 // ---- Badges de confiance -------------------------------------------------
@@ -1391,7 +1430,10 @@ function majEtiquettePrix(){
 
 
 function renderList(){
-  const items = filtered();
+  // Les mises en avant réordonnent le résultat des filtres, elles ne le
+  // contournent pas : une annonce sponsorisée qui ne correspond pas à la
+  // recherche ne doit pas s'afficher pour autant.
+  const items = ordonner(filtered());
   const el = document.getElementById('list');
   // Changer un filtre ne modifie rien de visible pour qui n'y voit pas : la
   // liste se réécrit en silence. Cette phrase, lue par les lecteurs d'écran,
@@ -1423,6 +1465,7 @@ function renderList(){
         <button type="button" class="fav-btn ${isFav(p.id)?'active':''}" data-fav-id="${p.id}" aria-label="Ajouter aux favoris">${favIconSvg(isFav(p.id))}</button>
         <span class="pill" style="position:absolute;bottom:10px;left:10px;background:${STATUS_COLOR[p.status]};color:#fff;">${STATUS_LABEL[p.status]}</span>
         <span class="pill" style="position:absolute;top:10px;left:10px;background:rgba(255,255,255,0.92);color:var(--ink);">${p.operation}</span>
+        ${p.sponsorisee ? `<span class="pill pill-sponso" title="Cette annonce bénéficie d'une mise en avant payante">Sponsorisé</span>` : ''}
       </div>
       <div class="card-body">
         <div class="card-top">

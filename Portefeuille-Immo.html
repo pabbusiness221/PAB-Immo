@@ -588,6 +588,7 @@ function mapRow(r){
     created_at: r.created_at,
     verified_at: r.verified_at || null,
     availability_checked_at: r.availability_checked_at || null,
+    sponsored_until: r.sponsored_until || null,
     photos: r.property_photos || [],
     rooms: (r.chambres != null || (r.equipements && r.equipements.length)) ? { chambres:r.chambres, salons:r.salons, sdb:r.salles_bain, cuisine:r.cuisine, autres:r.equipements || [] } : null
   };
@@ -909,6 +910,25 @@ function openDrawer(p){
           <button type="button" class="btn btn-outline" data-confirmer-dispo="1">Confirmer</button>
         </div>
       </div>
+
+      <div class="section-title">Mise en avant</div>
+      <div class="confiance-bloc">
+        <div class="confiance-ligne">
+          <div class="confiance-txt">
+            <strong>Annonce sponsorisée</strong>
+            <span>${sponsoLibelle(p)}</span>
+          </div>
+          ${IS_ADMIN ? `
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <input type="date" class="sf-input" id="sponsoDate" style="margin-bottom:0;width:auto;"
+                     min="${new Date(Date.now()+86400000).toISOString().slice(0,10)}"
+                     value="${p.sponsored_until ? p.sponsored_until.slice(0,10) : ''}" />
+              <button type="button" class="btn btn-primary" data-sponsoriser="1">${sponsoActif(p) ? 'Prolonger' : 'Mettre en avant'}</button>
+              ${sponsoActif(p) ? '<button type="button" class="btn btn-outline" data-sponsoriser="0">Retirer</button>' : ''}
+            </div>`
+            : `<span class="confiance-etat ${sponsoActif(p) ? 'ok' : ''}">${sponsoActif(p) ? 'En avant' : 'Réservé à l’administrateur'}</span>`}
+        </div>
+      </div>
       <div class="grid2">
         <div class="info-box"><div class="k">Superficie</div><div class="v mono">${p.surface} ${surfaceUnit(p.type)}</div></div>
         <div class="info-box"><div class="k">${p.operation}</div><div class="v mono" style="color:var(--gold)">${fcfa(p.price)}${p.operation==='Location'?'/mois':''}</div></div>
@@ -972,6 +992,9 @@ function openDrawer(p){
   });
   d.querySelectorAll('[data-confirmer-dispo]').forEach(btn=>{
     btn.onclick = () => confirmAvailability(p.id);
+  });
+  d.querySelectorAll('[data-sponsoriser]').forEach(btn=>{
+    btn.onclick = () => setSponsoring(p.id, btn.dataset.sponsoriser === '1');
   });
   document.getElementById('drawer').classList.add('open');
   document.getElementById('overlay').classList.add('open');
@@ -1046,6 +1069,55 @@ function freshnessLabel(iso){
 
 // Certification d'une annonce. Le refus éventuel vient du déclencheur en base,
 // pas d'un test ici : un contrôle côté navigateur se contourne.
+// ---- Mise en avant --------------------------------------------------------
+// Le sponsoring n'est pas un interrupteur mais une échéance : c'est la date qui
+// décide, et elle expire toute seule. Une mise en avant sans fin cesse d'en
+// être une — au bout de quelques mois tout le catalogue est sponsorisé et plus
+// rien ne ressort.
+//
+// Le refus opposé à un non-admin vient du déclencheur en base, pas d'ici : ce
+// test ne fait que masquer des boutons inutiles, il ne protège rien.
+
+function sponsoActif(p){
+  return !!p.sponsored_until && new Date(p.sponsored_until) > new Date();
+}
+
+function sponsoLibelle(p){
+  if(!p.sponsored_until) return "Affichage normal, dans l'ordre du catalogue";
+  const fin = new Date(p.sponsored_until);
+  const jours = Math.ceil((fin - Date.now()) / 86400000);
+  const date = fin.toLocaleDateString('fr-FR', {day:'2-digit', month:'long', year:'numeric'});
+  if(jours <= 0) return `Mise en avant terminée le ${date}`;
+  return `En tête de la vitrine jusqu'au ${date} — ${jours} jour${jours>1?'s':''} restant${jours>1?'s':''}`;
+}
+
+async function setSponsoring(id, activer){
+  const prop = PROPERTIES.find(x=>String(x.id)===String(id));
+  if(!prop) return;
+
+  let jusquA = null;
+  if(activer){
+    const champ = document.getElementById('sponsoDate');
+    const saisie = champ && champ.value;
+    if(!saisie){ alert("Choisissez d'abord la date de fin de la mise en avant."); return; }
+    // Fin de journée : une mise en avant « jusqu'au 30 » doit courir tout le 30.
+    const fin = new Date(saisie + 'T23:59:59');
+    if(fin <= new Date()){ alert('Cette date est déjà passée. Choisissez une date à venir.'); return; }
+    jusquA = fin.toISOString();
+  }
+
+  const { data, error } = await db.from('properties')
+    .update({ sponsored_until: jusquA })
+    .eq('id', prop.id).select('*, property_photos(*)').single();
+  if(error){
+    alert("La mise en avant a échoué : " + error.message);
+    return;
+  }
+  Object.assign(prop, mapRow(data));
+  render();
+  openDrawer(prop);
+}
+
 async function setVerified(id, verifie){
   const prop = PROPERTIES.find(x=>String(x.id)===String(id));
   if(!prop) return;
