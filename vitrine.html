@@ -257,6 +257,25 @@
      boîte, d'où les coins et la bordure du haut supprimés. */
   .adv-search-grid-suite{border-radius:0;border-top:none;padding-top:0;box-shadow:none;}
   .sf-aide{margin:5px 0 0;font-size:11px;line-height:1.35;color:var(--ink-soft);}
+  /* ---------- Appel aux agences ---------- */
+  .collab-band{max-width:1280px;margin:0 auto;padding:0 24px 44px;}
+  .collab-inner{background:linear-gradient(140deg,var(--night),var(--night-2));border-radius:var(--radius-lg);
+    padding:28px 30px;display:flex;align-items:center;justify-content:space-between;gap:22px;flex-wrap:wrap;}
+  .collab-eyebrow{margin:0 0 6px;color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;}
+  .collab-txt{flex:1 1 380px;min-width:0;}
+  .collab-txt h2{font-family:'Manrope',sans-serif;font-size:clamp(19px,2.4vw,25px);font-weight:800;
+    letter-spacing:-0.02em;color:#fff;margin:0 0 8px;}
+  .collab-txt p{margin:0;color:rgba(255,255,255,.72);font-size:14px;line-height:1.6;max-width:62ch;}
+  .collab-toggle{flex-shrink:0;}
+  .collab-form{background:var(--surface);border:1px solid var(--border);border-top:none;
+    border-radius:0 0 var(--radius-lg) var(--radius-lg);padding:22px 24px 24px;margin-top:-8px;}
+  .collab-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;}
+  .collab-grid .full{grid-column:1/-1;}
+  @media (max-width:640px){
+    .collab-band{padding:0 16px 34px;}
+    .collab-inner{padding:22px 20px;}
+    .collab-toggle{width:100%;justify-content:center;}
+  }
   /* Une annonce mise en avant contre paiement doit être identifiable comme
      telle. L'étiquette est lisible, pas discrète : la masquer tromperait le
      visiteur sur la raison de sa position en tête de liste. */
@@ -737,6 +756,69 @@
 </div>
 </main>
 
+<!-- Appel aux agences. Placé juste avant le pied de page : c'est une porte
+     professionnelle, elle ne doit pas concurrencer les annonces auprès des
+     acheteurs, qui sont la raison d'être de cette page. -->
+<section class="collab-band" id="collaborateur" aria-labelledby="collabTitre">
+  <div class="collab-inner">
+    <div class="collab-txt">
+      <p class="collab-eyebrow">Vous êtes une agence&nbsp;?</p>
+      <h2 id="collabTitre">Publiez vos biens sur PAB Immo.</h2>
+      <p>Rejoignez nos collaborateurs : vos annonces gagnent notre audience, vous gardez la main sur votre portefeuille. Les agences certifiées portent un badge visible sur chacune de leurs annonces.</p>
+    </div>
+    <button type="button" class="btn btn-primary collab-toggle" id="collabToggleBtn"
+            aria-expanded="false" aria-controls="collabForm">Devenir collaborateur</button>
+  </div>
+
+  <form class="collab-form hidden" id="collabForm" novalidate>
+    <div class="collab-grid">
+      <div class="form-field">
+        <label class="sf-label" for="collab_agence">Nom de l'agence</label>
+        <input class="sf-input" id="collab_agence" style="margin-bottom:0;" autocomplete="organization" />
+      </div>
+      <div class="form-field">
+        <label class="sf-label" for="collab_nom">Votre nom</label>
+        <input class="sf-input" id="collab_nom" style="margin-bottom:0;" autocomplete="name" />
+      </div>
+      <div class="form-field">
+        <label class="sf-label" for="collab_contact">Téléphone ou email</label>
+        <input class="sf-input" id="collab_contact" style="margin-bottom:0;" placeholder="Pour vous répondre" />
+      </div>
+      <div class="form-field">
+        <label class="sf-label" for="collab_zone">Zone d'activité</label>
+        <input class="sf-input" id="collab_zone" list="collab_zones" style="margin-bottom:0;" placeholder="ex : Dakar, Thiès" autocomplete="off" />
+        <datalist id="collab_zones">
+          <option value="Dakar"></option><option value="Thiès"></option><option value="Dakar et Thiès"></option>
+        </datalist>
+      </div>
+      <div class="form-field">
+        <label class="sf-label" for="collab_taille">Nombre de biens</label>
+        <select class="sf-select" id="collab_taille" style="margin-bottom:0;">
+          <option value="">Non précisé</option>
+          <option value="1 à 5">1 à 5</option>
+          <option value="6 à 20">6 à 20</option>
+          <option value="21 à 50">21 à 50</option>
+          <option value="Plus de 50">Plus de 50</option>
+        </select>
+      </div>
+      <!-- Piège à robots : invisible et hors du parcours clavier. Un formulaire
+           rempli automatiquement remplit ce champ, une personne jamais. -->
+      <div class="hp-field" aria-hidden="true">
+        <label for="collab_website">Site web</label>
+        <input type="text" id="collab_website" name="website" tabindex="-1" autocomplete="off" />
+      </div>
+      <div class="form-field full">
+        <label class="sf-label" for="collab_message">Message (optionnel)</label>
+        <textarea class="sf-textarea" id="collab_message" style="margin-bottom:0;" placeholder="Parlez-nous de votre agence et de vos biens…"></textarea>
+      </div>
+      <div class="form-field full">
+        <button type="submit" class="btn btn-primary" id="collabSubmitBtn" style="width:100%;justify-content:center;">Envoyer ma candidature</button>
+        <p class="sf-error" id="collabError"></p>
+      </div>
+    </div>
+  </form>
+</section>
+
 <footer>
   <div class="footer-inner">
     <div class="footer-brand">
@@ -751,6 +833,13 @@
         <a href="#split" data-type="Appartement">Appartements</a>
         <a href="#split" data-type="Studio">Studios</a>
         <a href="#split" data-type="Champ agricole">Champs agricoles</a>
+      </div>
+    </div>
+    <div>
+      <h4>Professionnels</h4>
+      <div class="footer-links">
+        <a href="#collaborateur">Devenir collaborateur</a>
+        <a href="Portefeuille-Immo.html">Espace collaborateur</a>
       </div>
     </div>
     <div>
@@ -2011,6 +2100,66 @@ document.getElementById('alertSubmitBtn').onclick = async () => {
   if(error){ errEl.textContent = messageErreurEnvoi(error, "Échec de l'inscription :"); btn.disabled = false; btn.textContent = "M'inscrire aux alertes"; return; }
   document.getElementById('alertForm').innerHTML = '<div class="alert-form-inner" style="display:block;text-align:center;"><p class="sf-success" style="margin:0;">Inscription confirmée ! Vous serez recontacté(e) dès qu\'un bien correspond.</p></div>';
 };
+// ---- Candidature d'une agence ---------------------------------------------
+// Les candidatures ont leur propre table, séparée des messages de contact. Les
+// y mêler ferait naître une fiche prospect pour chaque agence candidate — le
+// déclencheur rattacher_lead ne fait pas la différence — et le pipeline
+// commercial se remplirait de gens qui ne cherchent pas à acheter.
+
+document.getElementById('collabToggleBtn').onclick = () => {
+  const form = document.getElementById('collabForm');
+  const btn = document.getElementById('collabToggleBtn');
+  const ouvert = form.classList.toggle('hidden') === false;
+  btn.setAttribute('aria-expanded', String(ouvert));
+  if(ouvert){
+    form.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    document.getElementById('collab_agence').focus();
+  }
+};
+
+document.getElementById('collabForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const val = id => document.getElementById(id).value.trim();
+  const errEl = document.getElementById('collabError');
+  const btn = document.getElementById('collabSubmitBtn');
+  errEl.textContent = '';
+
+  // Champ piège rempli : c'est un robot. On feint d'accepter plutôt que de
+  // signaler le refus, sinon il apprend à contourner.
+  if(document.getElementById('collab_website').value){
+    document.getElementById('collabForm').innerHTML =
+      '<p class="sf-success" style="margin:0;text-align:center;">Candidature envoyée. Nous revenons vers vous.</p>';
+    return;
+  }
+
+  const agence = val('collab_agence'), nom = val('collab_nom'), contact = val('collab_contact');
+  if(!agence || !nom || !contact){
+    errEl.textContent = "Le nom de l'agence, votre nom et un moyen de vous joindre sont nécessaires.";
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Envoi…';
+  // Pas de .select() après l'insertion : une candidature est lisible par le
+  // seul administrateur, et PostgreSQL refuse de renvoyer une ligne que
+  // l'auteur n'a pas le droit de relire. L'insertion échouerait alors pour
+  // tout visiteur, en annonçant à tort une violation de sécurité.
+  const { error } = await db.from('collaborator_requests').insert({
+    agency_name: agence,
+    contact_name: nom,
+    contact,
+    zone: val('collab_zone') || null,
+    portfolio_size: val('collab_taille') || null,
+    message: val('collab_message') || null
+  });
+  if(error){
+    errEl.textContent = messageErreurEnvoi(error, "Échec de l'envoi :");
+    btn.disabled = false; btn.textContent = 'Envoyer ma candidature';
+    return;
+  }
+  document.getElementById('collabForm').innerHTML =
+    '<p class="sf-success" style="margin:0;text-align:center;">Candidature envoyée. Nous revenons vers vous rapidement.</p>';
+};
+
 document.querySelectorAll('#viewToggle button').forEach(b=>{
   b.onclick = ()=>{
     document.querySelectorAll('#viewToggle button').forEach(x=>x.classList.remove('active'));

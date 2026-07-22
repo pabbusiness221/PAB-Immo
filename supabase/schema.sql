@@ -238,6 +238,31 @@ create table public.submission_log (
   created_at timestamptz not null default now()
 );
 
+-- Candidatures d'agences souhaitant devenir collaboratrices.
+--
+-- Table distincte de contact_messages, et non un message marqué d'une
+-- étiquette : le déclencheur rattacher_lead créerait sinon une fiche prospect
+-- pour chaque agence candidate, et le pipeline commercial se remplirait de
+-- gens qui ne cherchent pas à acheter. Ce sont deux flux sans rapport.
+create table public.collaborator_requests (
+  id uuid default gen_random_uuid() not null,
+  agency_name text not null,
+  contact_name text not null,
+  contact text not null,
+  zone text,
+  portfolio_size text,
+  message text,
+  status text default 'Nouvelle'::text not null,
+  created_at timestamp with time zone default now() not null,
+  reviewed_at timestamp with time zone,
+  reviewed_by uuid,
+  constraint collaborator_requests_pkey PRIMARY KEY (id),
+  constraint collaborator_requests_status_check CHECK (status in
+    ('Nouvelle', 'En discussion', 'Acceptée', 'Refusée')),
+  constraint collaborator_requests_reviewed_by_fkey FOREIGN KEY (reviewed_by) REFERENCES auth.users(id) ON DELETE SET NULL
+);
+
+
 -- Pipeline de suivi des prospects.
 --
 -- Les messages et les rendez-vous enregistrent des SOLLICITATIONS ; cette table
@@ -702,6 +727,24 @@ begin
 end;
 $function$;
 
+-- La date d'examen d'une candidature suit son statut : la saisir à la main
+-- serait vite oublié.
+create or replace function public.candidature_horodater_examen()
+returns trigger
+language plpgsql
+as $function$
+begin
+  if new.status <> 'Nouvelle' and old.status = 'Nouvelle' then
+    new.reviewed_at := now();
+    new.reviewed_by := auth.uid();
+  elsif new.status = 'Nouvelle' then
+    new.reviewed_at := null;
+    new.reviewed_by := null;
+  end if;
+  return new;
+end;
+$function$;
+
 -- Statistiques du pipeline.
 create or replace function public.stats_prospects()
 returns table (
@@ -789,6 +832,8 @@ create trigger trg_properties_sponsoring          before insert or update on pub
 create trigger trg_messages_lead                  after insert on public.contact_messages     for each row execute function rattacher_lead();
 create trigger trg_rdv_lead                       after insert on public.appointments         for each row execute function rattacher_lead();
 create trigger trg_leads_cloture                  before update on public.leads               for each row execute function leads_horodater_cloture();
+create trigger trg_collaborator_requests_rate_limit before insert on public.collaborator_requests for each row execute function enforce_submission_rate_limit();
+create trigger trg_candidature_examen             before update on public.collaborator_requests for each row execute function candidature_horodater_examen();
 create trigger trg_properties_verification      before insert or update on public.properties for each row execute function enforce_verification_rights();
 create trigger trg_properties_updated_at        before update on public.properties            for each row execute function set_updated_at();
 create trigger trg_properties_status_history    after update  on public.properties            for each row execute function log_status_change();
@@ -816,6 +861,7 @@ create index favorite_events_created_idx     on public.favorite_events using btr
 create index contact_messages_created_idx    on public.contact_messages using btree (created_at desc);
 create index appointments_created_idx        on public.appointments using btree (created_at desc);
 create index properties_sponsored_idx        on public.properties using btree (sponsored_until) where sponsored_until is not null;
+create index collaborator_requests_created_idx on public.collaborator_requests using btree (created_at desc);
 create index leads_stage_idx                 on public.leads using btree (stage);
 create index leads_activity_idx              on public.leads using btree (last_activity_at desc);
 create index alert_subscriptions_created_idx on public.alert_subscriptions using btree (created_at desc);
@@ -847,6 +893,7 @@ alter table public.activity_logs          enable row level security;
 alter table public.site_settings          enable row level security;
 alter table public.submission_log         enable row level security;
 alter table public.leads                  enable row level security;
+alter table public.collaborator_requests  enable row level security;
 
 -- Biens et photos : propriétaire ou admin, en lecture comme en écriture.
 create policy "Acces biens : proprietaire ou admin" on public.properties
@@ -921,6 +968,23 @@ create policy "Prospects visibles par le proprietaire du bien" on public.leads
 create policy "Maj prospects reservee a l'admin" on public.leads
   for update to public using (is_admin()) with check (is_admin());
 create policy "Suppression prospects reservee a l'admin" on public.leads
+  for delete to public using (is_admin());
+
+-- Candidatures d'agences. Déposer est ouvert à tous, c'est le principe d'un
+-- formulaire public ; lire ne l'est pas, elles contiennent le nom et le
+-- téléphone d'une personne réelle.
+--
+-- ATTENTION côté client : ne jamais enchaîner .select() après l'insertion.
+-- PostgreSQL refuse de renvoyer une ligne que l'auteur n'a pas le droit de
+-- relire, et l'insertion échoue alors pour tout visiteur en annonçant à tort
+-- une violation de sécurité.
+create policy "Tout le monde peut candidater" on public.collaborator_requests
+  for insert to public with check (true);
+create policy "Candidatures reservees a l'admin" on public.collaborator_requests
+  for select to public using (is_admin());
+create policy "Maj candidatures reservee a l'admin" on public.collaborator_requests
+  for update to public using (is_admin()) with check (is_admin());
+create policy "Suppression candidatures reservee a l'admin" on public.collaborator_requests
   for delete to public using (is_admin());
 
 create policy "Tout le monde peut s'inscrire aux alertes" on public.alert_subscriptions

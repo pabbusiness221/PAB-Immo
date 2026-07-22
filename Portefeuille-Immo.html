@@ -452,6 +452,7 @@
     <button class="btn btn-inbox" id="agencesBtn" style="display:none;" title="Agences">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M10 21v-6h4v6"/></svg>
       <span class="btn-label">Agences</span>
+      <span class="inbox-badge" id="agencesBadge" style="display:none;"></span>
     </button>
     <button class="btn btn-inbox" id="journalBtn" style="display:none;" title="Journal d'activité">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
@@ -2167,11 +2168,46 @@ async function checkNotificationHealth(){
 
 let AGENCES = [];
 
+// Les candidatures d'agences vivent dans leur propre table : une candidature
+// n'est pas un message de contact, et l'y mêler créerait une fiche prospect
+// pour chaque agence candidate.
+let CANDIDATURES = [];
+const ETATS_CANDIDATURE = ['Nouvelle', 'En discussion', 'Acceptée', 'Refusée'];
+
 async function loadAgences(){
-  const { data, error } = await db.from('collaborators')
-    .select('user_id, display_name, verified_at, created_at')
-    .order('display_name');
+  const [{ data, error }, { data: cand }] = await Promise.all([
+    db.from('collaborators')
+      .select('user_id, display_name, verified_at, created_at')
+      .order('display_name'),
+    db.from('collaborator_requests').select('*').order('created_at', { ascending:false })
+  ]);
   AGENCES = error ? null : (data || []);
+  CANDIDATURES = cand || [];
+}
+
+async function setCandidatureStatus(id, statut, champ){
+  const avant = (CANDIDATURES.find(c=>c.id === id) || {}).status;
+  champ.disabled = true;
+  const { error } = await db.from('collaborator_requests').update({ status: statut }).eq('id', id);
+  champ.disabled = false;
+  if(error){
+    // On remet ce qui est réellement en base plutôt que de laisser l'écran
+    // afficher un statut qui n'a pas été enregistré.
+    champ.value = avant;
+    alert("Le statut n'a pas pu être enregistré : " + error.message);
+    return;
+  }
+  await loadAgences();
+  renderAgences();
+  majBadgeAgences();
+}
+
+function majBadgeAgences(){
+  const badge = document.getElementById('agencesBadge');
+  if(!badge) return;
+  const n = CANDIDATURES.filter(c=>c.status === 'Nouvelle').length;
+  badge.style.display = n > 0 ? '' : 'none';
+  badge.textContent = n;
 }
 
 async function setAgenceVerified(userId, verifie){
@@ -2231,9 +2267,41 @@ function renderAgences(){
       publiés par une agence certifiée. Seul le badge est public : ni le nom de
       l'agence ni l'identité de son responsable ne sont exposés.
     </p>`}
+
+    <div class="journal-tete" style="border-top:1px solid var(--border);">
+      <div>
+        <strong>Candidatures</strong>
+        <p>${CANDIDATURES.length === 0 ? 'Aucune candidature reçue'
+          : `${CANDIDATURES.length} reçue${CANDIDATURES.length>1?'s':''} · ${CANDIDATURES.filter(c=>c.status==='Nouvelle').length} à examiner`}</p>
+      </div>
+    </div>
+    ${CANDIDATURES.length === 0
+      ? `<div class="inbox-empty">Les agences candidatent depuis le formulaire en bas de la vitrine.</div>`
+      : `<div class="journal-liste">${CANDIDATURES.map(c=>`
+        <div class="agence-item" style="align-items:flex-start;">
+          <div class="agence-txt">
+            <strong>${esc(c.agency_name)}</strong>
+            <span>${esc(c.contact_name)} · ${esc(c.contact)}</span>
+            <span>${[c.zone, c.portfolio_size ? c.portfolio_size + ' biens' : null]
+                     .filter(Boolean).map(esc).join(' · ') || 'Zone et taille non précisées'}
+              · reçue ${freshnessLabel(c.created_at)}</span>
+            ${c.message ? `<span style="margin-top:5px;color:var(--ink);">${esc(c.message)}</span>` : ''}
+          </div>
+          <select class="pros-select" data-candidature="${c.id}" aria-label="Statut de ${esc(c.agency_name)}">
+            ${ETATS_CANDIDATURE.map(e=>`<option value="${e}"${e===c.status?' selected':''}>${e}</option>`).join('')}
+          </select>
+        </div>`).join('')}</div>
+      <p class="analytics-note" style="margin:0 20px 24px;">
+        Accepter une candidature ne crée pas de compte : il reste à inviter
+        l'agence depuis Supabase, puis à l'ajouter aux collaborateurs. Ce statut
+        ne sert qu'à savoir où en est l'échange.
+      </p>`}
   `;
 
   document.getElementById('agencesClose').onclick = closeAgences;
+  d.querySelectorAll('[data-candidature]').forEach(sel=>{
+    sel.onchange = () => setCandidatureStatus(sel.dataset.candidature, sel.value, sel);
+  });
   d.querySelectorAll('[data-agence]').forEach(b=>{
     b.onclick = () => setAgenceVerified(b.dataset.agence, b.dataset.verifier === '1');
   });
@@ -2777,7 +2845,10 @@ async function checkAuth(){
   // Le suivi des prospects n'est modifiable que par l'admin : afficher le
   // bouton a un collaborateur lui montrerait un ecran ou rien ne repond.
   document.getElementById('prospectsBtn').style.display = IS_ADMIN ? '' : 'none';
-  if(IS_ADMIN) loadProspects().then(majBadgeProspects);
+  if(IS_ADMIN){
+    loadProspects().then(majBadgeProspects);
+    loadAgences().then(majBadgeAgences);
+  }
     // Les statistiques sont ouvertes aux collaborateurs : les règles de
   // sécurité de la base restreignent d'elles-mêmes les chiffres à leurs
   // propres biens. La boîte de réception reste réservée à l'admin.
@@ -2808,7 +2879,10 @@ document.getElementById('authSubmit').onclick = async () => {
   // Le suivi des prospects n'est modifiable que par l'admin : afficher le
   // bouton a un collaborateur lui montrerait un ecran ou rien ne repond.
   document.getElementById('prospectsBtn').style.display = IS_ADMIN ? '' : 'none';
-  if(IS_ADMIN) loadProspects().then(majBadgeProspects);
+  if(IS_ADMIN){
+    loadProspects().then(majBadgeProspects);
+    loadAgences().then(majBadgeAgences);
+  }
   // Les statistiques sont ouvertes aux collaborateurs : les règles de
   // sécurité de la base restreignent d'elles-mêmes les chiffres à leurs
   // propres biens. La boîte de réception reste réservée à l'admin.
