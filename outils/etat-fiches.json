@@ -1,0 +1,122 @@
+{
+ "AP-2026-2278": {
+  "empreinte": "dd4e7c8605c8709049f41f1ac49399ee09c9e999",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "AP-2026-2354": {
+  "empreinte": "86e95a25b404c37744e3aeb1051d3e41e76f8e42",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "AP-2026-6664": {
+  "empreinte": "5f9eee614ff74dde763d239d01544c859885c373",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "APT-2024-032": {
+  "empreinte": "070a84e638f795a3a4f9150f24531d7400daf18d",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "APT-2024-101": {
+  "empreinte": "f7624e2f498ad33e9db204075592f867f2ee6f52",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "BIEN-2024-055": {
+  "empreinte": "692d745ba76e5b1d08867838eed815bb63722644",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "CH-2026-5713": {
+  "empreinte": "6828778d91f95ab7aac8484a7a7d7d3fdd4f253e",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "CH-2026-8460": {
+  "empreinte": "847697a66c9f9e91c14f9cc4a0c9905b8bf30f56",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "MA-2026-7029": {
+  "empreinte": "cbd5bf5770523b41d63fbc6e90bc56c607b2635f",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "TEST": {
+  "empreinte": "093e36fddc1c420de3cf060c6232308d2a823f88",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "TEST1": {
+  "empreinte": "e4703da43203a60fa6a8718eea2cd743641bda45",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "TEST2": {
+  "empreinte": "0cb193f3dd2c9d56af68be9180eaf561c4a0a8f6",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "TF-2024-0847": {
+  "empreinte": "be57e67a1fe98bd700c52741cc90d0863a4963d8",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "TF-2024-0912": {
+  "empreinte": "8a123450506d72f8002de89ca2beb0bbdf8c52d2",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "TF-2026-2096": {
+  "empreinte": "c4a229eb6148358683bf162897939e3fcdba4372",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "TF-2026-2204": {
+  "empreinte": "fc9d0f12dc47a2770a700e4277c19b7af7072147",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "TF-2026-2674": {
+  "empreinte": "d30dfec11d3d04f4cd4488846d3b6a522786c059",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "TF-2026-3132": {
+  "empreinte": "982228be52598bbff7cb95b556eb447b5a51a513",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "TF-2026-3595": {
+  "empreinte": "3c4116f3a03d7b4b8a51d6200d49ecf6645eb0ff",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "TF-2026-3724": {
+  "empreinte": "2fab53546ee2da6fee7fca1cdd0d5b412cbbc2fe",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "TF-2026-4847": {
+  "empreinte": "4987077ca2b4a96dbd06bdc4d97e4524083ec62d",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "TF-2026-5797": {
+  "empreinte": "f4a866a2b1650591a0ba34a5ef6bb2dcebe32bff",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "TF-2026-9270": {
+  "empreinte": "89092a79f06936ff8b670c6c42b3d898989f0f46",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ },
+ "VIL-2024-078": {
+  "empreinte": "7ffa233889b59e5c13e1b06d39ee01f2415c308b",
+  "modifie": "2026-07-22",
+  "premiere": "2026-07-22"
+ }
+}

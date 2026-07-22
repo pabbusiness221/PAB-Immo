@@ -115,13 +115,35 @@ Voir `docs/REFERENCEMENT.md` pour le fonctionnement d'ensemble.
 
 ## Ensuite, à chaque changement de bien
 
-Publier, modifier, dépublier ou archiver un bien **n'a aucun effet sur les
-fiches** tant que le script n'a pas retourné :
+Publier, modifier, dépublier ou archiver un bien depuis le portefeuille **n'a
+aucun effet immédiat sur les fiches**. Le bien apparaît tout de suite sur la
+vitrine, mais sa fiche — la seule page que Google sait lire — n'existe que
+lorsque le générateur est passé. Une fiche non régénérée continue d'annoncer un
+ancien prix, ou un bien déjà vendu.
+
+**C'est automatique.** L'action `.github/workflows/actualiser-fiches.yml`
+régénère et publie les fiches **chaque nuit à 4 h** (heure de Dakar). Elle ne
+committe que s'il y a réellement du nouveau, et refuse de publier si le
+vérificateur trouve une incohérence — auquel cas GitHub envoie un mail.
+
+**Pour ne pas attendre la nuit** : onglet **Actions** du dépôt → *Actualiser les
+fiches* → bouton **Run workflow**. Comptez deux minutes.
+
+**Manuellement**, si besoin :
 
 ```bash
 python outils/generer-pages.py
+python outils/verifier-mise-en-ligne.py
 git add -A && git commit -m "Actualiser les fiches" && git push
 ```
 
-Une fiche non régénérée continue d'annoncer un ancien prix, ou un bien déjà
-vendu.
+> **Deux choses à savoir sur les actions planifiées.** GitHub les **désactive
+> après 60 jours sans aucune activité** sur le dépôt — il envoie un mail avant,
+> et un simple clic les réactive. Et l'heure de déclenchement peut glisser d'une
+> heure quand ses serveurs sont chargés ; ce n'est pas une panne.
+
+### Ce que l'action ne fait pas
+
+Elle ne touche jamais aux réglages : `EN_MAINTENANCE`, les balises `noindex`,
+le renommage de `vitrine.html`. La bascule décrite plus haut reste un geste
+volontaire, à faire une seule fois.

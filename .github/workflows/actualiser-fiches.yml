@@ -1,0 +1,67 @@
+# Régénère les fiches des biens et les publie.
+#
+# Pourquoi cette action existe
+# ----------------------------
+# Publier un bien depuis le portefeuille ne le met pas sur Google : sa fiche
+# statique — la seule page que Google sait lire — n'existe pas tant que
+# generer-pages.py n'a pas tourné. Idem pour un prix modifié ou un bien vendu :
+# la fiche continue d'annoncer l'ancienne réalité.
+#
+# Demander à un collaborateur de lancer un script Python et un git push après
+# chaque saisie n'est pas tenable, et l'oubli est silencieux — rien ne signale
+# l'écart. GitHub s'en charge donc chaque nuit.
+#
+# Aucun secret n'est nécessaire : le script lit la vue publique avec la clé
+# publiable, celle qui figure déjà dans le code source du site.
+
+name: Actualiser les fiches
+
+on:
+  schedule:
+    # 04h00 UTC, soit 04h00 à Dakar : les changements de la veille sont en
+    # ligne avant l'ouverture.
+    - cron: '0 4 * * *'
+  # Bouton « Run workflow » dans l'onglet Actions, pour une saisie urgente.
+  workflow_dispatch:
+
+# Deux exécutions simultanées se marcheraient sur les pieds au moment du push.
+concurrency:
+  group: actualiser-fiches
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  actualiser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Régénérer les fiches
+        run: python outils/generer-pages.py
+
+      # Le contrôle passe avant la publication : mieux vaut une action en échec,
+      # qui envoie un mail, qu'un site incohérent mis en ligne sans bruit.
+      - name: Vérifier la cohérence
+        run: python outils/verifier-mise-en-ligne.py
+
+      - name: Publier s'il y a du nouveau
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Aucun changement : rien à publier."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # -A est indispensable : le script supprime les fiches des biens
+          # dépubliés, et un « git add bien/ » n'enregistre pas les suppressions.
+          git add -A
+          git commit -m "Actualiser les fiches des biens" \
+                     -m "Régénération automatique par l'action Actualiser les fiches."
+          git push
+          echo "Fiches publiées."

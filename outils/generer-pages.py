@@ -26,6 +26,7 @@ Utilisation
 Régénérer après chaque publication ou modification de bien.
 """
 
+import hashlib
 import json
 import os
 import re
@@ -61,6 +62,19 @@ ACCUEIL = "vitrine.html" if EN_MAINTENANCE else "Biens-Immo.html"
 
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOSSIER = os.path.join(RACINE, "bien")
+
+# Mémoire du générateur, d'une exécution à l'autre : pour chaque bien, une
+# empreinte de ses données, la date où sa fiche est apparue et celle du dernier
+# changement réel.
+#
+# Sans cela, deux dates seraient inventées à chaque passage. Le « lastmod » du
+# sitemap vaudrait toujours aujourd'hui — Google finit par ne plus y croire, et
+# une exécution automatique produirait un commit chaque nuit même sans rien à
+# dire. Et le « datePosted » des données structurées affirmerait que les vingt-
+# quatre biens ont été publiés ce matin, ce qui est simplement faux.
+#
+# Ce fichier doit être versionné : c'est lui qui porte la mémoire.
+ETAT = os.path.join(RACINE, "outils", "etat-fiches.json")
 
 
 # --- Utilitaires ------------------------------------------------------------
@@ -137,6 +151,46 @@ def nom_fichier(b):
     parallèles finiraient par diverger et produire des liens morts."""
     action = "a-vendre" if b["operation"] == "Vente" else "a-louer"
     return f"{slug(b['type'])}-{action}-{slug(lieu_court(b['commune']))}-{slug(b['ref'])}.html"
+
+
+def empreinte(b, photos):
+    """Résume tout ce qui, dans les données, détermine le contenu d'une fiche.
+
+    Deux exécutions qui trouvent la même empreinte ont produit la même page :
+    inutile d'en changer la date. On empreinte les données plutôt que le HTML
+    rendu, parce que le HTML contient justement les dates — on tournerait en
+    rond.
+    """
+    matiere = json.dumps([b, [p["storage_path"] for p in photos]],
+                         sort_keys=True, ensure_ascii=False, default=str)
+    return hashlib.sha1(matiere.encode("utf-8")).hexdigest()
+
+
+def dates_des_fiches(biens, par_bien):
+    """Confronte les données du jour à l'état de la dernière exécution.
+
+    Renvoie, par référence : la date de première apparition (qui sert de date de
+    publication) et celle du dernier changement réel (qui sert de lastmod).
+    """
+    aujourdhui = date.today().isoformat()
+    try:
+        with open(ETAT, encoding="utf-8") as f:
+            ancien = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        ancien = {}
+
+    etat = {}
+    for b in biens:
+        e = empreinte(b, par_bien.get(b["id"], []))
+        precedent = ancien.get(b["ref"], {})
+        etat[b["ref"]] = {
+            "empreinte": e,
+            "premiere": precedent.get("premiere", aujourdhui),
+            # Inchangé depuis la dernière fois : on conserve la date d'alors.
+            "modifie": (precedent.get("modifie", aujourdhui)
+                        if precedent.get("empreinte") == e else aujourdhui),
+        }
+    return etat, set(ancien) != set(etat)
 
 
 def similaires(b, tous, n=3):
@@ -222,7 +276,7 @@ def description_bien(b):
     return txt[:300]
 
 
-def donnees_structurees(b, photos, url):
+def donnees_structurees(b, photos, url, publiee):
     """Schema.org. RealEstateListing est le type que Google attend pour une
     annonce immobilière ; l'offre porte le prix et la disponibilité."""
     d = {
@@ -231,7 +285,10 @@ def donnees_structurees(b, photos, url):
         "name": titre_bien(b),
         "description": description_bien(b),
         "url": url,
-        "datePosted": str(date.today()),
+        # Date où la fiche est apparue sur le site, et non date du jour : dire
+        # que les vingt-quatre biens ont été publiés ce matin serait faux, et
+        # Schema.org prend cette date au mot.
+        "datePosted": publiee,
         "identifier": b["ref"],
         "image": [photo_url(p["storage_path"], 1200) for p in photos] or None,
         "address": {
@@ -306,7 +363,7 @@ STYLE_VIGNETTES = """
 """
 
 
-def page_bien(b, photos, voisins=()):
+def page_bien(b, photos, voisins=(), publiee=None):
     nom = nom_fichier(b)
     url = f"{SITE}/bien/{nom}"
     titre = titre_bien(b)
@@ -396,7 +453,7 @@ def page_bien(b, photos, voisins=()):
   footer{{background:var(--night);color:rgba(255,255,255,.5);font-size:12.5px;text-align:center;padding:26px 20px;line-height:1.7;}}
 </style>
 <script type="application/ld+json">
-{donnees_structurees(b, photos, url)}
+{donnees_structurees(b, photos, url, publiee or date.today().isoformat())}
 </script>
 </head>
 <body>
@@ -592,16 +649,20 @@ def main():
         if ancien.endswith(".html"):
             os.remove(os.path.join(DOSSIER, ancien))
 
+    etat, catalogue_modifie = dates_des_fiches(biens, par_bien)
+
     urls = []
     manifeste = {}
     for b in biens:
         voisins = [(v, par_bien.get(v["id"], [])) for v in similaires(b, biens)]
-        nom, html = page_bien(b, par_bien.get(b["id"], []), voisins)
+        nom, html = page_bien(b, par_bien.get(b["id"], []), voisins,
+                              etat[b["ref"]]["premiere"])
         with open(os.path.join(DOSSIER, nom), "w", encoding="utf-8") as f:
             f.write(html)
         manifeste[b["ref"]] = nom
-        urls.append(f"{SITE}/bien/{nom}")
-    print(f"  {len(urls)} pages écrites dans bien/")
+        urls.append((f"{SITE}/bien/{nom}", etat[b["ref"]]["modifie"]))
+    changes = sum(1 for v in etat.values() if v["modifie"] == date.today().isoformat())
+    print(f"  {len(urls)} pages écrites dans bien/ ({changes} avec du nouveau)")
 
     # --- bien/index.json ----------------------------------------------------
     # La vitrine s'en sert pour pointer vers la fiche d'un bien. Elle pourrait
@@ -618,18 +679,33 @@ def main():
     print("  bien/index.html : page d'index statique")
 
     # --- sitemap.xml --------------------------------------------------------
+    # Chaque adresse porte la date de son dernier changement réel, pas celle du
+    # jour. Un sitemap qui déclare tout modifié à chaque passage perd sa raison
+    # d'être : Google cesse de s'y fier et explore à son propre rythme.
     aujourdhui = date.today().isoformat()
-    lignes = [f"  <url><loc>{SITE}/{ACCUEIL}</loc><lastmod>{aujourdhui}</lastmod>"
+    # L'accueil et la page d'index changent dès qu'un bien entre ou sort du
+    # catalogue, ou dès que l'un d'eux bouge.
+    dates_biens = [d for _, d in urls]
+    accueil_modifie = (aujourdhui if catalogue_modifie
+                       else max(dates_biens, default=aujourdhui))
+    lignes = [f"  <url><loc>{SITE}/{ACCUEIL}</loc><lastmod>{accueil_modifie}</lastmod>"
               f"<changefreq>daily</changefreq><priority>1.0</priority></url>",
-              f"  <url><loc>{SITE}/bien/</loc><lastmod>{aujourdhui}</lastmod>"
+              f"  <url><loc>{SITE}/bien/</loc><lastmod>{accueil_modifie}</lastmod>"
               f"<changefreq>daily</changefreq><priority>0.9</priority></url>"]
-    lignes += [f"  <url><loc>{u}</loc><lastmod>{aujourdhui}</lastmod>"
-               f"<changefreq>weekly</changefreq><priority>0.8</priority></url>" for u in urls]
+    lignes += [f"  <url><loc>{u}</loc><lastmod>{d}</lastmod>"
+               f"<changefreq>weekly</changefreq><priority>0.8</priority></url>"
+               for u, d in urls]
     with open(os.path.join(RACINE, "sitemap.xml"), "w", encoding="utf-8") as f:
         f.write('<?xml version="1.0" encoding="UTF-8"?>\n'
                 '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
                 + "\n".join(lignes) + "\n</urlset>\n")
     print(f"  sitemap.xml : {len(lignes)} adresses")
+
+    # L'état est écrit en dernier : si quelque chose échoue avant, la prochaine
+    # exécution repart des dates précédentes plutôt que d'une mémoire à moitié
+    # réécrite.
+    with open(ETAT, "w", encoding="utf-8") as f:
+        json.dump(etat, f, ensure_ascii=False, indent=1, sort_keys=True)
 
     # --- robots.txt ---------------------------------------------------------
     # ATTENTION : sur GitHub Pages, ce fichier n'est PAS lu par les robots.
