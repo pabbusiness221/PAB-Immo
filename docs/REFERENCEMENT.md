@@ -22,6 +22,23 @@ Ce sont **ces pages** que Google indexe et positionne, pas la vitrine. La
 vitrine reste l'outil de navigation pour les visiteurs ; les pages générées sont
 les portes d'entrée depuis les moteurs de recherche.
 
+### Comment elles sont reliées
+
+Une page que rien ne relie au reste est un cul-de-sac : Google la découvre par
+le sitemap, mais rien ne lui dit qu'elle compte, et le visiteur qui y atterrit
+n'a nulle part où aller. Trois liaisons évitent ça :
+
+| Fichier | Rôle |
+|---|---|
+| `bien/index.html` | Index statique du catalogue. C'est la seule page en HTML pur qui pointe vers les 24 fiches — la vitrine, construite en JavaScript, n'affiche aucun lien dans son code source. |
+| Bloc « Autres biens » | Trois biens proches en fin de chaque fiche, classés par commune, puis type, puis opération. |
+| `bien/index.json` | Liste des fiches réellement écrites. La vitrine s'en sert pour ouvrir la fiche d'un bien ; comme elle ne lit que ce qui existe, elle ne peut pas fabriquer de lien mort. |
+
+C'est aussi ce qui répare l'aperçu de partage : le bouton « Partager » envoie
+l'adresse de la fiche, la seule dont le code source porte la photo, le titre et
+le prix du bien. WhatsApp et Facebook lisent le code source sans exécuter de
+JavaScript — un lien vers la vitrine ne leur montrait que l'image générique.
+
 ### À relancer après chaque changement
 
 ```bash
