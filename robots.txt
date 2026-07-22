@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /PAB-Immo/
+# Site en cours de mise à jour : indexation suspendue.
+
+Sitemap: https://pabbusiness221.github.io/PAB-Immo/sitemap.xml
