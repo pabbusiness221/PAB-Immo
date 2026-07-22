@@ -245,6 +245,27 @@
   .agence-txt span{display:block;font-size:12px;color:var(--ink-soft);margin-top:3px;}
   .agence-item .btn{flex-shrink:0;padding:9px 16px;font-size:12.5px;min-height:0;}
 
+  /* ---------- Prospects ---------- */
+  #prospectsDrawer{left:auto;width:560px;max-width:96vw;border-radius:var(--radius-xl) 0 0 var(--radius-xl);background:var(--bg);}
+  .pros-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px;margin-bottom:16px;}
+  .pros-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:11px 12px;}
+  .pros-stat b{display:block;font-family:'Manrope',sans-serif;font-size:20px;font-weight:800;line-height:1.1;}
+  .pros-stat span{display:block;font-size:10.5px;color:var(--ink-soft);font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-top:3px;}
+  .pros-stat.alerte b{color:var(--gold);}
+  .pros-etape-titre{display:flex;align-items:center;gap:8px;margin:20px 0 9px;font-family:'Manrope',sans-serif;font-size:12.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);}
+  .pros-etape-titre::after{content:'';flex:1;height:1px;background:var(--border);}
+  .pros-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:13px 14px;margin-bottom:8px;}
+  .pros-haut{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+  .pros-nom{font-size:14px;font-weight:800;line-height:1.25;}
+  .pros-coord{font-size:12px;color:var(--ink-soft);margin-top:2px;word-break:break-word;}
+  .pros-faits{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;}
+  .pros-fait{font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--surface-alt);color:var(--ink-soft);}
+  .pros-fait.chaud{background:rgba(226,162,44,.16);color:#8F6414;}
+  .pros-select{border:1px solid var(--border);border-radius:9px;padding:6px 9px;font-size:12px;font-weight:700;font-family:inherit;background:var(--surface);color:var(--ink);cursor:pointer;flex-shrink:0;}
+  .pros-notes{width:100%;margin-top:9px;border:1px solid var(--border);border-radius:9px;padding:8px 10px;font-family:inherit;font-size:12.5px;color:var(--ink);background:var(--bg);resize:vertical;min-height:38px;}
+  .pros-notes:focus{outline:none;border-color:var(--accent);}
+  .pros-vide{text-align:center;color:var(--ink-soft);font-size:13px;padding:30px 10px;}
+
   /* ---------- Agenda des rendez-vous ---------- */
   .cal-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
   .cal-nav{border:1px solid var(--border);background:var(--surface);border-radius:10px;width:30px;height:30px;cursor:pointer;font-size:16px;line-height:1;color:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s var(--ease);}
@@ -423,6 +444,11 @@
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input id="search" placeholder="Rechercher une commune, une région, une référence…" />
     </div>
+    <button class="btn btn-inbox" id="prospectsBtn" style="display:none;" title="Prospects">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/></svg>
+      <span class="btn-label">Prospects</span>
+      <span class="inbox-badge" id="prospectsBadge" style="display:none;"></span>
+    </button>
     <button class="btn btn-inbox" id="agencesBtn" style="display:none;" title="Agences">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M10 21v-6h4v6"/></svg>
       <span class="btn-label">Agences</span>
@@ -505,6 +531,8 @@
 <div class="drawer" id="journalDrawer"></div>
 <div class="overlay" id="agencesOverlay"></div>
 <div class="drawer" id="agencesDrawer"></div>
+<div class="overlay" id="prospectsOverlay"></div>
+<div class="drawer" id="prospectsDrawer"></div>
 <div class="analytics-overlay hidden" id="analyticsOverlay"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -2137,6 +2165,176 @@ document.getElementById('agencesOverlay').onclick = closeAgences;
 document.getElementById('agencesBtn').onclick = openAgences;
 
 // ============================================================
+// PROSPECTS
+// ============================================================
+// La boîte de réception montre les sollicitations ; celle-ci montre les
+// PERSONNES. Vingt messages et rendez-vous venaient de quatre personnes : sans
+// ce regroupement, on relance quelqu'un qu'un collègue a déjà appelé, et on
+// oublie celui qui n'a écrit qu'une fois.
+//
+// Le rapprochement se fait en base, par contact_key() : « +221 77 849 41 11 »
+// et « 778494111 » désignent la même personne. Le refaire ici en JavaScript
+// créerait une seconde vérité qui finirait par diverger de la première.
+
+const ETAPES = ['Nouveau', 'Contacté', 'Visite', 'Négociation', 'Conclu', 'Perdu'];
+// Deux semaines sans nouvelles : au-delà, un dossier en cours a besoin d'une
+// relance. C'est le même seuil que celui du calcul en base.
+const RELANCE_JOURS = 14;
+
+let PROSPECTS = [];
+let statsProspects = null;
+
+async function loadProspects(){
+  const [{ data: fiches, error: e1 }, { data: stats }] = await Promise.all([
+    db.from('leads_enrichis').select('*').order('last_activity_at', { ascending:false }),
+    db.rpc('stats_prospects')
+  ]);
+  if(e1){ PROSPECTS = []; statsProspects = null; return e1; }
+  PROSPECTS = fiches || [];
+  // La fonction renvoie une ligne unique ; PostgREST la présente en tableau.
+  statsProspects = Array.isArray(stats) ? stats[0] : stats;
+  return null;
+}
+
+function prospectFaits(p){
+  const faits = [];
+  if(p.nb_messages) faits.push(`${p.nb_messages} message${p.nb_messages>1?'s':''}`);
+  if(p.nb_rdv) faits.push(`${p.nb_rdv} rendez-vous`);
+  if(p.nb_visites_realisees) faits.push(`${p.nb_visites_realisees} visite${p.nb_visites_realisees>1?'s':''} réalisée${p.nb_visites_realisees>1?'s':''}`);
+  if(p.property_ref) faits.push(`${p.property_type} · ${p.property_commune}`);
+  return faits;
+}
+
+function renderProspects(){
+  const d = document.getElementById('prospectsDrawer');
+  const s = statsProspects;
+
+  const carte = (valeur, libelle, alerte) =>
+    `<div class="pros-stat${alerte ? ' alerte' : ''}"><b>${valeur}</b><span>${libelle}</span></div>`;
+
+  const entete = `
+    <div class="drawer-head">
+      <h2>Prospects</h2>
+      <button class="drawer-close" id="prospectsClose" aria-label="Fermer">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>`;
+
+  if(!PROSPECTS.length){
+    d.innerHTML = entete + `<div class="drawer-body"><p class="pros-vide">Aucun prospect pour l'instant.<br>Les fiches se créent toutes seules dès qu'une personne écrit ou demande une visite.</p></div>`;
+    document.getElementById('prospectsClose').onclick = closeProspects;
+    return;
+  }
+
+  const stats = s ? `
+    <div class="pros-stats">
+      ${carte(s.total, 'prospects')}
+      ${carte(s.en_cours, 'en cours')}
+      ${carte(s.conclus, 'conclus')}
+      ${carte(s.taux_conversion == null ? '—' : s.taux_conversion + ' %', 'conversion')}
+      ${s.a_relancer ? carte(s.a_relancer, 'à relancer', true) : ''}
+    </div>
+    ${s.taux_conversion == null
+      ? '<p style="margin:-8px 0 4px;font-size:11.5px;color:var(--ink-soft);">Le taux apparaîtra dès qu\'un premier dossier sera conclu ou perdu : il se mesure sur les dossiers tranchés, pas sur ceux encore en cours.</p>'
+      : ''}` : '';
+
+  // Un prospect par personne, rangé par étape. L'ordre des étapes est celui du
+  // parcours réel, pas l'ordre alphabétique.
+  const colonnes = ETAPES.map(etape=>{
+    const lot = PROSPECTS.filter(p=>p.stage === etape);
+    if(!lot.length) return '';
+    return `<div class="pros-etape-titre">${etape} · ${lot.length}</div>` + lot.map(p=>{
+      const relancer = !['Conclu','Perdu'].includes(p.stage) && p.jours_sans_nouvelles >= RELANCE_JOURS;
+      return `
+      <div class="pros-item" data-pros="${p.id}">
+        <div class="pros-haut">
+          <div style="min-width:0;">
+            <div class="pros-nom">${esc(p.name)}</div>
+            <div class="pros-coord">${esc(p.contact)}</div>
+          </div>
+          <select class="pros-select" data-etape-de="${p.id}" aria-label="Étape de ${esc(p.name)}">
+            ${ETAPES.map(e=>`<option value="${e}"${e===p.stage?' selected':''}>${e}</option>`).join('')}
+          </select>
+        </div>
+        <div class="pros-faits">
+          ${prospectFaits(p).map(f=>`<span class="pros-fait">${esc(f)}</span>`).join('')}
+          <span class="pros-fait${relancer?' chaud':''}">${
+            p.jours_sans_nouvelles === 0 ? "aujourd'hui"
+            : p.jours_sans_nouvelles === 1 ? 'hier'
+            : `il y a ${p.jours_sans_nouvelles} jours`}</span>
+        </div>
+        <textarea class="pros-notes" data-notes-de="${p.id}" rows="1"
+          placeholder="Notes de suivi — ce qui a été dit, ce qu'il reste à faire">${esc(p.notes || '')}</textarea>
+      </div>`;
+    }).join('');
+  }).join('');
+
+  d.innerHTML = entete + `<div class="drawer-body">${stats}${colonnes}</div>`;
+  document.getElementById('prospectsClose').onclick = closeProspects;
+
+  d.querySelectorAll('[data-etape-de]').forEach(sel=>{
+    sel.onchange = () => majEtapeProspect(sel.dataset.etapeDe, sel.value, sel);
+  });
+  d.querySelectorAll('[data-notes-de]').forEach(zone=>{
+    // À la sortie du champ, pas à chaque frappe : une écriture par lettre
+    // saturerait la base et ferait clignoter l'écran.
+    zone.onblur = () => majNotesProspect(zone.dataset.notesDe, zone.value, zone);
+  });
+}
+
+async function majEtapeProspect(id, etape, champ){
+  const avant = (PROSPECTS.find(p=>p.id === id) || {}).stage;
+  champ.disabled = true;
+  const { error } = await db.from('leads').update({ stage: etape }).eq('id', id);
+  champ.disabled = false;
+  if(error){
+    // On remet ce qui est réellement en base plutôt que de laisser l'écran
+    // afficher une étape qui n'a pas été enregistrée.
+    champ.value = avant;
+    alert("L'étape n'a pas pu être enregistrée : " + error.message);
+    return;
+  }
+  await loadProspects();
+  renderProspects();
+  majBadgeProspects();
+}
+
+async function majNotesProspect(id, notes, champ){
+  const fiche = PROSPECTS.find(p=>p.id === id);
+  if(!fiche || (fiche.notes || '') === notes) return;   // rien n'a changé
+  const { error } = await db.from('leads').update({ notes: notes || null }).eq('id', id);
+  if(error){
+    champ.value = fiche.notes || '';
+    alert("La note n'a pas pu être enregistrée : " + error.message);
+    return;
+  }
+  fiche.notes = notes;
+}
+
+function majBadgeProspects(){
+  const badge = document.getElementById('prospectsBadge');
+  if(!badge) return;
+  const n = statsProspects ? Number(statsProspects.a_relancer || 0) : 0;
+  badge.style.display = n > 0 ? '' : 'none';
+  badge.textContent = n;
+}
+
+async function openProspects(){
+  const err = await loadProspects();
+  renderProspects();
+  majBadgeProspects();
+  if(err) console.warn('Prospects :', err.message);
+  document.getElementById('prospectsDrawer').classList.add('open');
+  document.getElementById('prospectsOverlay').classList.add('open');
+}
+function closeProspects(){
+  document.getElementById('prospectsDrawer').classList.remove('open');
+  document.getElementById('prospectsOverlay').classList.remove('open');
+}
+document.getElementById('prospectsOverlay').onclick = closeProspects;
+document.getElementById('prospectsBtn').onclick = openProspects;
+
+// ============================================================
 // TABLEAU DE BORD ANALYTIQUE
 // ============================================================
 let analyticsCharts = [];
@@ -2488,6 +2686,10 @@ async function checkAuth(){
   // il reste reserve a l'admin, comme la regle de lecture en base.
   document.getElementById('journalBtn').style.display = IS_ADMIN ? '' : 'none';
   document.getElementById('agencesBtn').style.display = IS_ADMIN ? '' : 'none';
+  // Le suivi des prospects n'est modifiable que par l'admin : afficher le
+  // bouton a un collaborateur lui montrerait un ecran ou rien ne repond.
+  document.getElementById('prospectsBtn').style.display = IS_ADMIN ? '' : 'none';
+  if(IS_ADMIN) loadProspects().then(majBadgeProspects);
     // Les statistiques sont ouvertes aux collaborateurs : les règles de
   // sécurité de la base restreignent d'elles-mêmes les chiffres à leurs
   // propres biens. La boîte de réception reste réservée à l'admin.
@@ -2515,6 +2717,10 @@ document.getElementById('authSubmit').onclick = async () => {
   // il reste reserve a l'admin, comme la regle de lecture en base.
   document.getElementById('journalBtn').style.display = IS_ADMIN ? '' : 'none';
   document.getElementById('agencesBtn').style.display = IS_ADMIN ? '' : 'none';
+  // Le suivi des prospects n'est modifiable que par l'admin : afficher le
+  // bouton a un collaborateur lui montrerait un ecran ou rien ne repond.
+  document.getElementById('prospectsBtn').style.display = IS_ADMIN ? '' : 'none';
+  if(IS_ADMIN) loadProspects().then(majBadgeProspects);
   // Les statistiques sont ouvertes aux collaborateurs : les règles de
   // sécurité de la base restreignent d'elles-mêmes les chiffres à leurs
   // propres biens. La boîte de réception reste réservée à l'admin.

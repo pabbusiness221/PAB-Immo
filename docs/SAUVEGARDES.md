@@ -103,6 +103,17 @@ L'ordre n'est pas négociable : chaque étape dépend de la précédente.
   alter table public.properties enable trigger notify_alert_matches_trigger;
   ```
 - **`activity_logs` et `property_status_history` se remplissent tout seuls** pendant l'import, avec de fausses dates. Les vider après import si l'historique réel a été réimporté.
+- **`leads` se reconstruit tout seul, et écrase les dates.** Importer `contact_messages` et `appointments` déclenche `rattacher_lead`, qui recrée chaque fiche prospect — mais avec `last_activity_at = now()`. Toutes les fiches paraîtront actives aujourd'hui, et la colonne « à relancer » tombera à zéro. Pire, si `leads` a été réimporté **avant**, les étapes et notes restent mais les dates sont écrasées.
+
+  Importer `leads` **en dernier**, déclencheurs coupés :
+  ```sql
+  alter table public.contact_messages disable trigger trg_messages_lead;
+  alter table public.appointments     disable trigger trg_rdv_lead;
+  -- … import de contact_messages, appointments, puis leads …
+  alter table public.contact_messages enable trigger trg_messages_lead;
+  alter table public.appointments     enable trigger trg_rdv_lead;
+  ```
+  Si `leads` n'a pas été sauvegardé, laisser les déclencheurs faire : les fiches se recréent avec les bons noms et les bons biens, seules les étapes de suivi sont perdues.
 
 ---
 
@@ -128,6 +139,12 @@ Une sauvegarde jamais restaurée n'est pas une sauvegarde. Le test se fait sur u
 | Un visiteur anonyme peut déposer un message | ✅ |
 | Un collaborateur ne peut pas certifier son propre bien | ✅ refusé par le déclencheur |
 | Un collaborateur peut confirmer la disponibilité | ✅ |
+
+> **Depuis ce test, le schéma a grandi.** Le pipeline de prospects du 22 juillet 2026
+> ajoute une table, une vue, quatre fonctions, trois déclencheurs, deux index et
+> quatre politiques. Sa syntaxe et son ordre de déclaration ont été vérifiés hors
+> ligne, mais **il n'a pas été rejoué sur une base vierge**. Le tableau ci-dessus
+> reste le constat du 21 juillet, il n'a pas été réécrit après coup.
 
 **Un défaut réel a été trouvé et corrigé grâce à ce test** : la colonne `location`
 était transcrite en `default (st_setsrid(...))` alors qu'il s'agit d'une colonne

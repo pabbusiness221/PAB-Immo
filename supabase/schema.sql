@@ -226,6 +226,37 @@ create table public.submission_log (
   created_at timestamptz not null default now()
 );
 
+-- Pipeline de suivi des prospects.
+--
+-- Les messages et les rendez-vous enregistrent des SOLLICITATIONS ; cette table
+-- enregistre des PERSONNES. Une même personne qui écrit trois fois puis demande
+-- deux visites produisait cinq lignes sans lien entre elles : au moment de la
+-- mise en place, 20 sollicitations correspondaient à 4 personnes réelles.
+create table public.leads (
+  id uuid default gen_random_uuid() not null,
+  -- Clé de rapprochement, calculée par contact_key(). C'est l'unicité de cette
+  -- colonne qui garantit une seule fiche par personne.
+  contact_key text not null,
+  name text not null,
+  contact text not null,
+  stage text default 'Nouveau'::text not null,
+  -- Bien à l'origine du premier contact. Sert aussi à la lecture par le
+  -- collaborateur propriétaire, comme pour les messages et les rendez-vous.
+  property_id uuid,
+  notes text,
+  first_seen_at timestamp with time zone default now() not null,
+  last_activity_at timestamp with time zone default now() not null,
+  closed_at timestamp with time zone,
+  constraint leads_pkey PRIMARY KEY (id),
+  constraint leads_contact_key_unique UNIQUE (contact_key),
+  -- Six valeurs seulement, comme le statut des rendez-vous : une faute de
+  -- frappe y créerait une étape fantôme, exclue des filtres et faussant le
+  -- taux de conversion.
+  constraint leads_stage_check CHECK (stage in
+    ('Nouveau', 'Contacté', 'Visite', 'Négociation', 'Conclu', 'Perdu')),
+  constraint leads_property_id_fkey FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE SET NULL
+);
+
 
 -- ----------------------------------------------------------------------------
 -- 5. Vues publiques
@@ -272,6 +303,57 @@ create or replace view public.public_stats as
     (select (value #>> '{}')::int from site_settings where key = 'clients_accompagnes') as clients_accompagnes;
 
 grant select on public.public_stats to anon, authenticated;
+
+
+
+-- Clé de rapprochement des prospects. « +221 77 849 41 11 », « 00221778494111 »
+-- et « 77 849 41 11 » désignent la même personne : l'indicatif et la ponctuation
+-- varient d'une saisie à l'autre, pas le numéro national.
+create or replace function public.contact_key(contact text)
+returns text
+language sql
+immutable
+as $function$
+  select case
+    when contact is null or btrim(contact) = '' then null
+    when position('@' in contact) > 0 then lower(btrim(contact))
+    when length(regexp_replace(contact, '[^0-9]', '', 'g')) >= 7
+      then right(regexp_replace(contact, '[^0-9]', '', 'g'), 9)
+    -- Ni email ni numéro exploitable : on garde la saisie telle quelle plutôt
+    -- que de regrouper à tort des personnes différentes sous une clé vide.
+    else lower(btrim(contact))
+  end;
+$function$;
+
+-- Chaque prospect avec son activité. Les comptages sont faits ici, en SQL, et
+-- non côté navigateur : ils reposent sur contact_key(), et une seconde
+-- implémentation en JavaScript finirait par diverger — deux personnes
+-- rapprochées d'un côté, séparées de l'autre.
+--
+-- security_invoker : la vue applique les droits de celui qui l'interroge. Sans
+-- cela, elle exposerait tous les prospects à n'importe quel collaborateur.
+create or replace view public.leads_enrichis
+with (security_invoker = true) as
+select
+  l.*,
+  p.ref as property_ref,
+  p.commune as property_commune,
+  p.type::text as property_type,
+  coalesce(m.nb, 0) as nb_messages,
+  coalesce(r.nb, 0) as nb_rdv,
+  coalesce(r.nb_realises, 0) as nb_visites_realisees,
+  extract(day from now() - l.last_activity_at)::int as jours_sans_nouvelles
+from public.leads l
+left join public.properties p on p.id = l.property_id
+left join (
+  select public.contact_key(contact) as cle, count(*) as nb
+  from public.contact_messages group by 1
+) m on m.cle = l.contact_key
+left join (
+  select public.contact_key(contact) as cle, count(*) as nb,
+         count(*) filter (where status = 'Réalisée') as nb_realises
+  from public.appointments group by 1
+) r on r.cle = l.contact_key;
 
 
 -- ----------------------------------------------------------------------------
@@ -550,6 +632,89 @@ end;
 $function$;
 
 
+
+-- La date de clôture suit l'étape. La renseigner à la main serait vite oublié,
+-- et le délai moyen de conversion deviendrait faux.
+create or replace function public.leads_horodater_cloture()
+returns trigger
+language plpgsql
+as $function$
+begin
+  if new.stage in ('Conclu', 'Perdu') and old.stage not in ('Conclu', 'Perdu') then
+    new.closed_at := now();
+  elsif new.stage not in ('Conclu', 'Perdu') then
+    new.closed_at := null;
+  end if;
+  return new;
+end;
+$function$;
+
+-- SECURITY DEFINER : la fiche doit naître même quand l'auteur du message est
+-- anonyme, alors qu'aucune politique n'autorise l'insertion dans leads.
+create or replace function public.rattacher_lead()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $function$
+declare
+  cle text := public.contact_key(new.contact);
+begin
+  if cle is null then
+    return new;
+  end if;
+
+  insert into public.leads (contact_key, name, contact, property_id, last_activity_at)
+  values (cle, new.name, new.contact, new.property_id, now())
+  on conflict (contact_key) do update set
+    last_activity_at = now(),
+    name = excluded.name,
+    contact = excluded.contact,
+    -- Une personne classée perdue qui reprend contact n'est plus perdue. Les
+    -- autres étapes ne bougent pas : c'est à l'agence de les faire avancer,
+    -- pas à un message d'annuler son travail.
+    stage = case when leads.stage = 'Perdu' then 'Nouveau' else leads.stage end,
+    closed_at = case when leads.stage = 'Perdu' then null else leads.closed_at end;
+
+  return new;
+end;
+$function$;
+
+-- Statistiques du pipeline.
+create or replace function public.stats_prospects()
+returns table (
+  total bigint, nouveaux bigint, en_cours bigint, conclus bigint, perdus bigint,
+  taux_conversion numeric, delai_moyen_jours numeric, a_relancer bigint
+)
+language sql
+stable
+security definer
+set search_path = public
+as $function$
+  select
+    count(*),
+    count(*) filter (where stage = 'Nouveau'),
+    count(*) filter (where stage in ('Contacté', 'Visite', 'Négociation')),
+    count(*) filter (where stage = 'Conclu'),
+    count(*) filter (where stage = 'Perdu'),
+    -- Le taux se mesure sur les dossiers TRANCHÉS. Rapporter les conclus au
+    -- total ferait chuter le taux à chaque nouveau prospect, ce qui
+    -- pénaliserait l'agence précisément quand elle attire du monde.
+    case when count(*) filter (where stage in ('Conclu', 'Perdu')) = 0 then null
+         else round(100.0 * count(*) filter (where stage = 'Conclu')
+                    / count(*) filter (where stage in ('Conclu', 'Perdu')), 1) end,
+    round(avg(extract(epoch from closed_at - first_seen_at) / 86400)
+          filter (where stage = 'Conclu'), 1),
+    count(*) filter (where stage not in ('Conclu', 'Perdu')
+                       and last_activity_at < now() - interval '14 days')
+  from public.leads
+  where public.is_admin();
+$function$;
+
+revoke all on function public.stats_prospects() from anon;
+grant execute on function public.stats_prospects() to authenticated;
+
+
 -- ----------------------------------------------------------------------------
 -- 7. Déclencheurs
 -- ----------------------------------------------------------------------------
@@ -558,6 +723,11 @@ create trigger trg_appointments_rate_limit        before insert on public.appoin
 create trigger trg_alert_subscriptions_rate_limit before insert on public.alert_subscriptions for each row execute function enforce_submission_rate_limit();
 create trigger trg_site_settings_stamp           before insert or update on public.site_settings for each row execute function stamp_site_setting();
 create trigger trg_collaborators_verification  before insert or update on public.collaborators for each row execute function enforce_agency_verification_rights();
+-- Rattachement automatique des prospects. Sans lui, personne ne créerait les
+-- fiches à la main et le pipeline resterait vide.
+create trigger trg_messages_lead                  after insert on public.contact_messages     for each row execute function rattacher_lead();
+create trigger trg_rdv_lead                       after insert on public.appointments         for each row execute function rattacher_lead();
+create trigger trg_leads_cloture                  before update on public.leads               for each row execute function leads_horodater_cloture();
 create trigger trg_properties_verification      before insert or update on public.properties for each row execute function enforce_verification_rights();
 create trigger trg_properties_updated_at        before update on public.properties            for each row execute function set_updated_at();
 create trigger trg_properties_status_history    after update  on public.properties            for each row execute function log_status_change();
@@ -584,6 +754,8 @@ create index favorite_events_property_idx    on public.favorite_events using btr
 create index favorite_events_created_idx     on public.favorite_events using btree (created_at desc);
 create index contact_messages_created_idx    on public.contact_messages using btree (created_at desc);
 create index appointments_created_idx        on public.appointments using btree (created_at desc);
+create index leads_stage_idx                 on public.leads using btree (stage);
+create index leads_activity_idx              on public.leads using btree (last_activity_at desc);
 create index alert_subscriptions_created_idx on public.alert_subscriptions using btree (created_at desc);
 create index site_visits_session_idx         on public.site_visits using btree (session_id);
 create index site_visits_created_idx         on public.site_visits using btree (created_at desc);
@@ -612,6 +784,7 @@ alter table public.site_visits            enable row level security;
 alter table public.activity_logs          enable row level security;
 alter table public.site_settings          enable row level security;
 alter table public.submission_log         enable row level security;
+alter table public.leads                  enable row level security;
 
 -- Biens et photos : propriétaire ou admin, en lecture comme en écriture.
 create policy "Acces biens : proprietaire ou admin" on public.properties
@@ -671,6 +844,21 @@ create policy "RDV visibles par le proprietaire du bien" on public.appointments
 create policy "Maj RDV reservee a l'admin" on public.appointments
   for update to public using (is_admin()) with check (is_admin());
 create policy "Suppression RDV reservee a l'admin" on public.appointments
+  for delete to public using (is_admin());
+
+-- Prospects : mêmes règles que les messages et les rendez-vous dont ils sont
+-- issus. Le collaborateur lit ce qui touche à ses biens, l'admin seul modifie.
+-- Aucune politique d'insertion : les fiches naissent du déclencheur
+-- rattacher_lead(), qui est SECURITY DEFINER et contourne donc RLS. Personne
+-- ne peut en créer d'autres.
+create policy "Prospects reserves a l'admin" on public.leads
+  for select to public using (is_admin());
+create policy "Prospects visibles par le proprietaire du bien" on public.leads
+  for select to public
+  using (exists (select 1 from properties p where p.id = leads.property_id and p.owner_id = auth.uid()));
+create policy "Maj prospects reservee a l'admin" on public.leads
+  for update to public using (is_admin()) with check (is_admin());
+create policy "Suppression prospects reservee a l'admin" on public.leads
   for delete to public using (is_admin());
 
 create policy "Tout le monde peut s'inscrire aux alertes" on public.alert_subscriptions
