@@ -1044,6 +1044,15 @@ create policy "Journal des envois reserve a l'admin" on public.notification_log
   for select to public using (is_admin());
 
 -- Ce que l'interface interroge pour savoir s'il faut alerter.
+--
+-- envois_7j et echecs_7j comptent des LOTS d'envoi : un lot vaut « envoye » si
+-- tous ses emails sont partis, « echec » dès qu'un seul a manqué. Un lot où
+-- quatre emails sur six ont abouti compte donc pour zéro dans envois_7j, ce qui
+-- faisait annoncer « les emails ne partent plus » à quelqu'un dont quatre
+-- inscrits venaient d'être prévenus. emails_envoyes_7j somme les emails
+-- réellement délivrés, lots partiels compris : c'est lui qui distingue une
+-- panne totale d'un incident partiel. Ajouté en fin de liste — « create or
+-- replace view » refuse d'insérer une colonne au milieu.
 create or replace view public.notification_health as
   select
     count(*) filter (where statut = 'echec' and created_at > now() - interval '7 days')  as echecs_7j,
@@ -1051,7 +1060,8 @@ create or replace view public.notification_health as
     max(created_at) filter (where statut = 'envoye')                                     as dernier_envoi_reussi,
     max(created_at) filter (where statut = 'echec')                                      as dernier_echec,
     (select detail from notification_log where statut = 'echec'
-      order by created_at desc limit 1)                                                  as dernier_message
+      order by created_at desc limit 1)                                                  as dernier_message,
+    coalesce(sum(destinataires) filter (where created_at > now() - interval '7 days'), 0) as emails_envoyes_7j
   from notification_log;
 
 revoke all on public.notification_health from anon;

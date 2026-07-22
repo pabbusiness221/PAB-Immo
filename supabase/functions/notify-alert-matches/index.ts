@@ -6,7 +6,9 @@
 // et envoie un email à chaque inscrit correspondant via Resend.
 // ============================================================
 //
-// Sauvegarde du code déployé (version 7, récupérée le 21/07/2026).
+// Déployé le 22/07/2026 : pause anti-débit entre les envois (Resend limite
+// l'offre gratuite à 2 requêtes/seconde) et consignation en base de la raison
+// du premier échec, qui n'était jusque-là écrite que dans les journaux volatils.
 // Secrets requis : RESEND_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY,
 //                  ALERT_LISTING_URL, NOTIFY_FROM (optionnel)
 
@@ -151,8 +153,18 @@ Deno.serve(async (req) => {
 
   let sent = 0;
   let failed = 0;
+  // Raison du premier echec. Elle etait jusqu'ici ecrite dans console.error,
+  // c'est-a-dire dans les journaux de la fonction, qui n'en gardent que les
+  // lignes de requete : le 22 juillet 2026, deux envois sur six ont echoue sans
+  // qu'aucune trace exploitable ne subsiste. On la consigne desormais en base.
+  let raison = "";
 
   for (const sub of subscriptions) {
+    // Resend limite l'offre gratuite a deux requetes par seconde. La boucle
+    // enchainait les envois sans attendre — six emails en 1,7 s, soit plus de
+    // trois par seconde — et une partie repartait en 429. Cette pause tient le
+    // rythme sous la limite. Elle est sautee avant le premier envoi.
+    if (sent + failed > 0) await new Promise((r) => setTimeout(r, 600));
     try {
       const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -170,18 +182,27 @@ Deno.serve(async (req) => {
       if (res.ok) sent++;
       else {
         failed++;
-        console.error(`Échec envoi à ${sub.email}:`, await res.text());
+        const corps = await res.text();
+        // Le corps de la reponse peut contenir l'adresse du destinataire : on
+        // n'en garde que le code et le message, jamais l'email lui-meme.
+        if (!raison) raison = `HTTP ${res.status} — ${corps.slice(0, 120)}`;
+        console.error(`Échec envoi à ${sub.email}:`, corps);
       }
     } catch (err) {
       failed++;
+      if (!raison) raison = `Erreur réseau — ${String(err).slice(0, 120)}`;
       console.error(`Erreur réseau pour ${sub.email}:`, err);
     }
   }
 
   // Un envoi partiel compte comme un echec : si un inscrit sur trois n'a rien
-  // recu, il faut le savoir.
+  // recu, il faut le savoir. Le nombre d'emails REELLEMENT partis est porte par
+  // le deuxieme argument, ce qui permet de distinguer une panne totale d'un
+  // incident partiel.
   await journaliser(failed > 0 ? "echec" : "envoye", sent,
-    failed > 0 ? `${failed} envoi(s) en echec sur ${subscriptions.length}` : undefined);
+    failed > 0
+      ? `${failed} envoi(s) en echec sur ${subscriptions.length} — ${raison}`
+      : undefined);
 
   return new Response(JSON.stringify({ matched: subscriptions.length, sent, failed }), {
     status: 200,

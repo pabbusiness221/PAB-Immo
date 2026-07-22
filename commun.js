@@ -27,6 +27,31 @@ const SUPABASE_KEY = 'sb_publishable_nAQnS82ru9h-beIDPKMqPA_JO_aSYc-';
 // Studio, Champ agricole.
 const TYPE_COLOR = { Terrain:'#B24A2C', Maison:'#2E4A61', Appartement:'#1F7A73', Studio:'#6E5480', 'Champ agricole':'#6B8E23' };
 
+// Régions où l'agence opère. SOURCE UNIQUE, partagée par les deux pages : la
+// vitrine y puise la liste du formulaire d'alerte, le portefeuille celle de la
+// saisie d'un bien.
+//
+// Pourquoi ici et pas en double dans chaque page : l'alerte apparie la région
+// par égalité EXACTE (region = « Thiès »). Si le portefeuille laissait saisir la
+// région en texte libre, un bien enregistré « THIES » ou « Région de Thiès » ne
+// correspondrait jamais à un inscrit ayant choisi « Thiès » — et il ne serait
+// pas prévenu, sans la moindre erreur visible. Une seule liste garantit que la
+// valeur écrite et la valeur cherchée parlent le même vocabulaire.
+const REGIONS = ['Dakar', 'Thiès'];
+
+// Construit les <option> d'une liste de régions. `selection` coche la valeur
+// courante ; `avecToutes` ajoute « Toutes régions » en tête (côté recherche).
+// Une valeur héritée hors liste (ancienne donnée) est ajoutée telle quelle
+// plutôt que perdue silencieusement à l'ouverture d'un ancien bien.
+function regionOptions(selection, avecToutes){
+  const connues = REGIONS.slice();
+  if(selection && !connues.includes(selection)) connues.push(selection);
+  const tete = avecToutes ? '<option value="">Toutes régions</option>' : '';
+  return tete + connues.map(r =>
+    `<option value="${esc(r)}"${r === selection ? ' selected' : ''}>${esc(r)}</option>`
+  ).join('');
+}
+
 const fcfa = n => n.toLocaleString('fr-FR') + ' FCFA';
 const surfaceUnit = type => type === 'Champ agricole' ? 'ha' : 'm²';
 

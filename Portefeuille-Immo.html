@@ -1452,7 +1452,9 @@ function openForm(existing){
         <div class="form-field"><label class="form-label">Statut</label>
           <select class="form-select" id="f_status">${(STATUS_OPTIONS[p.operation]||STATUS_OPTIONS.Vente).map(s=>`<option value="${s}" ${p.status===s?'selected':''}>${s}</option>`).join('')}</select>
         </div>
-        <div class="form-field"><label class="form-label">Région</label><input class="form-input" id="f_region" value="${esc(p.region||'')}"/></div>
+        <div class="form-field"><label class="form-label">Région</label>
+          <select class="form-select" id="f_region">${p.region ? '' : '<option value="" disabled selected>— Choisir —</option>'}${regionOptions(p.region, false)}</select>
+        </div>
         <div class="form-field"><label class="form-label">Département</label><input class="form-input" id="f_departement" list="departement_list" required value="${esc(p.departement||'')}"/>
           <datalist id="departement_list"><option value="Dakar"><option value="Guédiawaye"><option value="Pikine"><option value="Rufisque"><option value="Thiès"><option value="Mbour"><option value="Tivaouane"></datalist>
         </div>
@@ -2136,8 +2138,14 @@ async function checkNotificationHealth(){
   const quand = data.dernier_echec
     ? new Date(data.dernier_echec).toLocaleString('fr-FR', {day:'2-digit', month:'long', hour:'2-digit', minute:'2-digit'})
     : null;
-  // Aucun envoi réussi depuis : c'est une panne installée, pas un incident isolé.
-  const totalement = !data.envois_7j;
+  // Panne installée, ou incident partiel ?
+  //
+  // Le test portait sur envois_7j, qui compte les LOTS entièrement réussis. Un
+  // lot où quatre emails sur six étaient partis y valait zéro, et le bandeau
+  // annonçait « les emails ne partent plus » à quelqu'un dont quatre inscrits
+  // venaient d'être prévenus. Le vrai critère est le nombre d'emails délivrés.
+  const emailsPartis = Number(data.emails_envoyes_7j || 0);
+  const totalement = emailsPartis === 0;
 
   bandeau.className = 'panne-envoi';
   bandeau.innerHTML = `
@@ -2147,15 +2155,17 @@ async function checkNotificationHealth(){
     <div class="panne-txt">
       <strong>${totalement
         ? 'Les emails de notification ne partent plus'
-        : `${data.echecs_7j} envoi${data.echecs_7j>1?'s':''} d'email en échec cette semaine`}</strong>
+        : `Des emails de notification n’arrivent pas`}</strong>
       <span>
         ${totalement
-          ? 'Aucun envoi réussi depuis 7 jours. Les demandes de vos prospects sont bien enregistrées et visibles dans la boîte de réception, mais vous n’êtes plus prévenu par email.'
-          : `${data.envois_7j} envoi${data.envois_7j>1?'s ont':' a'} réussi sur la même période. Les demandes restent enregistrées.`}
+          ? 'Aucun email n’est parti depuis 7 jours. Les demandes de vos prospects sont bien enregistrées et visibles dans la boîte de réception, mais vous n’êtes plus prévenu par email.'
+          : `${emailsPartis} email${emailsPartis>1?'s sont partis':' est parti'} cette semaine, mais ${data.echecs_7j} envoi${data.echecs_7j>1?'s ont':' a'} partiellement échoué : certains inscrits n’ont rien reçu. Les demandes restent enregistrées.`}
         ${quand ? `<br>Dernier échec : ${esc(quand)}.` : ''}
         ${data.dernier_message ? `<br><code>${esc(String(data.dernier_message).slice(0,160))}</code>` : ''}
       </span>
-      <span class="panne-quoi-faire">À vérifier : la clé Resend (expirée ou quota atteint) dans les secrets de vos fonctions Supabase.</span>
+      <span class="panne-quoi-faire">${totalement
+        ? 'À vérifier : la clé Resend (expirée ou révoquée) dans les secrets de vos fonctions Supabase.'
+        : 'Cause la plus probable : la limite de débit de Resend, deux envois par seconde sur l’offre gratuite. Les emails partent aujourd’hui en rafale, sans attente entre deux.'}</span>
     </div>`;
 }
 

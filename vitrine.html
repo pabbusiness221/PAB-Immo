@@ -27,7 +27,7 @@
 <meta name="twitter:title" content="PAB Immo — Biens à vendre & à louer, Dakar & Thiès" />
 <meta name="twitter:description" content="Terrains, maisons, appartements et champs agricoles à Dakar et Thiès." />
 <meta name="twitter:image" content="https://pabbusiness221.github.io/PAB-Immo/assets/dakar-aerienne.jpg" />
-<meta name="description" content="Terrains, maisons, appartements et champs agricoles à vendre et à louer à Dakar et Thiès — PAB Immo." />
+<meta name="description" content="Terrains, maisons, appartements, studios et champs agricoles à vendre et à louer à Dakar et Thiès — PAB Immo." />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -568,7 +568,7 @@
   <div class="hero-inner">
     <p class="hero-eyebrow">Trouvez. Investissez. Vivez.</p>
     <h2 class="hero-title">Trouvez le bien <em>qui vous ressemble.</em></h2>
-    <p>Terrains, maisons, appartements et champs agricoles sélectionnés à <b>Dakar</b> et <b>Thiès</b> - vérifiés et prêts à visiter.</p>
+    <p>Terrains, maisons, appartements, studios et champs agricoles sélectionnés à <b>Dakar</b> et <b>Thiès</b> - vérifiés et prêts à visiter.</p>
     <div class="hero-search">
       <div class="searchbar">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -726,10 +726,13 @@
         </select>
       </div>
       <div class="form-field"><label class="sf-label">Région</label>
+        <!-- Options peuplées depuis REGIONS (commun.js) : la liste des régions
+             ne doit exister qu'à un seul endroit, partagé avec la saisie d'un
+             bien, sous peine que l'appariement des alertes (égalité exacte)
+             cesse de correspondre. La valeur « Toutes régions » sert de repli
+             tant que le script n'a pas peuplé la liste. -->
         <select class="sf-select" id="alert_region" style="margin-bottom:0;" aria-label="Région">
           <option value="">Toutes régions</option>
-          <option value="Dakar">Dakar</option>
-          <option value="Thiès">Thiès</option>
         </select>
       </div>
       <div class="form-field"><label class="sf-label" for="alert_budget">Budget max (FCFA)</label><input class="sf-input" id="alert_budget" type="number" min="0" placeholder="ex: 50000000" style="margin-bottom:0;"/></div>
@@ -823,7 +826,7 @@
   <div class="footer-inner">
     <div class="footer-brand">
       <strong>PAB Immo</strong>
-      <p>Terrains, maisons, appartements et champs agricoles à vendre et à louer à Dakar et Thiès. Chaque bien est visité et vérifié avant publication.</p>
+      <p>Terrains, maisons, appartements, studios et champs agricoles à vendre et à louer à Dakar et Thiès. Chaque bien est visité et vérifié avant publication.</p>
     </div>
     <div>
       <h4>Nos biens</h4>
@@ -2012,6 +2015,9 @@ window.addEventListener('popstate', () => {
   }
   isRestoringFromURL = false;
 });
+
+// Liste des régions du formulaire d'alerte, depuis la source unique commun.js.
+document.getElementById('alert_region').innerHTML = regionOptions('', true);
 
 loadProperties();
 recordSiteVisit();
