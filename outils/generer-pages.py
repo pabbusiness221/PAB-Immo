@@ -462,6 +462,39 @@ def page_index(biens, par_bien):
     enfin une vue d'ensemble sans dépendre du chargement de la vitrine.
     """
     titre = f"Tous nos biens à vendre et à louer à Dakar et Thiès | {AGENCE}"
+    # Deux déclarations sur cette page : l'agence elle-même, qui n'était décrite
+    # nulle part alors que c'est elle qu'on cherche en tapant « agence
+    # immobilière Dakar » ; et la liste des annonces, qui dit à Google que cette
+    # page est un catalogue et non un article.
+    ld = json.dumps({
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "RealEstateAgent",
+                "name": AGENCE,
+                "url": f"{SITE}/{ACCUEIL}",
+                "telephone": TEL,
+                "areaServed": [
+                    {"@type": "AdministrativeArea", "name": "Dakar"},
+                    {"@type": "AdministrativeArea", "name": "Thiès"},
+                ],
+                "address": {"@type": "PostalAddress", "addressCountry": "SN",
+                            "addressRegion": "Dakar"},
+                "knowsLanguage": ["fr", "wo"],
+            },
+            {
+                "@type": "ItemList",
+                "name": "Biens disponibles",
+                "numberOfItems": len(biens),
+                "itemListElement": [
+                    {"@type": "ListItem", "position": i + 1,
+                     "url": f"{SITE}/bien/{nom_fichier(b)}",
+                     "name": titre_bien(b)}
+                    for i, b in enumerate(biens)
+                ],
+            },
+        ],
+    }, ensure_ascii=False, indent=2)
     desc = (f"{len(biens)} terrains, maisons, appartements et champs agricoles "
             f"à vendre ou à louer à Dakar et Thiès. Prix, superficie et photos "
             f"pour chaque bien. {AGENCE}, visites sur rendez-vous.")
@@ -513,6 +546,9 @@ def page_index(biens, par_bien):
   .retour{{display:inline-block;margin-top:30px;font-size:14px;font-weight:700;color:var(--gold);}}
   footer{{background:var(--night);color:rgba(255,255,255,.5);font-size:12.5px;text-align:center;padding:26px 20px;line-height:1.7;}}
 </style>
+<script type="application/ld+json">
+{ld}
+</script>
 </head>
 <body>
 <header class="bandeau"><a href="../{ACCUEIL}">PAB <span>Immo</span></a></header>
