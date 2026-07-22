@@ -16,8 +16,14 @@
 <meta property="og:site_name" content="PAB Immo" />
 <meta property="og:title" content="PAB Immo — Biens à vendre & à louer, Dakar & Thiès" />
 <meta property="og:description" content="Terrains, maisons, appartements et champs agricoles à Dakar et Thiès. Consultez les biens disponibles et contactez-nous directement." />
-<meta property="og:image" content="https://pabbusiness221.github.io/PAB-Immo/Biens-Immo.html/og-image.png" />
+<!-- L'adresse annoncee ici pointait vers Biens-Immo.html/og-image.png, un
+     chemin situe SOUS un fichier .html : elle repondait 404, et tout partage
+     de la vitrine sur WhatsApp ou Facebook s'affichait sans image. -->
+<meta property="og:image" content="https://pabbusiness221.github.io/PAB-Immo/assets/dakar-aerienne.jpg" />
+<meta property="og:image:alt" content="Vue aerienne de Dakar" />
+<meta name="twitter:image" content="https://pabbusiness221.github.io/PAB-Immo/assets/dakar-aerienne.jpg" />
 <meta property="og:url" content="https://pabbusiness221.github.io/PAB-Immo/Biens-Immo.html" />
+<link rel="canonical" href="https://pabbusiness221.github.io/PAB-Immo/Biens-Immo.html" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="PAB Immo — Biens à vendre & à louer, Dakar & Thiès" />
 <meta name="twitter:description" content="Terrains, maisons, appartements et champs agricoles à Dakar et Thiès." />
@@ -248,6 +254,22 @@
   .adv-search-panel.hidden{display:none;}
   .adv-search-panel > *{background:var(--surface);border:1px solid var(--border);}
   .adv-search-grid{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg) var(--radius-lg) 0 0;border-bottom:none;padding:18px 20px 10px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;box-shadow:var(--shadow);}
+  /* Deuxième rangée de filtres : elle prolonge la première sans rouvrir une
+     boîte, d'où les coins et la bordure du haut supprimés. */
+  .adv-search-grid-suite{border-radius:0;border-top:none;padding-top:0;box-shadow:none;}
+  .sf-aide{margin:5px 0 0;font-size:11px;line-height:1.35;color:var(--ink-soft);}
+  /* Lien d'évitement : invisible tant qu'on ne l'atteint pas au clavier. Il
+     évite de traverser l'en-tête et les filtres à chaque fois. */
+  .saut-contenu{position:absolute;left:-9999px;top:0;z-index:9999;background:var(--night);color:#fff;
+    padding:12px 20px;border-radius:0 0 var(--radius-md) 0;font-size:14px;font-weight:700;text-decoration:none;}
+  .saut-contenu:focus{left:0;}
+  /* Le titre d'une annonce est le point d'entrée au clavier. Le bouton reprend
+     l'apparence du texte : c'est sa sémantique qui change, pas le visuel. */
+  .card-open{background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;text-align:left;cursor:pointer;}
+  .card-open:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:3px;}
+  /* Réservé aux lecteurs d'écran : annonce le nombre de résultats sans rien
+     ajouter à l'écran. */
+  .lecture-seule{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
   .adv-zone-row{background:var(--surface);border:1px solid var(--border);border-top:none;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
   .adv-zone-label p{margin:2px 0 0;font-size:12.5px;color:var(--ink-soft);}
   .adv-zone-actions{display:flex;gap:8px;flex-wrap:wrap;}
@@ -447,8 +469,43 @@
      tout en le laissant lisible par les lecteurs d'écran. */
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
 </style>
+<!-- Ce que Google doit savoir de l'agence elle-meme. Les annonces, elles,
+     sont decrites dans les fiches de bien/ : cette page les construit en
+     JavaScript, donc rien de leur contenu n'est lisible ici. -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "RealEstateAgent",
+  "name": "PAB Immo",
+  "url": "https://pabbusiness221.github.io/PAB-Immo/Biens-Immo.html",
+  "image": "https://pabbusiness221.github.io/PAB-Immo/assets/dakar-aerienne.jpg",
+  "description": "Agence immobilière à Dakar et Thiès : terrains, maisons, appartements et champs agricoles à vendre et à louer.",
+  "telephone": "+221778494111",
+  "address": {
+    "@type": "PostalAddress",
+    "addressRegion": "Dakar",
+    "addressCountry": "SN"
+  },
+  "areaServed": [
+    {
+      "@type": "AdministrativeArea",
+      "name": "Dakar"
+    },
+    {
+      "@type": "AdministrativeArea",
+      "name": "Thiès"
+    }
+  ],
+  "knowsLanguage": [
+    "fr",
+    "wo"
+  ],
+  "currenciesAccepted": "XOF"
+}
+</script>
 </head>
 <body>
+<a class="saut-contenu" href="#contenu">Aller au contenu</a>
 
 <header>
   <div class="header-inner">
@@ -480,6 +537,8 @@
   </div>
 </header>
 
+<main id="contenu">
+<p class="lecture-seule" id="annonceResultats" role="status" aria-live="polite"></p>
 <div class="hero">
   <div class="hero-inner">
     <p class="hero-eyebrow">Trouvez. Investissez. Vivez.</p>
@@ -567,6 +626,26 @@
     </div>
   </div>
 
+  <div class="adv-search-grid adv-search-grid-suite">
+    <div class="form-field">
+      <label class="sf-label" for="adv_prix_min"><span id="adv_prix_label">Budget</span> minimum</label>
+      <input class="sf-input" id="adv_prix_min" type="number" min="0" step="100000" inputmode="numeric" placeholder="FCFA" style="margin-bottom:0;"/>
+    </div>
+    <div class="form-field">
+      <label class="sf-label" for="adv_prix_max"><span id="adv_prix_label_max">Budget</span> maximum</label>
+      <input class="sf-input" id="adv_prix_max" type="number" min="0" step="100000" inputmode="numeric" placeholder="FCFA" style="margin-bottom:0;"/>
+    </div>
+    <div class="form-field">
+      <label class="sf-label" for="adv_surface_min">Surface minimum</label>
+      <input class="sf-input" id="adv_surface_min" type="number" min="0" step="10" inputmode="numeric" placeholder="m²" style="margin-bottom:0;"/>
+      <p class="sf-aide">Les champs agricoles sont comptés en m² pour la comparaison.</p>
+    </div>
+    <div class="form-field">
+      <label class="sf-label" for="adv_chambres">Chambres minimum</label>
+      <input class="sf-input" id="adv_chambres" type="number" min="0" max="20" step="1" inputmode="numeric" placeholder="ex : 3" style="margin-bottom:0;"/>
+    </div>
+  </div>
+
   <div class="adv-zone-row">
     <div class="adv-zone-label">
       <span class="sf-label" style="margin:0;">Autour d'un point</span>
@@ -648,6 +727,7 @@
     </div>
   </div>
 </div>
+</main>
 
 <footer>
   <div class="footer-inner">
@@ -677,7 +757,7 @@
 </footer>
 
 <div class="overlay" id="overlay"></div>
-<div class="drawer" id="drawer"></div>
+<div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitre" aria-hidden="true"></div>
 <div class="gallery-modal hidden" id="galleryModal"></div>
 
 <div class="mobile-contact-bar">
@@ -878,7 +958,36 @@ async function loadProperties(){
 
 
 let state = { type:'Tous', op:'Tous', search:'', selected:null, favOnly:false, page:1,
-  region:'', departement:'', commune:'', quartier:'', centerLat:null, centerLng:null, radiusKm:null };
+  region:'', departement:'', commune:'', quartier:'', centerLat:null, centerLng:null, radiusKm:null,
+  prixMin:'', prixMax:'', surfaceMin:'', chambresMin:'' };
+
+// ---- Critères de la recherche avancée --------------------------------------
+// Une seule déclaration, dont se déduisent l'enregistrement d'une recherche,
+// son rappel, la réinitialisation, le résumé affiché et le compteur de filtres
+// actifs. Ces cinq fonctions listaient auparavant les champs à la main :
+// ajouter un filtre demandait cinq modifications accordées entre elles, et en
+// oublier une le faisait disparaître sans un mot — enregistré mais jamais
+// rappelé, ou compté mais jamais appliqué.
+const ADV_CRITERES = [
+  { cle:'region',      champ:'adv_region',      resume: v => v },
+  { cle:'departement', champ:'adv_departement', resume: v => v },
+  { cle:'commune',     champ:'adv_commune',     resume: v => v },
+  { cle:'quartier',    champ:'adv_quartier',    resume: v => v },
+  { cle:'prixMin',     champ:'adv_prix_min',    resume: v => `à partir de ${fcfa(Number(v))}` },
+  { cle:'prixMax',     champ:'adv_prix_max',    resume: v => `jusqu'à ${fcfa(Number(v))}` },
+  { cle:'surfaceMin',  champ:'adv_surface_min', resume: v => `${v} m² min.` },
+  { cle:'chambresMin', champ:'adv_chambres',    resume: v => `${v} chambre${Number(v) > 1 ? 's' : ''} min.` },
+];
+
+const critereActif = c => state[c.cle] !== '' && state[c.cle] != null;
+
+// La superficie d'un champ agricole est saisie en hectares, celle des autres
+// biens en mètres carrés. Comparer les deux nombres tels quels écarterait un
+// champ de 4 ha d'une recherche « au moins 500 m² », alors qu'il en fait
+// quarante mille.
+function surfaceM2(p){
+  return p.type === 'Champ agricole' ? p.surface * 10000 : p.surface;
+}
 // Nombre d'annonces par page de liste. Sur téléphone la grille en affiche
 // deux par ligne, soit dix lignes.
 const PER_PAGE = 20;
@@ -970,6 +1079,12 @@ function filtered(){
     if(state.centerLat != null && state.radiusKm){
       if(distanceKm(state.centerLat, state.centerLng, p.lat, p.lng) > state.radiusKm) return false;
     }
+    if(state.prixMin !== '' && p.price < Number(state.prixMin)) return false;
+    if(state.prixMax !== '' && p.price > Number(state.prixMax)) return false;
+    if(state.surfaceMin !== '' && surfaceM2(p) < Number(state.surfaceMin)) return false;
+    // Un terrain n'a pas de chambres : demander un minimum l'exclut, ce qui est
+    // le comportement attendu.
+    if(state.chambresMin !== '' && !(p.rooms && p.rooms.chambres >= Number(state.chambresMin))) return false;
     if(state.search){
       const q=state.search.toLowerCase();
       if(!((p.commune||'').toLowerCase().includes(q)||(p.region||'').toLowerCase().includes(q))) return false;
@@ -986,7 +1101,7 @@ function renderChips(){
   document.getElementById('chipsOp').innerHTML = OPS.map(([key,label])=>
     `<button class="chip ${state.op===key?'active':''}" data-op="${key}">${label}</button>`).join('');
   document.querySelectorAll('[data-type]').forEach(b=>b.onclick=()=>{ state.type=b.dataset.type; render(); });
-  document.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>{ state.op=b.dataset.op; render(); });
+  document.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>{ state.op=b.dataset.op; majEtiquettePrix(); render(); });
 }
 
 function renderHeroStat(){
@@ -1038,11 +1153,7 @@ function refreshDepartementOptions(){
 }
 
 function advActiveFilterCount(){
-  let n = 0;
-  if(state.region) n++;
-  if(state.departement) n++;
-  if(state.commune) n++;
-  if(state.quartier) n++;
+  let n = ADV_CRITERES.filter(critereActif).length;
   if(state.centerLat != null && state.radiusKm) n++;
   return n;
 }
@@ -1106,10 +1217,10 @@ function criteriaSummary(c){
   const parts = [];
   if(c.type && c.type!=='Tous') parts.push(c.type);
   if(c.op && c.op!=='Tous') parts.push(c.op);
-  if(c.region) parts.push(c.region);
-  if(c.departement) parts.push(c.departement);
-  if(c.commune) parts.push(c.commune);
-  if(c.quartier) parts.push(c.quartier);
+  ADV_CRITERES.forEach(crit=>{
+    const v = c[crit.cle];
+    if(v !== '' && v != null) parts.push(crit.resume(v));
+  });
   if(c.centerLat != null && c.radiusKm) parts.push(`rayon ${c.radiusKm} km`);
   return parts.length ? parts.join(' · ') : 'Tous les biens';
 }
@@ -1143,10 +1254,14 @@ function applySavedSearch(idx){
   if(!s) return;
   Object.assign(state, s.criteria);
   document.getElementById('adv_region').value = state.region || '';
+  // Les départements dépendent de la région : la liste doit être reconstruite
+  // avant qu'on y sélectionne une valeur.
   refreshDepartementOptions();
-  document.getElementById('adv_departement').value = state.departement || '';
-  document.getElementById('adv_commune').value = state.commune || '';
-  document.getElementById('adv_quartier').value = state.quartier || '';
+  ADV_CRITERES.forEach(c=>{
+    const el = document.getElementById(c.champ);
+    if(el) el.value = state[c.cle] ?? '';
+  });
+  majEtiquettePrix();
   updateSearchCircle();
   updateZoneUI(state.centerLat != null ? 'Zone enregistrée' : null);
   updateAdvBadge();
@@ -1162,21 +1277,42 @@ function initAdvancedSearch(){
     document.getElementById('advSearchPanel').classList.toggle('hidden');
   };
 
+  // Tout changement de critère suit le même protocole : on enregistre, on
+  // revient à la première page, on met le compteur à jour, on redessine.
+  // Les quatre filtres de lieu omettaient l'appel au compteur : on pouvait
+  // filtrer sur une commune et voir le badge annoncer « aucun filtre ».
+  const appliquerCritere = (cle, valeur) => {
+    state[cle] = valeur;
+    state.page = 1;
+    updateAdvBadge();
+    render();
+  };
+
   document.getElementById('adv_region').addEventListener('change', e=>{
-    state.region = e.target.value;
     state.departement = '';
     document.getElementById('adv_departement').value = '';
+    state.region = e.target.value;
     refreshDepartementOptions();
-    render();
+    appliquerCritere('region', e.target.value);
   });
   document.getElementById('adv_departement').addEventListener('change', e=>{
-    state.departement = e.target.value; render();
+    appliquerCritere('departement', e.target.value);
   });
   document.getElementById('adv_commune').addEventListener('input', e=>{
-    state.commune = e.target.value; render();
+    appliquerCritere('commune', e.target.value);
   });
   document.getElementById('adv_quartier').addEventListener('input', e=>{
-    state.quartier = e.target.value; render();
+    appliquerCritere('quartier', e.target.value);
+  });
+
+  // Filtres numériques. Ils partagent le même comportement, donc la même
+  // boucle : un champ vidé remet le critère à zéro plutôt que de valoir 0.
+  ['prixMin', 'prixMax', 'surfaceMin', 'chambresMin'].forEach(cle=>{
+    const crit = ADV_CRITERES.find(c => c.cle === cle);
+    document.getElementById(crit.champ).addEventListener('input', e=>{
+      const v = e.target.value.trim();
+      appliquerCritere(cle, (v === '' || Number(v) < 0 || Number.isNaN(Number(v))) ? '' : v);
+    });
   });
 
   document.getElementById('gpsSearchBtn').onclick = () => {
@@ -1220,24 +1356,36 @@ function initAdvancedSearch(){
     const name = prompt('Nom de cette recherche (ex : "Terrains à Diamniadio")');
     if(!name) return;
     const list = loadSavedSearches();
-    list.push({
-      name,
-      criteria: { type:state.type, op:state.op, region:state.region, departement:state.departement, commune:state.commune, quartier:state.quartier, centerLat:state.centerLat, centerLng:state.centerLng, radiusKm:state.radiusKm }
-    });
+    const criteria = { type:state.type, op:state.op,
+      centerLat:state.centerLat, centerLng:state.centerLng, radiusKm:state.radiusKm };
+    ADV_CRITERES.forEach(c=>{ criteria[c.cle] = state[c.cle]; });
+    list.push({ name, criteria });
     persistSavedSearches(list);
     renderSavedSearches();
   };
 
   document.getElementById('resetAdvSearchBtn').onclick = () => {
-    state.region = ''; state.departement = ''; state.commune = ''; state.quartier = '';
+    ADV_CRITERES.forEach(c=>{
+      state[c.cle] = '';
+      const el = document.getElementById(c.champ);
+      if(el) el.value = '';
+    });
     clearSearchZone();
-    document.getElementById('adv_region').value = '';
     refreshDepartementOptions();
-    document.getElementById('adv_commune').value = '';
-    document.getElementById('adv_quartier').value = '';
     updateAdvBadge();
     render();
   };
+}
+
+// Le prix d'une location est mensuel, celui d'une vente est total. Les mêmes
+// deux champs serviraient à saisir deux choses très différentes sans le dire :
+// l'étiquette suit donc l'opération choisie.
+function majEtiquettePrix(){
+  const mot = state.op === 'Location' ? 'Loyer mensuel' : 'Budget';
+  ['adv_prix_label', 'adv_prix_label_max'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.textContent = mot;
+  });
 }
 
 
@@ -1245,6 +1393,15 @@ function initAdvancedSearch(){
 function renderList(){
   const items = filtered();
   const el = document.getElementById('list');
+  // Changer un filtre ne modifie rien de visible pour qui n'y voit pas : la
+  // liste se réécrit en silence. Cette phrase, lue par les lecteurs d'écran,
+  // dit ce qui vient de se passer.
+  const annonce = document.getElementById('annonceResultats');
+  if(annonce){
+    annonce.textContent = items.length === 0
+      ? 'Aucun bien ne correspond aux critères.'
+      : `${items.length} bien${items.length > 1 ? 's' : ''} correspond${items.length > 1 ? 'ent' : ''} aux critères.`;
+  }
   if(items.length===0){
     el.innerHTML = `<div class="empty"><h3 style="margin:0 0 6px;font-size:15px;">Aucun bien ne correspond</h3><p style="margin:0;color:var(--ink-soft);font-size:12.5px;">Essayez d'élargir la recherche ou de changer de filtre.</p></div>`;
     return;
@@ -1269,7 +1426,7 @@ function renderList(){
       </div>
       <div class="card-body">
         <div class="card-top">
-          <h3>${p.type} — ${esc(p.commune)}</h3>
+          <h3><button type="button" class="card-open" data-open-id="${p.id}">${p.type} — ${esc(p.commune)}</button></h3>
         </div>
         <div class="card-meta">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -1299,14 +1456,27 @@ function renderList(){
       document.getElementById('split').scrollIntoView({ behavior:'smooth', block:'start' });
     };
   });
+  // Ouvrir une annonce. Le geste existe à deux endroits : la carte entière,
+  // pratique à la souris, et le bouton du titre, seul point atteignable au
+  // clavier. Une carte est un <div> : sans ce bouton, personne naviguant au
+  // clavier ou au lecteur d'écran ne pouvait ouvrir la moindre annonce.
+  const ouvrirAnnonce = (id) => {
+    const p = PROPERTIES.find(x=>x.id==id);
+    if(!p) return;
+    openDrawer(p);
+    state.selected = p.id;
+    renderList();
+    rebuildMarkers(filtered());
+    if(map) map.flyTo([p.lat,p.lng], 12, {duration:0.6});
+  };
   el.querySelectorAll('.card').forEach(c=>{
-    c.onclick=()=>{
-      const p = PROPERTIES.find(x=>x.id==c.dataset.id);
-      openDrawer(p);
-      state.selected = p.id;
-      renderList();
-      rebuildMarkers(filtered());
-      if(map) map.flyTo([p.lat,p.lng], 12, {duration:0.6});
+    c.onclick = () => ouvrirAnnonce(c.dataset.id);
+  });
+  el.querySelectorAll('[data-open-id]').forEach(btn=>{
+    btn.onclick = (e) => {
+      // Sans cela, le clic remonterait jusqu'à la carte et ouvrirait deux fois.
+      e.stopPropagation();
+      ouvrirAnnonce(btn.dataset.openId);
     };
   });
   el.querySelectorAll('[data-fav-id]').forEach(btn=>{
@@ -1358,7 +1528,7 @@ function openDrawer(p){
   d.innerHTML = `
     <div class="drawer-banner" style="background:${cover?`center/cover no-repeat url('${cover}')`:`linear-gradient(135deg, ${TYPE_COLOR[p.type]}, #161B22)`}">
       ${cover?'':typeIcon(p.type, 34)}
-      <button class="drawer-close" id="drawerClose">
+      <button class="drawer-close" id="drawerClose" aria-label="Fermer la fiche">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#161B22" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
       <button type="button" class="fav-btn ${isFav(p.id)?'active':''}" id="drawerFavBtn" aria-label="Ajouter aux favoris">${favIconSvg(isFav(p.id))}</button>
@@ -1366,7 +1536,7 @@ function openDrawer(p){
       <span class="pill" style="position:absolute;right:16px;bottom:-13px;background:#fff;color:var(--ink);box-shadow:var(--shadow)">${p.operation}</span>
     </div>
     <div class="drawer-content">
-      <h2 style="font-size:20px;margin:10px 0 2px;">${p.type} — ${esc(p.commune)}</h2>
+      <h2 id="drawerTitre" style="font-size:20px;margin:10px 0 2px;">${p.type} — ${esc(p.commune)}</h2>
       <div class="card-meta"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>${p.quartier ? esc(p.quartier)+', ' : ''}${esc(p.commune)}, région de ${esc(p.region)}</span></div>
       ${(p.verified_at || p.availability_checked_at || p.agence_verifiee) ? `
       <div class="trust-panel">
@@ -1391,7 +1561,7 @@ function openDrawer(p){
       <div class="section-title">Photos</div>
       <div class="photo-strip">
         ${photos.map((ph, idx) => `
-          <button type="button" class="thumb-btn" data-open-gallery="${idx}">
+          <button type="button" class="thumb-btn" data-open-gallery="${idx}" aria-label="Agrandir la photo ${idx + 1} sur ${photos.length}">
             <img src="${ph.thumb}" alt="Photo ${idx + 1}" loading="lazy" decoding="async" onerror="photoFallback(this)" />
             ${idx === 0 && photos.length > 1 ? `<span class="thumb-count">+${photos.length - 1}</span>` : ''}
           </button>`).join('')}
@@ -1453,24 +1623,24 @@ function openDrawer(p){
         <button type="button" class="subform-tab" data-tab="rdv">Prendre rendez-vous</button>
       </div>
       <div class="subform-panel" id="panel-message">
-        <label class="sf-label">Nom</label>
+        <label class="sf-label" for="msg_name">Nom</label>
         <input class="sf-input" id="msg_name" placeholder="Votre nom"/>
-        <label class="sf-label">Téléphone ou email</label>
+        <label class="sf-label" for="msg_contact">Téléphone ou email</label>
         <input class="sf-input" id="msg_contact" placeholder="Pour vous répondre"/>
-        <label class="sf-label">Message</label>
+        <label class="sf-label" for="msg_text">Message</label>
         <textarea class="sf-textarea" id="msg_text" placeholder="Votre question sur ce bien…"></textarea>
         <div class="hp-field" aria-hidden="true"><label for="msg_website">Site web</label><input type="text" id="msg_website" name="website" tabindex="-1" autocomplete="off"/></div>
         <button class="btn btn-primary sf-submit" id="msgSubmitBtn">Envoyer le message</button>
         <p class="sf-error" id="msgError"></p>
       </div>
       <div class="subform-panel hidden" id="panel-rdv">
-        <label class="sf-label">Nom</label>
+        <label class="sf-label" for="rdv_name">Nom</label>
         <input class="sf-input" id="rdv_name" placeholder="Votre nom"/>
-        <label class="sf-label">Téléphone ou email</label>
+        <label class="sf-label" for="rdv_contact">Téléphone ou email</label>
         <input class="sf-input" id="rdv_contact" placeholder="Pour vous confirmer le RDV"/>
         <div class="sf-row2">
-          <div><label class="sf-label">Date souhaitée</label><input class="sf-input" id="rdv_date" type="date" style="margin-bottom:0;"/></div>
-          <div><label class="sf-label">Créneau</label>
+          <div><label class="sf-label" for="rdv_date">Date souhaitée</label><input class="sf-input" id="rdv_date" type="date" style="margin-bottom:0;"/></div>
+          <div><label class="sf-label" for="rdv_time">Créneau</label>
             <select class="sf-select" id="rdv_time" style="margin-bottom:0;">
               <option value="Matin">Matin</option>
               <option value="Après-midi">Après-midi</option>
@@ -1479,7 +1649,7 @@ function openDrawer(p){
           </div>
         </div>
         <div class="hp-field" aria-hidden="true"><label for="rdv_website">Site web</label><input type="text" id="rdv_website" name="website" tabindex="-1" autocomplete="off"/></div>
-        <label class="sf-label" style="margin-top:8px;">Message (optionnel)</label>
+        <label class="sf-label" style="margin-top:8px;" for="rdv_message">Message (optionnel)</label>
         <textarea class="sf-textarea" id="rdv_message" placeholder="Précisions utiles pour la visite…"></textarea>
         <button class="btn btn-primary sf-submit" id="rdvSubmitBtn">Demander ce rendez-vous</button>
         <p class="sf-error" id="rdvError"></p>
@@ -1543,8 +1713,16 @@ function openDrawer(p){
     if(error){ errEl.textContent = messageErreurEnvoi(error, "Échec de l'envoi :"); btn.disabled = false; btn.textContent = 'Demander ce rendez-vous'; return; }
     document.getElementById('panel-rdv').innerHTML = '<p class="sf-success">Demande envoyée ! On vous confirme le créneau rapidement.</p>';
   };
-  document.getElementById('drawer').classList.add('open');
+  const tiroir = document.getElementById('drawer');
+  tiroir.classList.add('open');
+  tiroir.setAttribute('aria-hidden', 'false');
   document.getElementById('overlay').classList.add('open');
+  // On retient d'où l'on vient, puis on porte le focus dans le tiroir : sans
+  // cela le clavier resterait derrière, sur la liste, et Tab parcourrait une
+  // page masquée par la fenêtre.
+  focusAvantTiroir = p.id;
+  const fermer = document.getElementById('drawerClose');
+  if(fermer) fermer.focus();
   updateScrollLock();
   if(!isRestoringFromURL){
     const url = new URL(window.location);
@@ -1552,8 +1730,14 @@ function openDrawer(p){
     history.pushState({ ref: p.ref }, '', url);
   }
 }
+// Élément qui avait le focus avant l'ouverture du tiroir. On l'y ramène à la
+// fermeture : sinon le focus repart en haut de page et il faut retraverser
+// toute la liste pour retrouver l'annonce qu'on venait de consulter.
+let focusAvantTiroir = null;
+
 function closeDrawer(){
   document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawer').setAttribute('aria-hidden', 'true');
   document.getElementById('overlay').classList.remove('open');
   state.selected = null;
   renderList();
@@ -1566,7 +1750,22 @@ function closeDrawer(){
       history.pushState({}, '', url);
     }
   }
+  // renderList() vient de reconstruire la liste : l'élément mémorisé n'existe
+  // plus, mais son identifiant permet de retrouver son remplaçant.
+  if(focusAvantTiroir){
+    const ancre = document.querySelector(`[data-open-id="${focusAvantTiroir}"]`);
+    if(ancre) ancre.focus();
+    focusAvantTiroir = null;
+  }
 }
+
+// Échap ferme le tiroir. C'est le geste attendu de toute fenêtre modale, et le
+// seul moyen d'en sortir au clavier si le bouton de fermeture est hors de vue.
+document.addEventListener('keydown', e=>{
+  if(e.key !== 'Escape') return;
+  if(document.getElementById('drawer').classList.contains('open')) closeDrawer();
+});
+
 let drawerMapInstance = null;
 function destroyDrawerMap(){
   if(drawerMapInstance){ drawerMapInstance.remove(); drawerMapInstance = null; }
