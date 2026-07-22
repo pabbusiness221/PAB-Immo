@@ -917,6 +917,11 @@ function openDrawer(p){
           <div class="confiance-txt">
             <strong>Annonce sponsorisée</strong>
             <span>${sponsoLibelle(p)}</span>
+            ${IS_ADMIN ? `<span style="margin-top:3px;">${(() => {
+              const { occupees, restantes } = sponsoPlacesRestantes();
+              if(restantes === 0) return `Les ${SPONSO_PLACES} places de la première page sont prises — au-delà, une annonce mise en avant n'apparaîtrait pas en tête.`;
+              return `${occupees} place${occupees>1?'s':''} sur ${SPONSO_PLACES} occupée${occupees>1?'s':''} · ${restantes} disponible${restantes>1?'s':''}`;
+            })()}</span>` : ''}
           </div>
           ${IS_ADMIN ? `
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
@@ -1080,6 +1085,16 @@ function freshnessLabel(iso){
 
 function sponsoActif(p){
   return !!p.sponsored_until && new Date(p.sponsored_until) > new Date();
+}
+
+// Nombre de places en tête de vitrine. Doit rester accordé à SPONSO_MAX de la
+// vitrine, qui vaut sa taille de page : vendre une 21e mise en avant reviendrait
+// à encaisser pour une place qui n'existe pas.
+const SPONSO_PLACES = 20;
+
+function sponsoPlacesRestantes(){
+  const occupees = PROPERTIES.filter(p => sponsoActif(p) && p.is_published && !p.archived_at).length;
+  return { occupees, restantes: Math.max(0, SPONSO_PLACES - occupees) };
 }
 
 function sponsoLibelle(p){

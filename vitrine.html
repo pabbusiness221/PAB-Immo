@@ -878,8 +878,20 @@ function mapRow(r){
 // pouvaient voir deux catalogues différents, et le même visiteur un ordre
 // différent d'un rechargement à l'autre.
 //
+// Nombre d'annonces par page de liste. Sur téléphone la grille en affiche
+// deux par ligne, soit dix lignes.
+const PER_PAGE = 20;
+
 // Ordre de base : les annonces les plus récentes d'abord.
-const SPONSO_MAX = 3;
+//
+// Les mises en avant occupent au plus une page entière. Le nombre n'est pas
+// écrit en dur : il suit PER_PAGE, sinon les deux valeurs divergeraient le jour
+// où la pagination changerait, et les mises en avant déborderaient sur la
+// deuxième page ou n'en rempliraient plus la première.
+//
+// S'il y a moins de sponsors que de places, les places restantes reviennent aux
+// autres annonces, dans l'ordre normal du catalogue.
+const SPONSO_MAX = PER_PAGE;
 
 function ordonner(items){
   const parDate = [...items].sort((a, b) => {
@@ -1027,9 +1039,6 @@ const critereActif = c => state[c.cle] !== '' && state[c.cle] != null;
 function surfaceM2(p){
   return p.type === 'Champ agricole' ? p.surface * 10000 : p.surface;
 }
-// Nombre d'annonces par page de liste. Sur téléphone la grille en affiche
-// deux par ligne, soit dix lignes.
-const PER_PAGE = 20;
 let isRestoringFromURL = false;
 let markers = {};
 let searchCircle = null;
