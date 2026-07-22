@@ -702,10 +702,58 @@ create policy "Journal anti-abus reserve a l'admin" on public.submission_log
 
 
 -- ----------------------------------------------------------------------------
--- 10. Ce que ce fichier ne couvre PAS
+-- 10. Règles du bucket de stockage
+-- ----------------------------------------------------------------------------
+-- Ces règles vivent dans le schéma `storage`, pas dans `public` : elles
+-- échappaient donc à cette sauvegarde. Sans elles, une base restaurée ne
+-- pourrait ni recevoir ni supprimer une photo.
+--
+-- Le bucket property-photos doit exister et être PUBLIC : c'est ce qui permet
+-- de servir les images par URL directe, sans authentification. Le créer depuis
+-- la console (Storage → New bucket → Public), puis jouer ce qui suit.
+--
+-- Noter qu'aucune règle de lecture publique n'est nécessaire : un bucket
+-- public sert ses objets sans passer par la sécurité au niveau des lignes.
+-- En ajouter une rendrait le dossier ÉNUMÉRABLE par n'importe qui — c'était
+-- le cas jusqu'au 21/07/2026.
+
+create policy "Upload photos : proprietaire ou admin"
+  on storage.objects for insert to authenticated
+  with check (
+    bucket_id = 'property-photos'
+    and (is_admin() or exists (
+      select 1 from public.properties p
+       where p.id::text = (storage.foldername(objects.name))[1]
+         and p.owner_id = auth.uid()))
+  );
+
+create policy "Suppression photos : proprietaire ou admin"
+  on storage.objects for delete to authenticated
+  using (
+    bucket_id = 'property-photos'
+    and (is_admin() or exists (
+      select 1 from public.properties p
+       where p.id::text = (storage.foldername(objects.name))[1]
+         and p.owner_id = auth.uid()))
+  );
+
+create policy "Listing photos : proprietaire ou admin"
+  on storage.objects for select to authenticated
+  using (
+    bucket_id = 'property-photos'
+    and (is_admin() or exists (
+      select 1 from public.properties p
+       where p.id::text = (storage.foldername(objects.name))[1]
+         and p.owner_id = auth.uid()))
+  );
+
+
+-- ----------------------------------------------------------------------------
+-- 11. Ce que ce fichier ne couvre PAS
 -- ----------------------------------------------------------------------------
 -- · Les données (voir docs/SAUVEGARDES.md, elles ne vont jamais dans le dépôt)
 -- · Les comptes auth.users et leurs mots de passe
 -- · Le contenu du bucket de stockage property-photos (les fichiers image)
+-- · La création du bucket lui-même, à faire depuis la console en mode public
 -- · Les secrets des fonctions Edge (RESEND_API_KEY, NOTIFY_EMAIL, …)
 -- · La configuration du projet Supabase (URL, clés, fournisseurs d'auth)
