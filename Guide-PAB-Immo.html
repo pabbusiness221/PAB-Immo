@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="description" content="Guide d'utilisation du site PAB Immo : administrateur, collaborateur et client.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#127969;</text></svg>">
+<title>Guide PAB Immo &#8212; Administrateur, Collaborateur &amp; Client</title>
+<style>
+  :root{
+    --canvas:#F4F2EE; --panel:#FFFFFF; --panel-2:#FBFAF7;
+    --ink:#16211D; --ink-soft:#5E6B64; --line:#E5E1D8;
+    --night:#0C1613; --night-2:#16281F;
+    --gold:#E2A22C; --gold-deep:#B8821C; --forest:#123027;
+    --good:#2F7A4E; --warn:#B8842A; --bad:#C0492C;
+    --good-bg:rgba(47,122,78,.12); --warn-bg:rgba(184,132,42,.14); --bad-bg:rgba(192,73,44,.10);
+    --link:#B8821C;
+    --shadow:0 1px 2px rgba(16,33,29,.04), 0 8px 24px -14px rgba(16,33,29,.22);
+    --radius:14px; --radius-sm:9px;
+    --font-display:"Manrope","Segoe UI",system-ui,-apple-system,sans-serif;
+    --font-body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --font-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --maxw:66ch;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --canvas:#0C1613; --panel:#14211C; --panel-2:#111E19;
+      --ink:#ECEBE5; --ink-soft:#9EA89F; --line:#26382F;
+      --good:#4FA574; --warn:#D3A24A; --bad:#E0765A;
+      --good-bg:rgba(79,165,116,.14); --warn-bg:rgba(211,162,74,.15); --bad-bg:rgba(224,118,90,.13);
+      --link:#E9B24A;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px -16px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --canvas:#0C1613; --panel:#14211C; --panel-2:#111E19;
+    --ink:#ECEBE5; --ink-soft:#9EA89F; --line:#26382F;
+    --good:#4FA574; --warn:#D3A24A; --bad:#E0765A;
+    --good-bg:rgba(79,165,116,.14); --warn-bg:rgba(211,162,74,.15); --bad-bg:rgba(224,118,90,.13);
+    --link:#E9B24A;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px -16px rgba(0,0,0,.6);
+  }
+  :root[data-theme="light"]{
+    --canvas:#F4F2EE; --panel:#FFFFFF; --panel-2:#FBFAF7;
+    --ink:#16211D; --ink-soft:#5E6B64; --line:#E5E1D8;
+    --good:#2F7A4E; --warn:#B8842A; --bad:#C0492C;
+    --good-bg:rgba(47,122,78,.12); --warn-bg:rgba(184,132,42,.14); --bad-bg:rgba(192,73,44,.10);
+    --link:#B8821C;
+    --shadow:0 1px 2px rgba(16,33,29,.04), 0 8px 24px -14px rgba(16,33,29,.22);
+  }
+
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--canvas);color:var(--ink);font-family:var(--font-body);
+    line-height:1.62;-webkit-font-smoothing:antialiased;font-size:16px;}
+  @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;}}
+  html{scroll-behavior:smooth;}
+  a{color:var(--link);text-underline-offset:2px;}
+
+  /* ---------- Visibilité par rôle ---------- */
+  [data-roles]{display:none;}
+  :root[data-role="admin"]  [data-roles~="admin"],
+  :root[data-role="collab"] [data-roles~="collab"],
+  :root[data-role="client"] [data-roles~="client"]{display:revert;}
+
+  /* ---------- En-tête ---------- */
+  .top{position:relative;overflow:hidden;background:
+      radial-gradient(120% 140% at 88% -20%, rgba(226,162,44,.18), transparent 55%),
+      linear-gradient(160deg,var(--night) 0%, var(--night-2) 70%, #1A1A12 100%);
+    color:#fff;padding:clamp(28px,5vw,52px) clamp(20px,5vw,60px);}
+  .top::after{content:"";position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 38px),
+               repeating-linear-gradient(90deg,rgba(255,255,255,.025) 0 1px,transparent 1px 38px);}
+  .top-in{position:relative;max-width:1180px;margin:0 auto;}
+  .brand{display:flex;align-items:center;gap:11px;font-family:var(--font-display);font-weight:800;
+    font-size:19px;letter-spacing:-.01em;}
+  .brand .dot{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+    background:linear-gradient(150deg,var(--gold),var(--gold-deep));color:#241a06;font-weight:800;font-size:15px;}
+  .brand em{font-style:normal;color:var(--gold);}
+  h1{font-family:var(--font-display);font-weight:800;letter-spacing:-.025em;line-height:1.08;
+    text-wrap:balance;font-size:clamp(28px,5vw,46px);margin:22px 0 10px;max-width:20ch;}
+  .lede{color:rgba(255,255,255,.76);font-size:clamp(15px,2vw,17px);max-width:56ch;margin:0;}
+
+  .roles{display:inline-flex;flex-wrap:wrap;gap:4px;margin-top:26px;padding:5px;border-radius:999px;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);}
+  .roles button{appearance:none;border:0;cursor:pointer;font-family:var(--font-body);font-weight:700;
+    font-size:13.5px;color:rgba(255,255,255,.7);background:transparent;padding:9px 18px;border-radius:999px;
+    transition:background .2s,color .2s;}
+  .roles button[aria-pressed="true"]{background:var(--gold);color:#241a06;}
+  .roles button:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+  .rolehint{margin:14px 0 0;font-size:13px;color:rgba(255,255,255,.6);}
+
+  /* ---------- Corps ---------- */
+  .wrap{max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,40px);
+    display:grid;grid-template-columns:236px minmax(0,1fr);gap:clamp(24px,4vw,56px);align-items:start;}
+  @media (max-width:860px){.wrap{grid-template-columns:1fr;}}
+
+  nav.toc{position:sticky;top:18px;align-self:start;padding:26px 0;}
+  @media (max-width:860px){nav.toc{position:static;padding:18px 0 0;}}
+  .toc h2{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;
+    color:var(--ink-soft);margin:0 0 12px;}
+  .toc ol{list-style:none;margin:0;padding:0;counter-reset:t;}
+  .toc li{counter-increment:t;}
+  .toc a{display:flex;gap:9px;align-items:baseline;text-decoration:none;color:var(--ink-soft);
+    font-size:13.5px;line-height:1.35;padding:6px 10px;border-radius:8px;border-left:2px solid transparent;transition:color .15s,background .15s;}
+  .toc a::before{content:counter(t,decimal-leading-zero);font-family:var(--font-mono);font-size:11px;
+    color:var(--gold-deep);font-weight:600;}
+  .toc a:hover{color:var(--ink);background:var(--panel-2);}
+  .toc a.active{color:var(--ink);border-left-color:var(--gold);background:var(--panel-2);font-weight:600;}
+
+  main{padding:26px 0 80px;min-width:0;}
+  section{scroll-margin-top:16px;padding:14px 0 30px;border-top:1px solid var(--line);}
+  main > section:first-of-type{border-top:0;}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:800;
+    text-transform:uppercase;letter-spacing:.13em;color:var(--gold-deep);margin:0 0 8px;}
+  .eyebrow .n{font-family:var(--font-mono);}
+  h2.sec{font-family:var(--font-display);font-weight:800;letter-spacing:-.02em;line-height:1.15;
+    font-size:clamp(21px,3vw,27px);margin:0 0 14px;text-wrap:balance;}
+  h3{font-family:var(--font-display);font-weight:700;font-size:16.5px;letter-spacing:-.01em;margin:26px 0 8px;}
+  p,li{max-width:var(--maxw);}
+  p{margin:0 0 13px;}
+  ul,ol.body{margin:0 0 14px;padding-left:20px;}
+  li{margin:5px 0;}
+  strong{font-weight:700;}
+  code{font-family:var(--font-mono);font-size:.86em;background:var(--panel-2);border:1px solid var(--line);
+    padding:1px 6px;border-radius:6px;}
+  .lead{font-size:17px;color:var(--ink-soft);max-width:60ch;}
+
+  .note{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;
+    background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--gold);
+    border-radius:var(--radius-sm);padding:14px 16px;margin:16px 0;box-shadow:var(--shadow);max-width:var(--maxw);}
+  .note.warn{border-left-color:var(--warn);}
+  .note .ic{width:22px;height:22px;flex-shrink:0;color:var(--gold-deep);}
+  .note.warn .ic{color:var(--warn);}
+  .note p{margin:0;font-size:14.5px;}
+  .note strong{display:block;margin-bottom:2px;}
+
+  .tw{overflow-x:auto;margin:16px 0;border:1px solid var(--line);border-radius:var(--radius-sm);}
+  table{border-collapse:collapse;width:100%;font-size:14px;background:var(--panel);}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top;}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);
+    background:var(--panel-2);font-weight:800;}
+  tr:last-child td{border-bottom:0;}
+  td code{white-space:nowrap;}
+
+  figure{margin:20px 0;}
+  .shot{border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);background:var(--panel);}
+  figcaption{font-size:12.5px;color:var(--ink-soft);margin-top:9px;padding-left:2px;max-width:var(--maxw);}
+  figcaption b{color:var(--ink);font-weight:700;}
+
+  .bar{background:var(--night);padding:14px 16px;display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+  .bar .logo{display:flex;align-items:center;gap:8px;color:#fff;font-family:var(--font-display);font-weight:800;font-size:15px;margin-right:6px;}
+  .bar .logo em{font-style:normal;color:var(--gold);}
+  .tool{display:inline-flex;align-items:center;gap:7px;background:#1B2C24;border:1px solid #26382F;
+    color:#D6DED8;border-radius:999px;padding:7px 13px;font-size:12.5px;font-weight:600;position:relative;}
+  .tool svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;}
+  .tool.add{background:linear-gradient(150deg,var(--gold),var(--gold-deep));color:#241a06;border-color:transparent;font-weight:800;}
+  .tool .pip{position:absolute;top:-5px;right:-5px;background:var(--bad);color:#fff;font-size:10px;
+    font-weight:800;min-width:16px;height:16px;border-radius:9px;display:grid;place-items:center;padding:0 3px;}
+  .bar .sp{flex:1;}
+  .bar .out{color:rgba(255,255,255,.62);font-size:12.5px;font-weight:600;text-decoration:underline;}
+
+  .formshot{padding:18px;background:var(--panel-2);display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media (max-width:520px){.formshot{grid-template-columns:1fr;}}
+  .fld label{display:block;font-size:11px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;}
+  .fld .in{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:13.5px;color:var(--ink);display:flex;align-items:center;justify-content:space-between;}
+  .fld .in.ph{color:var(--ink-soft);}
+  .fld .in .car{color:var(--ink-soft);font-size:11px;}
+  .fld.req .in{border-color:var(--gold);box-shadow:0 0 0 3px rgba(226,162,44,.14);}
+
+  .card{max-width:300px;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--panel);}
+  .card .ph{height:130px;background:linear-gradient(135deg,#2E4A61,#161B22);position:relative;}
+  .card .ph .op{position:absolute;top:10px;left:10px;background:rgba(255,255,255,.92);color:#16211D;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;}
+  .card .ph .spo{position:absolute;top:44px;right:10px;background:var(--night);color:var(--gold);font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid rgba(226,162,44,.45);}
+  .card .ph .st{position:absolute;bottom:10px;left:10px;background:var(--good);color:#fff;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;}
+  .card .bd{padding:12px 13px;}
+  .card h4{font-family:var(--font-display);margin:0 0 7px;font-size:15px;font-weight:800;}
+  .badges{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0;}
+  .bdg{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:999px;}
+  .bdg.v{background:var(--good-bg);color:var(--good);}
+  .bdg.d{background:rgba(226,162,44,.15);color:var(--gold-deep);}
+  .bdg.a{background:var(--forest);color:#CFE3D8;}
+  .card .foot{display:flex;justify-content:space-between;align-items:baseline;margin-top:8px;}
+  .card .foot .sf{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);}
+  .card .foot .pr{font-family:var(--font-display);font-weight:800;font-size:15px;}
+
+  .pipe{display:flex;flex-wrap:wrap;gap:0;align-items:stretch;padding:18px;background:var(--panel-2);}
+  .step{flex:1;min-width:92px;text-align:center;padding:11px 8px;font-size:12px;font-weight:700;position:relative;}
+  .step .k{display:block;width:24px;height:24px;border-radius:50%;margin:0 auto 7px;display:grid;place-items:center;
+    background:var(--panel);border:2px solid var(--gold);color:var(--gold-deep);font-family:var(--font-mono);font-size:11px;}
+  .step:not(:last-child)::after{content:"";position:absolute;top:23px;right:-2px;width:calc(100% - 26px);height:2px;background:var(--line);}
+  .step.end .k{border-color:var(--good);color:var(--good);}
+  .step.lost .k{border-color:var(--ink-soft);color:var(--ink-soft);}
+
+  .panne{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:16px 18px;background:var(--bad-bg);
+    border:1px solid var(--bad);border-radius:var(--radius);}
+  .panne .ic{width:22px;height:22px;color:var(--bad);}
+  .panne b{color:var(--bad);display:block;margin-bottom:3px;font-size:14.5px;}
+  .panne p{margin:0;font-size:13px;color:var(--ink-soft);max-width:none;}
+  .panne code{font-size:12px;}
+
+  .chips{display:flex;flex-wrap:wrap;gap:7px;padding:16px;background:var(--panel-2);}
+  .chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:700;}
+  .chip.on{background:var(--forest);color:#fff;border-color:transparent;}
+  .chip .c{color:var(--ink-soft);font-weight:600;margin-left:5px;}
+  .chip.on .c{color:rgba(255,255,255,.7);}
+
+  .acts{display:flex;gap:9px;flex-wrap:wrap;padding:16px;background:var(--panel-2);}
+  .act{display:inline-flex;align-items:center;gap:7px;padding:11px 17px;border-radius:999px;font-size:13px;font-weight:700;}
+  .act svg{width:15px;height:15px;}
+  .act.wa{background:#25D366;color:#fff;}
+  .act.tel{background:var(--gold);color:#241a06;}
+  .act.msg{background:var(--panel);border:1px solid var(--line);color:var(--ink);}
+
+  footer{border-top:1px solid var(--line);padding:26px 0 60px;color:var(--ink-soft);font-size:13px;max-width:var(--maxw);}
+  footer a{font-weight:600;}
+
+  @media print{
+    .top{color:#111;background:none;border-bottom:2px solid var(--gold);}
+    .top::after,.roles,.rolehint{display:none;}
+    .brand,.brand em,h1,.lede{color:#111;}
+    nav.toc{display:none;}
+    .wrap{grid-template-columns:1fr;}
+    section{break-inside:avoid;}
+    body{font-size:12px;}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="brand"><span class="dot">PA</span>PAB <em>Immo</em></div>
+    <h1>Le guide de votre plateforme immobili&#232;re</h1>
+    <p class="lede">Trois guides en un. Choisissez votre r&#244;le : le contenu et le sommaire s'adaptent
+      &#224; ce que vous faites sur le site.</p>
+    <div class="roles" role="group" aria-label="Choisir le guide">
+      <button id="r-admin" aria-pressed="true">Administrateur</button>
+      <button id="r-collab" aria-pressed="false">Collaborateur</button>
+      <button id="r-client" aria-pressed="false">Client</button>
+    </div>
+    <p class="rolehint" data-roles="admin">Vous g&#233;rez tout le site : les biens, les demandes, les agences.</p>
+    <p class="rolehint" data-roles="collab">Agence partenaire : vous g&#233;rez vos propres biens sur le site.</p>
+    <p class="rolehint" data-roles="client">Visiteur : vous cherchez un bien et contactez l'agence, sans compte.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="toc" aria-label="Sommaire">
+    <h2>Sommaire</h2>
+    <ol id="tocList"></ol>
+  </nav>
+
+  <main id="content">
+
+    <!-- ========== PR&#201;SENTATION ========== -->
+    <section id="s-intro" data-roles="admin collab client">
+      <p class="eyebrow"><span class="n">Pr&#233;sentation</span></p>
+      <h2 class="sec">Bienvenue</h2>
+      <p class="lead" data-roles="admin">Votre site est fait de deux pages jumelles qui ne servent pas les
+        m&#234;mes personnes : la <strong>vitrine</strong> pour vos clients, le <strong>portefeuille</strong> pour vous.</p>
+      <p class="lead" data-roles="collab">En tant que collaborateur, vous utilisez le
+        <strong>portefeuille</strong> pour g&#233;rer vos propres biens. Voici ce que vous pouvez y faire.</p>
+      <p class="lead" data-roles="client">Bienvenue sur PAB Immo. Ce guide montre comment trouver un bien,
+        nous contacter et &#234;tre pr&#233;venu des nouveaut&#233;s &#8212; depuis votre t&#233;l&#233;phone ou votre ordinateur, sans
+        cr&#233;er de compte.</p>
+
+      <div class="tw" data-roles="admin">
+        <table>
+          <thead><tr><th>Page</th><th>Pour qui</th><th>R&#244;le</th></tr></thead>
+          <tbody>
+            <tr><td><strong>La vitrine</strong></td><td>Vos clients, le public</td><td>Voir les biens, vous contacter</td></tr>
+            <tr><td><strong>Le portefeuille</strong></td><td>Vous et vos collaborateurs</td><td>Ajouter les biens, suivre les demandes</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div data-roles="admin">
+        <div class="note">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+          <p><strong>Le site est en maintenance.</strong> La vitrine est aujourd'hui masqu&#233;e derri&#232;re une
+            page &#171; Notre site fait peau neuve &#187;. La proc&#233;dure pour la remettre en ligne est dans la fiche
+            <em>Mise en ligne</em> du d&#233;p&#244;t.</p>
+        </div>
+      </div>
+      <p data-roles="collab">Vos biens n'apparaissent que chez vous et sur la vitrine PAB Immo. Un autre
+        collaborateur ne voit jamais vos biens, et vous ne voyez pas les siens &#8212; c'est garanti par la base
+        de donn&#233;es, pas seulement par l'affichage.</p>
+      <p data-roles="client">Tout se passe sur la <strong>vitrine</strong>, la page publique du site.
+        Rien &#224; installer, rien &#224; retenir : vos favoris et vos recherches restent sur votre appareil.</p>
+    </section>
+
+    <!-- ========== CONNEXION ========== -->
+    <section id="s-login" data-roles="admin collab">
+      <p class="eyebrow"><span class="n">Acc&#232;s</span></p>
+      <h2 class="sec">Se connecter</h2>
+      <p>Ouvrez la page <strong>Portefeuille</strong>. Un &#233;cran de connexion demande votre email et votre
+        mot de passe. Une fois entr&#233;, la barre d'outils appara&#238;t en haut.</p>
+      <ul>
+        <li>Le lien <strong>&#171; &#8592; Retour au site public &#187;</strong> ram&#232;ne &#224; la vitrine sans se connecter.</li>
+        <li>Pour quitter, le lien <strong>D&#233;connexion</strong>, en haut &#224; droite.</li>
+      </ul>
+      <div data-roles="admin">
+        <h3>Deux niveaux de compte</h3>
+        <p>L'<strong>administrateur</strong> (vous) acc&#232;de &#224; tout. Un <strong>collaborateur</strong> ne
+          voit et ne g&#232;re que ses propres biens, et les statistiques qui les concernent &#8212; pas la bo&#238;te de
+          r&#233;ception globale, ni le journal, ni les agences, ni les prospects.</p>
+      </div>
+    </section>
+
+    <!-- ========== BARRE D'OUTILS ========== -->
+    <section id="s-bar" data-roles="admin">
+      <p class="eyebrow"><span class="n">Rep&#232;res</span></p>
+      <h2 class="sec">La barre d'outils</h2>
+      <figure>
+        <div class="shot">
+          <div class="bar">
+            <span class="logo">PAB <em>Immo</em></span>
+            <span class="tool"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Prospects</span>
+            <span class="tool"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14"/></svg>Agences<span class="pip">2</span></span>
+            <span class="tool"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Journal</span>
+            <span class="tool"><svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>Statistiques</span>
+            <span class="tool"><svg viewBox="0 0 24 24"><path d="M4 4h16v12H5.2L4 18z"/></svg>R&#233;ception</span>
+            <span class="tool add"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Ajouter un bien</span>
+            <span class="sp"></span>
+            <span class="tool"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18"/></svg>Vitrine</span>
+            <span class="out">D&#233;connexion</span>
+          </div>
+        </div>
+        <figcaption>Aper&#231;u de la barre. Une <b>pastille rouge</b> signale des &#233;l&#233;ments &#224; traiter
+          (messages non lus, candidatures). Le bouton dor&#233; <b>Ajouter un bien</b> ouvre le formulaire.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ========== G&#201;RER LES BIENS ========== -->
+    <section id="s-biens" data-roles="admin collab">
+      <p class="eyebrow"><span class="n">C&#339;ur du m&#233;tier</span></p>
+      <h2 class="sec">G&#233;rer les biens</h2>
+      <h3>Ajouter un bien</h3>
+      <figure>
+        <div class="shot">
+          <div class="formshot">
+            <div class="fld"><label>Type</label><div class="in">Terrain <span class="car">&#9662;</span></div></div>
+            <div class="fld"><label>Op&#233;ration</label><div class="in">Vente <span class="car">&#9662;</span></div></div>
+            <div class="fld req"><label>R&#233;gion &#8212; choix obligatoire</label><div class="in ph">&#8212; Choisir &#8212; <span class="car">&#9662;</span></div></div>
+            <div class="fld"><label>D&#233;partement</label><div class="in ph">ex : Thi&#232;s</div></div>
+            <div class="fld"><label>Superficie</label><div class="in ph">m&#178; &#183; ha pour un champ</div></div>
+            <div class="fld"><label>Prix</label><div class="in ph">FCFA</div></div>
+          </div>
+        </div>
+        <figcaption>Un nouveau bien vous <b>force &#224; choisir la r&#233;gion</b> (Dakar ou Thi&#232;s) : ce n'est pas un
+          oubli, c'est ce qui garantit que les alertes email retrouvent le bien.</figcaption>
+      </figure>
+      <ul>
+        <li><strong>Statut</strong> &#8212; Disponible, R&#233;serv&#233;, puis Vendu ou Lou&#233;. Seuls <em>Disponible</em> et
+          <em>R&#233;serv&#233;</em> paraissent sur la vitrine.</li>
+        <li><strong>Latitude / Longitude</strong> &#8212; la position sur la carte. Sans elles, le bien n'appara&#238;t pas au bon endroit.</li>
+        <li><strong>R&#233;f&#233;rence</strong> &#8212; attribu&#233;e seule, avec un pr&#233;fixe par type :
+          <code>TF</code> terrain, <code>MA</code> maison, <code>AP</code> appartement,
+          <code>ST</code> studio, <code>CH</code> champ.</li>
+      </ul>
+      <h3>Les photos</h3>
+      <p>Ajoutez <strong>au moins une photo par bien</strong> &#8212; un bien sans photo n'int&#233;resse ni un
+        acheteur ni Google. La premi&#232;re sert de couverture ; elles sont redimensionn&#233;es automatiquement.</p>
+      <h3>Publier, modifier, archiver</h3>
+      <ul>
+        <li>La case <strong>Publi&#233;</strong> d&#233;cide si le bien para&#238;t sur la vitrine. Non publi&#233;, il reste
+          visible pour vous seul.</li>
+        <li><strong>Archiver</strong> plut&#244;t que supprimer : le bien quitte la vitrine mais reste
+          restaurable dans l'onglet <em>Archives</em>. On ne perd rien.</li>
+      </ul>
+    </section>
+
+    <!-- ========== BADGES (admin + collab) ========== -->
+    <section id="s-badges" data-roles="admin collab">
+      <p class="eyebrow"><span class="n">Confiance</span></p>
+      <h2 class="sec">Les badges de confiance</h2>
+      <figure>
+        <div class="shot" style="padding:18px;display:flex;justify-content:center;background:var(--panel-2);">
+          <div class="card">
+            <div class="ph"><span class="op">Vente</span><span class="st">Disponible</span></div>
+            <div class="bd">
+              <h4>Terrain &#8212; Keur Moussa</h4>
+              <div class="badges">
+                <span class="bdg v"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>V&#233;rifi&#233;e</span>
+                <span class="bdg d">Dispo. r&#233;cente</span>
+                <span class="bdg a">Agence v&#233;rifi&#233;e</span>
+              </div>
+              <div class="foot"><span class="sf">500 m&#178;</span><span class="pr">15 000 000 FCFA</span></div>
+            </div>
+          </div>
+        </div>
+        <figcaption>Les trois badges tels qu'ils apparaissent au visiteur, dans la fiche d'un bien.</figcaption>
+      </figure>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Badge</th><th>Ce qu'il dit</th><th>Qui le pose</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Annonce v&#233;rifi&#233;e</strong></td><td>Documents et existence du bien contr&#244;l&#233;s</td><td><span data-roles="admin">Vous</span><span data-roles="collab">L'administrateur PAB Immo</span></td></tr>
+            <tr><td><strong>Disponibilit&#233;</strong></td><td>Bien toujours disponible, confirm&#233; r&#233;cemment</td><td>Bouton <em>Confirmer</em>, sur vos biens</td></tr>
+            <tr><td><strong>Agence v&#233;rifi&#233;e</strong></td><td>Publi&#233; par une agence certifi&#233;e</td><td><span data-roles="admin">&#201;cran Agences</span><span data-roles="collab">L'administrateur PAB Immo</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>La <strong>disponibilit&#233;</strong> est dat&#233;e : pass&#233; un mois sans confirmation, le badge dispara&#238;t
+        de lui-m&#234;me plut&#244;t que d'afficher une date p&#233;rim&#233;e. Pensez &#224; cliquer <em>Confirmer</em> sur vos
+        biens actifs de temps en temps.</p>
+    </section>
+
+    <!-- ========== SPONSORING ========== -->
+    <section id="s-sponso" data-roles="admin">
+      <p class="eyebrow"><span class="n">Visibilit&#233;</span></p>
+      <h2 class="sec">Mettre un bien en avant</h2>
+      <figure>
+        <div class="shot" style="padding:18px;display:flex;justify-content:center;background:var(--panel-2);">
+          <div class="card">
+            <div class="ph"><span class="op">Vente</span><span class="spo">Sponsoris&#233;</span><span class="st">Disponible</span></div>
+            <div class="bd"><h4>Appartement &#8212; Almadies</h4>
+              <div class="foot"><span class="sf">3 ch &#183; 2 sdb</span><span class="pr">85 000 000 FCFA</span></div></div>
+          </div>
+        </div>
+        <figcaption>Un bien mis en avant porte l'&#233;tiquette <b>Sponsoris&#233;</b> et remonte en t&#234;te de la vitrine.</figcaption>
+      </figure>
+      <p>Dans la fiche du bien, section <strong>Mise en avant</strong>, choisissez une <strong>date de
+        fin</strong>. Le bien remonte en t&#234;te jusque-l&#224;, puis redescend tout seul &#8212; rien &#224; &#233;teindre.</p>
+      <ul>
+        <li>Jusqu'&#224; <strong>20 biens</strong> peuvent occuper la premi&#232;re page. Le compteur affiche les places restantes.</li>
+        <li>Au-del&#224;, une mise en avant de plus ne sert &#224; rien : la fiche vous en avertit.</li>
+      </ul>
+    </section>
+
+    <!-- ========== DEMANDES ========== -->
+    <section id="s-demandes" data-roles="admin">
+      <p class="eyebrow"><span class="n">Clients</span></p>
+      <h2 class="sec">Les demandes de vos clients</h2>
+      <h3>Bo&#238;te de r&#233;ception</h3>
+      <p>Le bouton <strong>R&#233;ception</strong> rassemble les <strong>messages</strong> et les
+        <strong>demandes de rendez-vous</strong> laiss&#233;s depuis la vitrine. Passez un rendez-vous &#224;
+        <em>R&#233;alis&#233;e</em> apr&#232;s la visite : c'est ce qui nourrit vos statistiques de visites.</p>
+      <h3>Le suivi des prospects</h3>
+      <p>Le bouton <strong>Prospects</strong> regroupe ces demandes <strong>par personne</strong> :
+        quelqu'un qui &#233;crit trois fois puis demande deux visites n'appara&#238;t qu'<strong>une fois</strong>.
+        Chaque prospect suit une progression que vous faites avancer &#224; la main :</p>
+      <figure>
+        <div class="shot"><div class="pipe">
+          <div class="step"><span class="k">1</span>Nouveau</div>
+          <div class="step"><span class="k">2</span>Contact&#233;</div>
+          <div class="step"><span class="k">3</span>Visite</div>
+          <div class="step"><span class="k">4</span>N&#233;gociation</div>
+          <div class="step end"><span class="k">&#10003;</span>Conclu</div>
+          <div class="step lost"><span class="k">&#10005;</span>Perdu</div>
+        </div></div>
+        <figcaption>Le <b>taux de conversion</b> se calcule sur les dossiers tranch&#233;s (conclus + perdus),
+          pas sur le total &#8212; il ne chute pas &#224; chaque nouveau contact.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ========== AGENCES ========== -->
+    <section id="s-agences" data-roles="admin">
+      <p class="eyebrow"><span class="n">Partenaires</span></p>
+      <h2 class="sec">Les agences collaboratrices</h2>
+      <p>Le bouton <strong>Agences</strong> r&#233;unit vos collaborateurs actuels et les candidatures re&#231;ues.</p>
+      <ul>
+        <li><strong>Certifier</strong> une agence lui accorde le badge &#171; Agence v&#233;rifi&#233;e &#187; sur toutes ses
+          annonces. R&#233;serv&#233; &#224; vous : une agence ne peut pas se certifier elle-m&#234;me.</li>
+        <li>Les <strong>candidatures</strong> venues du formulaire de la vitrine ont un statut :
+          Nouvelle &#8594; En discussion &#8594; Accept&#233;e / Refus&#233;e.</li>
+      </ul>
+      <div class="note warn">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+        <p><strong>Accepter une candidature ne cr&#233;e pas de compte.</strong> Il reste &#224; inviter l'agence
+          depuis Supabase, puis &#224; l'ajouter aux collaborateurs. Le statut ne sert qu'&#224; suivre l'&#233;change.</p>
+      </div>
+    </section>
+
+    <!-- ========== STATISTIQUES ========== -->
+    <section id="s-stats" data-roles="admin collab">
+      <p class="eyebrow"><span class="n">Mesure</span></p>
+      <h2 class="sec">Statistiques<span data-roles="admin"> et journal</span></h2>
+      <p><strong>Statistiques</strong> &#8212; fr&#233;quentation, demandes g&#233;n&#233;r&#233;es, visites organis&#233;es, taux de
+        conversion, et des graphiques par mois, par type, par r&#233;gion.
+        <span data-roles="collab">Vous n'y voyez que vos propres biens.</span>
+        <span data-roles="admin">Un collaborateur n'y voit que ses propres biens.</span></p>
+      <p data-roles="admin"><strong>Journal d'activit&#233;</strong> &#8212; la trace de qui a cr&#233;&#233;, modifi&#233; ou publi&#233;
+        quel bien, et quand. Utile pour comprendre ce qui a chang&#233;, et par qui.</p>
+    </section>
+
+    <!-- ========== ALERTES (admin) ========== -->
+    <section id="s-alertes" data-roles="admin">
+      <p class="eyebrow"><span class="n">Automatique</span></p>
+      <h2 class="sec">Les alertes email</h2>
+      <p>Un visiteur peut s'abonner aux alertes depuis la vitrine, avec ses crit&#232;res (type, op&#233;ration,
+        r&#233;gion, budget). D&#232;s que vous publiez un bien qui correspond, il re&#231;oit un email &#8212;
+        <strong>vous n'avez rien &#224; faire</strong>.</p>
+      <figure>
+        <div class="shot"><div style="padding:16px;background:var(--panel-2);"><div class="panne">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+          <div><b>Des emails de notification n'arrivent pas</b>
+            <p>4 emails sont partis cette semaine, mais 1 envoi a partiellement &#233;chou&#233;.
+              <br><code>2 envoi(s) en &#233;chec sur 6</code></p></div>
+        </div></div></div>
+        <figcaption>Ce bandeau rend visible une panne autrement silencieuse. Il <b>dispara&#238;t tout seul</b>
+          d&#232;s qu'un envoi r&#233;ussit apr&#232;s le dernier &#233;chec.</figcaption>
+      </figure>
+      <p>La fiabilit&#233; d&#233;pend d'un service externe. Pour des envois vraiment s&#251;rs, il faudra v&#233;rifier votre
+        domaine une fois le nom de domaine en place (voir la fiche <em>Nom de domaine</em>).</p>
+    </section>
+
+    <!-- ========== C&#212;T&#201; CLIENT (vue admin) ========== -->
+    <section id="s-vitrine" data-roles="admin">
+      <p class="eyebrow"><span class="n">C&#244;t&#233; client</span></p>
+      <h2 class="sec">Ce que voient vos visiteurs</h2>
+      <p>Le bouton <strong>Vitrine</strong> vous met &#224; leur place. Le guide <em>Client</em> (en haut de
+        cette page) d&#233;taille leur parcours. En r&#233;sum&#233;, ils disposent de :</p>
+      <ul>
+        <li><strong>Recherche et filtres</strong> &#8212; par commune, prix, surface, chambres, ou autour d'un point sur la carte.</li>
+        <li><strong>Liste et carte</strong>, <strong>favoris</strong>, et une <strong>fiche</strong> par bien avec WhatsApp, appel, message et rendez-vous.</li>
+        <li><strong>Partage</strong> et <strong>abonnement aux alertes</strong>.</li>
+        <li><strong>Devenir collaborateur</strong> &#8212; le formulaire par lequel les agences vous postulent.</li>
+      </ul>
+    </section>
+
+    <!-- ========== ENTRETIEN ========== -->
+    <section id="s-entretien" data-roles="admin collab">
+      <p class="eyebrow"><span class="n">Au long cours</span></p>
+      <h2 class="sec">Entretien<span data-roles="collab"> et bon usage</span></h2>
+      <div data-roles="collab">
+        <ul>
+          <li>Gardez vos biens <strong>&#224; jour</strong> : statut, prix, disponibilit&#233;. Un bien vendu qui
+            reste &#171; Disponible &#187; d&#233;&#231;oit un acheteur et vous fait perdre du temps.</li>
+          <li><strong>Confirmez la disponibilit&#233;</strong> de vos biens actifs r&#233;guli&#232;rement, pour garder le badge.</li>
+          <li>Une <strong>photo au minimum</strong> par bien, toujours.</li>
+        </ul>
+      </div>
+      <div data-roles="admin">
+        <p><strong>Fiches Google</strong> &#8212; chaque bien publi&#233; a une page que Google peut lire. Elle est
+          reconstruite <strong>automatiquement chaque nuit</strong>. Un bouton permet de ne pas attendre.</p>
+        <p><strong>Sauvegardes</strong> &#8212; &#224; faire r&#233;guli&#232;rement une fois en ligne ; la proc&#233;dure est dans la fiche d&#233;di&#233;e.</p>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Sympt&#244;me</th><th>Explication</th></tr></thead>
+            <tbody>
+              <tr><td>Un bien publi&#233; n'est pas sur Google</td><td>Normal : sa fiche est r&#233;g&#233;n&#233;r&#233;e la nuit, et l'indexation prend des semaines.</td></tr>
+              <tr><td>Le bandeau rouge des emails persiste</td><td>Il refl&#232;te les 7 derniers jours ; il part d&#232;s qu'un envoi r&#233;ussit.</td></tr>
+              <tr><td>Un bien n'est pas sur la carte</td><td>V&#233;rifiez sa latitude et sa longitude.</td></tr>
+              <tr><td>La vitrine affiche &#171; site en travaux &#187;</td><td>Le site est en maintenance ; voir la fiche <em>Mise en ligne</em>.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== CLIENT : CHERCHER ========== -->
+    <section id="c-chercher" data-roles="client">
+      <p class="eyebrow"><span class="n">Trouver</span></p>
+      <h2 class="sec">Chercher un bien</h2>
+      <p>Depuis la page d'accueil, tapez une <strong>commune, une r&#233;gion ou une r&#233;f&#233;rence</strong> dans la
+        barre de recherche, ou affinez avec les filtres.</p>
+      <figure>
+        <div class="shot"><div class="chips">
+          <span class="chip on">Tous les biens<span class="c">30</span></span>
+          <span class="chip">Terrains<span class="c">14</span></span>
+          <span class="chip">Maisons<span class="c">5</span></span>
+          <span class="chip">Appartements<span class="c">6</span></span>
+          <span class="chip">Studios<span class="c">1</span></span>
+        </div></div>
+        <figcaption>Filtrez par <b>type de bien</b> d'un clic. Des filtres plus fins existent aussi :
+          prix, surface, nombre de chambres, ou <b>autour d'un point sur la carte</b>.</figcaption>
+      </figure>
+      <ul>
+        <li><strong>Liste ou carte</strong> &#8212; basculez d'un affichage &#224; l'autre ; chaque bien appara&#238;t des deux c&#244;t&#233;s.</li>
+        <li><strong>Favoris</strong> &#8212; le petit c&#339;ur garde un bien de c&#244;t&#233;. Vos favoris restent sur votre
+          appareil, sans compte.</li>
+      </ul>
+      <h3>Les badges, en un coup d'&#339;il</h3>
+      <figure>
+        <div class="shot" style="padding:18px;display:flex;justify-content:center;background:var(--panel-2);">
+          <div class="card">
+            <div class="ph"><span class="op">Vente</span><span class="spo">Sponsoris&#233;</span><span class="st">Disponible</span></div>
+            <div class="bd"><h4>Terrain &#8212; Keur Moussa</h4>
+              <div class="badges">
+                <span class="bdg v"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>V&#233;rifi&#233;e</span>
+                <span class="bdg d">Dispo. r&#233;cente</span>
+                <span class="bdg a">Agence v&#233;rifi&#233;e</span>
+              </div>
+              <div class="foot"><span class="sf">500 m&#178;</span><span class="pr">15 000 000 FCFA</span></div></div>
+          </div>
+        </div>
+        <figcaption>Ces &#233;tiquettes vous aident &#224; choisir en confiance.</figcaption>
+      </figure>
+      <ul>
+        <li><strong>V&#233;rifi&#233;e</strong> &#8212; l'agence a contr&#244;l&#233; les documents et l'existence du bien.</li>
+        <li><strong>Dispo. r&#233;cente</strong> &#8212; la disponibilit&#233; a &#233;t&#233; confirm&#233;e il y a peu.</li>
+        <li><strong>Agence v&#233;rifi&#233;e</strong> &#8212; le bien est publi&#233; par une agence certifi&#233;e par PAB Immo.</li>
+        <li><strong>Sponsoris&#233;</strong> &#8212; une annonce mise en avant. Elle reste une annonce comme les autres.</li>
+      </ul>
+    </section>
+
+    <!-- ========== CLIENT : CONTACTER ========== -->
+    <section id="c-contact" data-roles="client">
+      <p class="eyebrow"><span class="n">&#201;changer</span></p>
+      <h2 class="sec">Voir une fiche et nous contacter</h2>
+      <p>Touchez un bien pour ouvrir sa fiche : <strong>photos, caract&#233;ristiques, prix et emplacement sur
+        la carte</strong>. Tout en bas, plusieurs fa&#231;ons de nous joindre.</p>
+      <figure>
+        <div class="shot"><div class="acts">
+          <span class="act wa"><svg viewBox="0 0 24 24" fill="#fff"><path d="M20.5 3.5A11 11 0 003.6 17.3L2 22l4.9-1.6A11 11 0 1020.5 3.5z"/></svg>WhatsApp</span>
+          <span class="act tel"><svg viewBox="0 0 24 24" fill="none" stroke="#241a06" stroke-width="2"><path d="M22 16.9v3a2 2 0 01-2.2 2A19.8 19.8 0 013 5.2 2 2 0 015 3h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.7a2 2 0 01-.5 2.1L8 9.7a16 16 0 006.3 6.3l1.2-1.2a2 2 0 012.1-.5c.9.3 1.8.5 2.7.6A2 2 0 0122 16.9z"/></svg>Appeler</span>
+          <span class="act msg">Envoyer un message</span>
+        </div></div>
+        <figcaption><b>WhatsApp</b> ouvre une conversation avec un message d&#233;j&#224; r&#233;dig&#233; ;
+          <b>Appeler</b> compose le num&#233;ro. Vous pouvez aussi laisser un message ou demander un rendez-vous.</figcaption>
+      </figure>
+      <ul>
+        <li><strong>Message</strong> &#8212; laissez votre nom et un contact, on vous r&#233;pond.</li>
+        <li><strong>Rendez-vous</strong> &#8212; proposez une date et un cr&#233;neau pour visiter le bien.</li>
+      </ul>
+    </section>
+
+    <!-- ========== CLIENT : ALERTES ========== -->
+    <section id="c-alertes" data-roles="client">
+      <p class="eyebrow"><span class="n">Ne rien manquer</span></p>
+      <h2 class="sec">&#202;tre pr&#233;venu des nouveaux biens</h2>
+      <p>Rien ne correspond aujourd'hui ? Laissez votre email et vos crit&#232;res : d&#232;s qu'un bien qui vous
+        convient est publi&#233;, vous recevez un message. <strong>Gratuit, et sans compte.</strong></p>
+      <figure>
+        <div class="shot"><div class="formshot" style="grid-template-columns:1fr 1fr;">
+          <div class="fld"><label>Email</label><div class="in ph">vous@email.com</div></div>
+          <div class="fld"><label>Type de bien</label><div class="in">Tous types <span class="car">&#9662;</span></div></div>
+          <div class="fld"><label>R&#233;gion</label><div class="in">Dakar <span class="car">&#9662;</span></div></div>
+          <div class="fld"><label>Budget max</label><div class="in ph">FCFA</div></div>
+        </div></div>
+        <figcaption>Le formulaire &#171; &#202;tre alert&#233;(e) &#187;, au-dessus de la liste des biens.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ========== CLIENT : PARTAGE & AGENCE ========== -->
+    <section id="c-partage" data-roles="client">
+      <p class="eyebrow"><span class="n">Aller plus loin</span></p>
+      <h2 class="sec">Partager un bien, ou nous rejoindre</h2>
+      <h3>Partager</h3>
+      <p>Le bouton <strong>Partager</strong> d'une fiche envoie un lien qui, sur WhatsApp ou Facebook,
+        affiche la <strong>photo et le prix</strong> du bien. Pratique pour montrer un bien &#224; un proche.</p>
+      <h3>Vous &#234;tes une agence ?</h3>
+      <p>Tout en bas de la vitrine, le bouton <strong>Devenir collaborateur</strong> ouvre un formulaire :
+        nom de l'agence, contact, zone, taille du portefeuille. En rejoignant PAB Immo, vos annonces
+        gagnent notre audience et vous gardez la main sur votre portefeuille.</p>
+    </section>
+
+    <footer>
+      <p data-roles="admin"><strong>Fiches techniques du d&#233;p&#244;t :</strong> Mise en ligne &#183; R&#233;f&#233;rencement &#183;
+        Nom de domaine &#183; Sauvegardes. Elles compl&#232;tent ce guide c&#244;t&#233; op&#233;rations.</p>
+      <p data-roles="collab">Une question qui d&#233;passe la gestion de vos biens ? Contactez l'&#233;quipe PAB Immo :
+        elle garde la main sur la publication, les agences et le r&#233;f&#233;rencement.</p>
+      <p data-roles="client">Une question ? &#201;crivez-nous sur WhatsApp ou appelez-nous &#8212; nous r&#233;pondons vite.</p>
+      <p>PAB Immo &#8212; Dakar &amp; Thi&#232;s &#183; Guide mis &#224; jour le 22 juillet 2026.</p>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  const titres = {
+    's-intro':'Bienvenue', 's-login':'Se connecter', 's-bar':"La barre d'outils",
+    's-biens':'G\u00e9rer les biens', 's-badges':'Badges de confiance', 's-sponso':'Mettre en avant',
+    's-demandes':'Demandes des clients', 's-agences':'Agences collaboratrices', 's-stats':'Statistiques',
+    's-alertes':'Alertes email', 's-vitrine':'C\u00f4t\u00e9 client', 's-entretien':'Entretien',
+    'c-chercher':'Chercher un bien', 'c-contact':"Contacter l'agence",
+    'c-alertes':'\u00catre alert\u00e9', 'c-partage':'Partager & nous rejoindre'
+  };
+  const list = document.getElementById('tocList');
+  const roleButtons = { admin:'r-admin', collab:'r-collab', client:'r-client' };
+
+  function currentRole(){ return document.documentElement.getAttribute('data-role') || 'admin'; }
+
+  function buildToc(){
+    const role = currentRole();
+    list.innerHTML = '';
+    document.querySelectorAll('main > section').forEach(sec=>{
+      const roles = (sec.dataset.roles || '').split(/\s+/);
+      if(!roles.includes(role)) return;
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = '#' + sec.id; a.textContent = titres[sec.id] || sec.id;
+      li.appendChild(a); list.appendChild(li);
+    });
+  }
+  function setRole(role){
+    document.documentElement.setAttribute('data-role', role);
+    Object.entries(roleButtons).forEach(([r,id])=>{
+      document.getElementById(id).setAttribute('aria-pressed', String(r===role));
+    });
+    buildToc();
+    window.scrollTo({ top:0, behavior:'auto' });
+  }
+  Object.entries(roleButtons).forEach(([r,id])=>{
+    document.getElementById(id).onclick = ()=> setRole(r);
+  });
+  setRole('admin');
+
+  const obs = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(!e.isIntersecting) return;
+      document.querySelectorAll('.toc a').forEach(a=>a.classList.remove('active'));
+      const link = document.querySelector('.toc a[href="#'+e.target.id+'"]');
+      if(link) link.classList.add('active');
+    });
+  }, { rootMargin:'-10% 0px -75% 0px' });
+  document.querySelectorAll('main > section').forEach(s=>obs.observe(s));
+</script>
+</body>
+</html>

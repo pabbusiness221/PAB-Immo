@@ -232,6 +232,19 @@ def photo_url(chemin, largeur=None, qualite=70):
             + f"?width={largeur}&quality={qualite}")
 
 
+# Dimensions de l'image d'aperçu social, format standard des cartes de partage.
+OG_W, OG_H = 1200, 630
+
+def og_image_url(chemin):
+    """Image d'aperçu pour WhatsApp et Facebook : un recadrage à taille FIXE
+    1200x630. La galerie sert des images en hauteur variable ; un aperçu social,
+    lui, doit avoir des dimensions connues et déclarées (og:image:width/height),
+    sinon WhatsApp refuse souvent de l'afficher. `resize=cover` remplit le cadre
+    sans déformer."""
+    return (f"{SUPABASE_URL}/storage/v1/render/image/public/property-photos/{chemin}"
+            f"?width={OG_W}&height={OG_H}&resize=cover&quality=75")
+
+
 def lire(chemin_api):
     req = urllib.request.Request(
         f"{SUPABASE_URL}/rest/v1/{chemin_api}",
@@ -369,7 +382,15 @@ def page_bien(b, photos, voisins=(), publiee=None):
     titre = titre_bien(b)
     desc = description_bien(b)
     prix = fcfa(b["price"]) + ("<span> /mois</span>" if b["operation"] == "Location" else "")
-    couverture = photo_url(photos[0]["storage_path"], 1200) if photos else f"{SITE}/assets/dakar-aerienne.jpg"
+    # Image d'aperçu au partage : la photo du bien recadrée en 1200x630, ou
+    # l'image générique (1600x1200) faute de photo. On garde ses dimensions
+    # pour les déclarer, ce qui fiabilise l'aperçu sur WhatsApp et Facebook.
+    if photos:
+        couverture = og_image_url(photos[0]["storage_path"])
+        og_w, og_h = OG_W, OG_H
+    else:
+        couverture = f"{SITE}/assets/dakar-aerienne.jpg"
+        og_w, og_h = 1600, 1200
 
     # Message WhatsApp pré-rempli : le visiteur n'a rien à retaper.
     wa = f"https://wa.me/{TEL.lstrip('+')}?text=" + urllib.parse.quote(
@@ -413,6 +434,11 @@ def page_bien(b, photos, voisins=(), publiee=None):
 <meta property="og:title" content="{esc(titre)}" />
 <meta property="og:description" content="{esc(desc)}" />
 <meta property="og:image" content="{esc(couverture)}" />
+<meta property="og:image:secure_url" content="{esc(couverture)}" />
+<meta property="og:image:type" content="image/jpeg" />
+<meta property="og:image:width" content="{og_w}" />
+<meta property="og:image:height" content="{og_h}" />
+<meta property="og:image:alt" content="{esc(titre)}" />
 <meta property="og:url" content="{url}" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="{esc(titre)}" />
