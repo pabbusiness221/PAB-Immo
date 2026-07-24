@@ -41,6 +41,28 @@
   .btn-logout:hover{color:#fff;}
   .inbox-badge{position:absolute;top:-6px;right:-6px;background:var(--danger);color:#fff;font-size:10px;font-weight:800;min-width:19px;height:19px;border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 5px;box-shadow:0 0 0 2px var(--night);}
 
+  /* Menu déroulant des outils de gestion : regroupe Réception, Prospects,
+     Agences, Avis, Journal, Statistiques et Vitrine pour désencombrer la barre. */
+  .tools-wrap{position:relative;flex-shrink:0;}
+  .tools-trigger[aria-expanded="true"]{background:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.32);}
+  .tools-menu{position:absolute;top:calc(100% + 9px);right:0;z-index:60;min-width:238px;
+    background:#15271F;border:1px solid rgba(255,255,255,0.14);border-radius:14px;
+    box-shadow:0 24px 60px -22px rgba(0,0,0,0.75);padding:7px;display:flex;flex-direction:column;gap:1px;
+    animation:menuIn .14s var(--ease);}
+  @keyframes menuIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:none;}}
+  @media (prefers-reduced-motion:reduce){.tools-menu{animation:none;}}
+  .tools-menu[hidden]{display:none;}
+  .menu-item{display:flex;align-items:center;gap:11px;width:100%;padding:10px 12px;border:0;
+    background:none;color:rgba(255,255,255,0.86);font-family:'Inter',sans-serif;font-size:13.5px;
+    font-weight:600;border-radius:9px;cursor:pointer;text-align:left;text-decoration:none;white-space:nowrap;}
+  .menu-item:hover{background:rgba(255,255,255,0.09);color:#fff;}
+  .menu-item:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;}
+  .menu-item svg{width:16px;height:16px;flex-shrink:0;stroke:currentColor;}
+  .mi-label{flex:1;}
+  .menu-badge{background:var(--danger);color:#fff;font-size:10.5px;font-weight:800;min-width:19px;height:19px;
+    border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 6px;flex-shrink:0;}
+  .menu-sep{height:1px;background:rgba(255,255,255,0.10);margin:5px 4px;}
+
   .searchbar{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.16);border-radius:999px;padding:10px 16px;flex:1;max-width:420px;transition:border-color .2s var(--ease), background-color .2s var(--ease), box-shadow .2s var(--ease);}
   .searchbar:focus-within{border-color:var(--accent);background:rgba(255,255,255,0.13);box-shadow:var(--focus-ring);}
   .searchbar svg{stroke:rgba(255,255,255,0.55);flex-shrink:0;}
@@ -445,42 +467,54 @@
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input id="search" placeholder="Rechercher une commune, une région, une référence…" />
     </div>
-    <button class="btn btn-inbox" id="prospectsBtn" style="display:none;" title="Prospects">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/></svg>
-      <span class="btn-label">Prospects</span>
-      <span class="inbox-badge" id="prospectsBadge" style="display:none;"></span>
-    </button>
-    <button class="btn btn-inbox" id="agencesBtn" style="display:none;" title="Agences">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M10 21v-6h4v6"/></svg>
-      <span class="btn-label">Agences</span>
-      <span class="inbox-badge" id="agencesBadge" style="display:none;"></span>
-    </button>
-    <button class="btn btn-inbox" id="avisBtn" style="display:none;" title="Avis clients">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17.3l-6.2 3.7 1.6-7L2 9.2l7.1-.6L12 2l2.9 6.6 7.1.6-5.4 4.8 1.6 7z"/></svg>
-      <span class="btn-label">Avis</span>
-      <span class="inbox-badge" id="avisBadge" style="display:none;"></span>
-    </button>
-    <button class="btn btn-inbox" id="journalBtn" style="display:none;" title="Journal d'activité">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-      <span class="btn-label">Journal</span>
-    </button>
-    <button class="btn btn-inbox" id="analyticsBtn" style="display:none;">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      <span class="btn-label">Statistiques</span>
-    </button>
-    <button class="btn btn-inbox" id="inboxBtn">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
-      <span class="btn-label">Boîte de réception</span>
-      <span class="inbox-badge" id="inboxBadge" style="display:none;">0</span>
-    </button>
+    <!-- Outils de gestion regroupés dans un menu : la barre reste nette. Chaque
+         entrée garde son identifiant d'origine, donc son câblage JavaScript. -->
+    <div class="tools-wrap">
+      <button class="btn btn-inbox tools-trigger" id="toolsMenuBtn" aria-haspopup="true" aria-expanded="false" title="Menu des outils">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <span class="btn-label">Menu</span>
+        <span class="inbox-badge" id="toolsMenuBadge" style="display:none;"></span>
+      </button>
+      <div class="tools-menu" id="toolsMenu" role="menu" hidden>
+        <button class="menu-item" id="inboxBtn" role="menuitem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
+          <span class="mi-label">Boîte de réception</span>
+          <span class="menu-badge" id="inboxBadge" style="display:none;">0</span>
+        </button>
+        <button class="menu-item" id="prospectsBtn" role="menuitem" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/></svg>
+          <span class="mi-label">Prospects</span>
+          <span class="menu-badge" id="prospectsBadge" style="display:none;"></span>
+        </button>
+        <button class="menu-item" id="agencesBtn" role="menuitem" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M10 21v-6h4v6"/></svg>
+          <span class="mi-label">Agences</span>
+          <span class="menu-badge" id="agencesBadge" style="display:none;"></span>
+        </button>
+        <button class="menu-item" id="avisBtn" role="menuitem" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17.3l-6.2 3.7 1.6-7L2 9.2l7.1-.6L12 2l2.9 6.6 7.1.6-5.4 4.8 1.6 7z"/></svg>
+          <span class="mi-label">Avis clients</span>
+          <span class="menu-badge" id="avisBadge" style="display:none;"></span>
+        </button>
+        <button class="menu-item" id="journalBtn" role="menuitem" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <span class="mi-label">Journal d'activité</span>
+        </button>
+        <button class="menu-item" id="analyticsBtn" role="menuitem" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span class="mi-label">Statistiques</span>
+        </button>
+        <div class="menu-sep"></div>
+        <a class="menu-item" id="vitrineBtn" role="menuitem" href="vitrine.html" title="Voir la vitrine (hors ligne pendant les travaux)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 010 18a15 15 0 010-18z"/></svg>
+          <span class="mi-label">Voir la vitrine</span>
+        </a>
+      </div>
+    </div>
     <button class="btn btn-primary" id="addPropertyBtn">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       <span class="btn-label">Ajouter un bien</span>
     </button>
-    <a class="btn btn-inbox" id="vitrineBtn" href="vitrine.html" title="Voir la vitrine (hors ligne pendant les travaux)">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 010 18a15 15 0 010-18z"/></svg>
-      <span class="btn-label">Vitrine</span>
-    </a>
     <button class="btn-logout" id="logoutBtn">Déconnexion</button>
   </div>
 </header>
@@ -2438,6 +2472,52 @@ function closeAvis(){
 }
 document.getElementById('avisOverlay').onclick = closeAvis;
 document.getElementById('avisBtn').onclick = openAvis;
+
+// ============================================================
+// MENU DÉROULANT DES OUTILS
+// ============================================================
+// Regroupe les fonctions de gestion pour désencombrer l'en-tête. Les boutons
+// ont gardé leurs identifiants : leurs gestionnaires (openProspects, openAvis…)
+// sont déjà branchés ailleurs. Ici on ne gère que l'ouverture du menu et sa
+// pastille combinée.
+(function initToolsMenu(){
+  const trigger = document.getElementById('toolsMenuBtn');
+  const menu = document.getElementById('toolsMenu');
+
+  function ouvrir(v){
+    menu.hidden = !v;
+    trigger.setAttribute('aria-expanded', String(v));
+  }
+  trigger.addEventListener('click', e => { e.stopPropagation(); ouvrir(menu.hidden); });
+  // Choisir une entrée ouvre son tiroir (via son propre gestionnaire) puis
+  // referme le menu.
+  menu.addEventListener('click', () => ouvrir(false));
+  // Un clic ailleurs, ou Échap, referme.
+  document.addEventListener('click', e => {
+    if(!menu.hidden && !menu.contains(e.target) && e.target !== trigger) ouvrir(false);
+  });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') ouvrir(false); });
+
+  // Pastille du menu = somme des pastilles visibles des outils. On observe les
+  // pastilles individuelles plutôt que de modifier chaque fonction majBadge*.
+  const badges = ['inboxBadge', 'prospectsBadge', 'agencesBadge', 'avisBadge'];
+  window.refreshMenuBadge = function(){
+    let total = 0;
+    badges.forEach(id => {
+      const b = document.getElementById(id);
+      if(b && b.style.display !== 'none') total += parseInt(b.textContent, 10) || 0;
+    });
+    const m = document.getElementById('toolsMenuBadge');
+    m.style.display = total > 0 ? '' : 'none';
+    m.textContent = total;
+  };
+  badges.forEach(id => {
+    const b = document.getElementById(id);
+    if(b) new MutationObserver(window.refreshMenuBadge)
+      .observe(b, { attributes:true, attributeFilter:['style'], childList:true, characterData:true, subtree:true });
+  });
+  window.refreshMenuBadge();
+})();
 
 // ============================================================
 // PROSPECTS
