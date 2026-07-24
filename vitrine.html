@@ -1267,9 +1267,14 @@ function rebuildMarkers(list){
     if(IS_TOUCH){
       // Téléphone : le tap ouvre l'aperçu (popup), et l'aperçu ouvre la fiche.
       // Un tap ailleurs sur la carte le referme.
+      //
+      // On NE surligne PAS la carte de la liste à l'ouverture : highlightCard
+      // reconstruit tous les marqueurs, ce qui supprimerait à l'instant même
+      // celui dont la popup vient de s'ouvrir — la popup disparaissait aussitôt
+      // et l'on avait l'impression que rien ne se passait. Le surlignage a lieu
+      // de toute façon quand on ouvre la fiche depuis l'aperçu.
       m.bindPopup(mapPreview(p, true), { className:'map-prev-pop', maxWidth:232,
                                          offset:[0,-6], closeButton:false, autoPanPadding:[18,18] });
-      m.on('popupopen', () => highlightCard(p.id));
     } else {
       // Ordinateur : aperçu au survol, fiche au clic.
       m.bindTooltip(mapPreview(p, false), { direction:'top', offset:[0,-14], opacity:1,
