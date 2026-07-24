@@ -276,6 +276,39 @@
     .collab-inner{padding:22px 20px;}
     .collab-toggle{width:100%;justify-content:center;}
   }
+
+  /* ---------- Avis des clients ---------- */
+  .avis-band{max-width:1280px;margin:0 auto;padding:8px 24px 40px;}
+  .avis-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:18px;}
+  .avis-eyebrow{margin:0 0 6px;color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;}
+  .avis-head h2{font-family:'Manrope',sans-serif;font-size:clamp(19px,2.4vw,25px);font-weight:800;letter-spacing:-.02em;margin:0;}
+  .avis-resume{display:flex;align-items:center;gap:9px;margin-top:9px;}
+  .avis-resume strong{font-family:'Manrope',sans-serif;font-size:22px;font-weight:800;}
+  .avis-compte{font-size:13px;color:var(--ink-soft);}
+  .avis-etoiles{display:inline-flex;gap:1px;}
+  .star{color:var(--border);font-size:15px;line-height:1;}
+  .star.on{color:var(--accent);}
+  .avis-toggle{flex-shrink:0;}
+  .avis-liste{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;}
+  .avis-vide{color:var(--ink-soft);font-size:14px;padding:6px 0 4px;}
+  .avis-carte{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px 17px;box-shadow:var(--shadow);}
+  .avis-carte .a-etoiles{display:inline-flex;gap:1px;margin-bottom:9px;}
+  .avis-carte .a-texte{font-size:14px;line-height:1.6;color:var(--ink);margin:0 0 11px;}
+  .avis-carte .a-bas{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}
+  .avis-carte .a-nom{font-weight:800;font-size:13.5px;}
+  .avis-carte .a-date{font-size:11.5px;color:var(--ink-soft);}
+  .avis-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 24px 24px;margin-top:16px;}
+  .avis-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;}
+  .avis-form-grid .full{grid-column:1/-1;}
+  .avis-moderation{margin:9px 0 0;font-size:12px;color:var(--ink-soft);}
+  .stars-input{display:inline-flex;gap:4px;}
+  .stars-input .star-btn{appearance:none;border:0;background:none;cursor:pointer;padding:2px;font-size:26px;line-height:1;color:var(--border);transition:color .12s var(--ease);}
+  .stars-input .star-btn.on{color:var(--accent);}
+  .stars-input .star-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
+  @media (max-width:640px){
+    .avis-band{padding:0 16px 34px;}
+    .avis-toggle{width:100%;justify-content:center;}
+  }
   /* Une annonce mise en avant contre paiement doit être identifiable comme
      telle. L'étiquette est lisible, pas discrète : la masquer tromperait le
      visiteur sur la raison de sa position en tête de liste. */
@@ -797,6 +830,56 @@
   </div>
 </div>
 </main>
+
+<!-- Avis des clients. Modérés : un avis déposé n'apparaît ici qu'une fois
+     publié par l'agence depuis le portefeuille. -->
+<section class="avis-band" id="avis" aria-labelledby="avisTitre">
+  <div class="avis-inner">
+    <div class="avis-head">
+      <div>
+        <p class="avis-eyebrow">Ils nous ont fait confiance</p>
+        <h2 id="avisTitre">Avis de nos clients</h2>
+        <div class="avis-resume" id="avisResume" hidden>
+          <strong id="avisMoyenne">—</strong>
+          <span class="avis-etoiles" id="avisEtoilesMoy" aria-hidden="true"></span>
+          <span class="avis-compte" id="avisCompte"></span>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary avis-toggle" id="avisToggleBtn"
+              aria-expanded="false" aria-controls="avisForm">Laisser un avis</button>
+    </div>
+
+    <div class="avis-liste" id="avisListe"></div>
+
+    <form class="avis-form hidden" id="avisForm" novalidate>
+      <div class="avis-form-grid">
+        <div class="form-field">
+          <label class="sf-label" for="avis_nom">Votre nom</label>
+          <input class="sf-input" id="avis_nom" maxlength="80" autocomplete="name" style="margin-bottom:0;" />
+        </div>
+        <div class="form-field">
+          <label class="sf-label" for="avisStars">Votre note</label>
+          <div class="stars-input" id="avisStars" role="radiogroup" aria-label="Note de 1 à 5 étoiles"></div>
+        </div>
+        <div class="form-field full">
+          <label class="sf-label" for="avis_comment">Votre avis</label>
+          <textarea class="sf-textarea" id="avis_comment" maxlength="1000" style="margin-bottom:0;"
+                    placeholder="Partagez votre expérience avec PAB Immo…"></textarea>
+        </div>
+        <!-- Piège à robots : invisible et hors du parcours clavier. -->
+        <div class="hp-field" aria-hidden="true">
+          <label for="avis_website">Site web</label>
+          <input type="text" id="avis_website" name="website" tabindex="-1" autocomplete="off" />
+        </div>
+        <div class="form-field full">
+          <button type="submit" class="btn btn-primary" id="avisSubmitBtn" style="width:100%;justify-content:center;">Envoyer mon avis</button>
+          <p class="sf-error" id="avisError"></p>
+          <p class="avis-moderation">Votre avis sera relu par notre équipe avant d'apparaître ici.</p>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
 
 <!-- Appel aux agences. Placé juste avant le pied de page : c'est une porte
      professionnelle, elle ne doit pas concurrencer les annonces auprès des
@@ -2097,6 +2180,7 @@ document.getElementById('alert_region').innerHTML = regionOptions('', true);
 
 loadProperties();
 recordSiteVisit();
+loadReviews();
 
 // Chiffres des deux blocs de réassurance. Le nombre d'agences vient de la
 // base ; celui des clients de la constante ci-dessus. Chaque bloc n'affiche
@@ -2240,6 +2324,115 @@ document.getElementById('collabForm').onsubmit = async (e) => {
   }
   document.getElementById('collabForm').innerHTML =
     '<p class="sf-success" style="margin:0;text-align:center;">Candidature envoyée. Nous revenons vers vous rapidement.</p>';
+};
+
+// ---- Avis des clients ------------------------------------------------------
+// Les avis sont modérés : le formulaire dépose un avis « En attente », qui
+// n'apparaît sur la vitrine qu'une fois publié depuis le portefeuille. La vue
+// public_reviews ne renvoie que les avis publiés.
+
+function etoilesHtml(n){
+  let s = '';
+  for(let i = 1; i <= 5; i++) s += `<span class="star ${i <= n ? 'on' : ''}">★</span>`;
+  return s;
+}
+
+async function loadReviews(){
+  const { data, error } = await db.from('public_reviews').select('*');
+  if(error) return;                       // pas d'avis à afficher, on n'encombre pas
+  const liste = document.getElementById('avisListe');
+  const avis = data || [];
+
+  if(!avis.length){
+    liste.innerHTML = '<p class="avis-vide">Aucun avis publié pour le moment. Soyez le premier à partager votre expérience.</p>';
+    return;
+  }
+
+  // Moyenne, arrondie au dixième.
+  const moyenne = avis.reduce((t, a) => t + a.rating, 0) / avis.length;
+  const resume = document.getElementById('avisResume');
+  document.getElementById('avisMoyenne').textContent = moyenne.toFixed(1).replace('.', ',');
+  document.getElementById('avisEtoilesMoy').innerHTML = etoilesHtml(Math.round(moyenne));
+  document.getElementById('avisCompte').textContent =
+    `sur ${avis.length} avis`;
+  resume.hidden = false;
+
+  liste.innerHTML = avis.map(a => `
+    <div class="avis-carte">
+      <div class="a-etoiles" aria-label="${a.rating} étoiles sur 5">${etoilesHtml(a.rating)}</div>
+      <p class="a-texte">${esc(a.comment)}</p>
+      <div class="a-bas">
+        <span class="a-nom">${esc(a.author_name)}</span>
+        <span class="a-date">${new Date(a.created_at).toLocaleDateString('fr-FR', {month:'long', year:'numeric'})}</span>
+      </div>
+    </div>`).join('');
+}
+
+// Sélecteur d'étoiles cliquable pour le formulaire.
+let avisNote = 0;
+(function initStarsInput(){
+  const zone = document.getElementById('avisStars');
+  for(let i = 1; i <= 5; i++){
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'star-btn'; b.dataset.val = i;
+    b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', 'false');
+    b.setAttribute('aria-label', i + (i > 1 ? ' étoiles' : ' étoile'));
+    b.textContent = '★';
+    b.onclick = () => setAvisNote(i);
+    zone.appendChild(b);
+  }
+})();
+function setAvisNote(n){
+  avisNote = n;
+  document.querySelectorAll('#avisStars .star-btn').forEach(b => {
+    const on = Number(b.dataset.val) <= n;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-checked', String(Number(b.dataset.val) === n));
+  });
+}
+
+document.getElementById('avisToggleBtn').onclick = () => {
+  const form = document.getElementById('avisForm');
+  const btn = document.getElementById('avisToggleBtn');
+  const ouvert = form.classList.toggle('hidden') === false;
+  btn.setAttribute('aria-expanded', String(ouvert));
+  if(ouvert){ form.scrollIntoView({ behavior:'smooth', block:'nearest' }); document.getElementById('avis_nom').focus(); }
+};
+
+document.getElementById('avisForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const val = id => document.getElementById(id).value.trim();
+  const errEl = document.getElementById('avisError');
+  const btn = document.getElementById('avisSubmitBtn');
+  errEl.textContent = '';
+
+  // Champ piège rempli : robot. On feint d'accepter.
+  if(document.getElementById('avis_website').value){
+    document.getElementById('avisForm').innerHTML =
+      '<p class="sf-success" style="margin:0;text-align:center;">Merci pour votre avis&nbsp;!</p>';
+    return;
+  }
+
+  const nom = val('avis_nom'), comment = val('avis_comment');
+  if(!nom || !comment || avisNote < 1){
+    errEl.textContent = "Votre nom, une note et un commentaire sont nécessaires.";
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Envoi…';
+  // Pas de .select() après l'insertion : un avis est déposé « En attente » et
+  // n'est lisible que par l'administrateur. PostgreSQL refuserait de renvoyer
+  // une ligne que l'auteur n'a pas le droit de relire, et l'envoi échouerait.
+  const { error } = await db.from('reviews').insert({
+    author_name: nom, rating: avisNote, comment
+  });
+  if(error){
+    errEl.textContent = messageErreurEnvoi(error, "Échec de l'envoi :");
+    btn.disabled = false; btn.textContent = 'Envoyer mon avis';
+    return;
+  }
+  document.getElementById('avisForm').innerHTML =
+    '<p class="sf-success" style="margin:0;text-align:center;">Merci&nbsp;! Votre avis sera publié après validation par notre équipe.</p>';
 };
 
 document.querySelectorAll('#viewToggle button').forEach(b=>{

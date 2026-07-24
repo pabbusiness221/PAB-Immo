@@ -262,6 +262,27 @@ create table public.collaborator_requests (
   constraint collaborator_requests_reviewed_by_fkey FOREIGN KEY (reviewed_by) REFERENCES auth.users(id) ON DELETE SET NULL
 );
 
+-- Avis des clients. Formulaire public, donc MODÉRÉ : un avis est déposé
+-- « En attente » et n'apparaît sur la vitrine (vue public_reviews) qu'une fois
+-- passé à « Publié ». La politique d'insertion verrouille le statut sur
+-- « En attente » : personne ne peut publier son propre avis via l'API.
+create table public.reviews (
+  id uuid default gen_random_uuid() not null,
+  author_name text not null,
+  rating smallint not null,
+  comment text not null,
+  status text default 'En attente'::text not null,
+  created_at timestamp with time zone default now() not null,
+  reviewed_at timestamp with time zone,
+  reviewed_by uuid,
+  constraint reviews_pkey PRIMARY KEY (id),
+  constraint reviews_rating_check CHECK (rating between 1 and 5),
+  constraint reviews_status_check CHECK (status in ('En attente', 'Publié', 'Refusé')),
+  constraint reviews_name_len CHECK (char_length(author_name) between 1 and 80),
+  constraint reviews_comment_len CHECK (char_length(comment) between 1 and 1000),
+  constraint reviews_reviewed_by_fkey FOREIGN KEY (reviewed_by) REFERENCES auth.users(id) ON DELETE SET NULL
+);
+
 
 -- Pipeline de suivi des prospects.
 --
@@ -325,6 +346,15 @@ create or replace view public.public_properties as
   where p.is_published = true
     and p.status = any (array['Disponible'::property_status, 'Réservé'::property_status])
     and p.archived_at is null;
+
+-- Avis publiés uniquement, colonnes sûres. Vue SECURITY DEFINER : elle lit la
+-- table en tant que propriétaire et filtre elle-même, aucun avis en attente ne
+-- fuit.
+create or replace view public.public_reviews as
+  select id, author_name, rating, comment, created_at
+  from public.reviews
+  where status = 'Publié'
+  order by created_at desc;
 
 create or replace view public.public_property_photos as
   select pp.id, pp.property_id, pp.storage_path, pp."position", pp.is_cover
@@ -745,6 +775,23 @@ begin
 end;
 $function$;
 
+-- La date de modération d'un avis suit son statut, comme pour les candidatures.
+create or replace function public.review_horodater_moderation()
+returns trigger
+language plpgsql
+as $function$
+begin
+  if new.status <> 'En attente' and old.status = 'En attente' then
+    new.reviewed_at := now();
+    new.reviewed_by := auth.uid();
+  elsif new.status = 'En attente' then
+    new.reviewed_at := null;
+    new.reviewed_by := null;
+  end if;
+  return new;
+end;
+$function$;
+
 -- Statistiques du pipeline.
 create or replace function public.stats_prospects()
 returns table (
@@ -834,6 +881,8 @@ create trigger trg_rdv_lead                       after insert on public.appoint
 create trigger trg_leads_cloture                  before update on public.leads               for each row execute function leads_horodater_cloture();
 create trigger trg_collaborator_requests_rate_limit before insert on public.collaborator_requests for each row execute function enforce_submission_rate_limit();
 create trigger trg_candidature_examen             before update on public.collaborator_requests for each row execute function candidature_horodater_examen();
+create trigger trg_reviews_rate_limit             before insert on public.reviews              for each row execute function enforce_submission_rate_limit();
+create trigger trg_review_moderation              before update on public.reviews              for each row execute function review_horodater_moderation();
 create trigger trg_properties_verification      before insert or update on public.properties for each row execute function enforce_verification_rights();
 create trigger trg_properties_updated_at        before update on public.properties            for each row execute function set_updated_at();
 create trigger trg_properties_status_history    after update  on public.properties            for each row execute function log_status_change();
@@ -862,6 +911,7 @@ create index contact_messages_created_idx    on public.contact_messages using bt
 create index appointments_created_idx        on public.appointments using btree (created_at desc);
 create index properties_sponsored_idx        on public.properties using btree (sponsored_until) where sponsored_until is not null;
 create index collaborator_requests_created_idx on public.collaborator_requests using btree (created_at desc);
+create index reviews_status_idx                on public.reviews using btree (status, created_at desc);
 create index leads_stage_idx                 on public.leads using btree (stage);
 create index leads_activity_idx              on public.leads using btree (last_activity_at desc);
 create index alert_subscriptions_created_idx on public.alert_subscriptions using btree (created_at desc);
@@ -985,6 +1035,19 @@ create policy "Candidatures reservees a l'admin" on public.collaborator_requests
 create policy "Maj candidatures reservee a l'admin" on public.collaborator_requests
   for update to public using (is_admin()) with check (is_admin());
 create policy "Suppression candidatures reservee a l'admin" on public.collaborator_requests
+  for delete to public using (is_admin());
+
+-- Avis clients. Déposer est ouvert à tous, mais le statut est verrouillé sur
+-- « En attente » : impossible de publier son propre avis en passant par l'API.
+-- La lecture de la table est réservée à l'admin (modération) ; le public lit
+-- les avis publiés via la vue public_reviews.
+create policy "Tout le monde peut laisser un avis" on public.reviews
+  for insert to public with check (status = 'En attente');
+create policy "Avis reserves a l'admin" on public.reviews
+  for select to public using (is_admin());
+create policy "Moderation avis reservee a l'admin" on public.reviews
+  for update to public using (is_admin()) with check (is_admin());
+create policy "Suppression avis reservee a l'admin" on public.reviews
   for delete to public using (is_admin());
 
 create policy "Tout le monde peut s'inscrire aux alertes" on public.alert_subscriptions
