@@ -514,6 +514,16 @@
   .mpv-title{font-family:'Manrope',sans-serif;font-weight:800;font-size:13px;color:var(--ink);line-height:1.25;}
   .mpv-meta{font-size:11px;color:var(--ink-soft);margin-top:3px;}
   .mpv-price{font-family:'Manrope',sans-serif;font-weight:800;font-size:13.5px;color:var(--ink);margin-top:5px;}
+  .mpv-cta{margin-top:8px;font-family:'Manrope',sans-serif;font-weight:800;font-size:11.5px;color:var(--gold);}
+  /* Variante tactile : l'aperçu est une popup Leaflet (ouverte au tap) et non
+     une infobulle. On neutralise l'habillage par défaut, et la carte devient
+     cliquable pour ouvrir la fiche. */
+  .leaflet-popup.map-prev-pop .leaflet-popup-content-wrapper{padding:0;overflow:hidden;
+    border-radius:var(--radius-md);box-shadow:var(--shadow-lg);}
+  .leaflet-popup.map-prev-pop .leaflet-popup-content{margin:0;}
+  .leaflet-popup.map-prev-pop .leaflet-popup-tip{background:var(--surface);}
+  .map-prev-pop .map-prev{border:0;box-shadow:none;cursor:pointer;}
+  .map-prev-pop .map-prev:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 </style>
 <!-- Ce que Google doit savoir de l'agence elle-meme. Les annonces, elles,
      sont decrites dans les fiches de bien/ : cette page les construit en
@@ -1206,15 +1216,24 @@ try {
 }
 
 
-// Aperçu affiché au survol d'un marqueur : une carte compacte avec photo,
-// pour reconnaître un bien sans cliquer. Le clic, lui, ouvre la fiche complète.
-function mapPreview(p){
+// Appareil sans survol (téléphone, tablette) : le pointeur est « grossier » et
+// il n'y a pas de hover. On le détecte une fois pour choisir le bon geste.
+const IS_TOUCH = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+
+// Aperçu d'un bien : une carte compacte avec photo, pour le reconnaître sans
+// ouvrir la fiche. Sur ordinateur elle s'affiche au survol (non cliquable) ;
+// sur téléphone elle s'affiche au tap et devient cliquable pour ouvrir la fiche
+// — le survol n'existant pas, le premier tap remplace le survol, l'aperçu
+// lui-même remplace le clic.
+function mapPreview(p, tappable){
   const cover = coverUrl(p, 280, 55);
   const rooms = p.rooms && p.rooms.chambres != null ? ' · ' + p.rooms.chambres + ' ch.' : '';
   const fond = cover
     ? `background-image:url('${cover}')`
     : `background:linear-gradient(135deg, ${TYPE_COLOR[p.type] || '#123027'}, #161B22)`;
-  return `<div class="map-prev">
+  const cta = tappable ? '<div class="mpv-cta">Voir la fiche →</div>' : '';
+  const geste = tappable ? ` role="button" tabindex="0" onclick="openDrawerById('${p.id}')"` : '';
+  return `<div class="map-prev"${geste}>
     <div class="mpv-photo" style="${fond}">
       <span class="mpv-op">${esc(p.operation)}</span>
       ${p.sponsorisee ? '<span class="mpv-spo">Sponsorisé</span>' : ''}
@@ -1223,6 +1242,7 @@ function mapPreview(p){
       <div class="mpv-title">${esc(p.type)} — ${esc(p.commune)}</div>
       <div class="mpv-meta">${p.surface} ${surfaceUnit(p.type)}${rooms}</div>
       <div class="mpv-price">${fcfa(p.price)}${p.operation==='Location' ? ' /mois' : ''}</div>
+      ${cta}
     </div>
   </div>`;
 }
@@ -1237,12 +1257,18 @@ function rebuildMarkers(list){
   markers = {};
   list.forEach(p => {
     const m = L.marker([p.lat,p.lng], { icon: markerIcon(p, p.id===state.selected) });
-    // Survol : aperçu. Clic : la fiche complète. Sur mobile, faute de survol,
-    // le tap déclenche directement le clic, donc la fiche — le comportement
-    // attendu au doigt.
-    m.bindTooltip(mapPreview(p), { direction:'top', offset:[0,-14], opacity:1,
-                                   className:'map-prev-tip', sticky:false });
-    m.on('click', () => openDrawerById(p.id));
+    if(IS_TOUCH){
+      // Téléphone : le tap ouvre l'aperçu (popup), et l'aperçu ouvre la fiche.
+      // Un tap ailleurs sur la carte le referme.
+      m.bindPopup(mapPreview(p, true), { className:'map-prev-pop', maxWidth:232,
+                                         offset:[0,-6], closeButton:false, autoPanPadding:[18,18] });
+      m.on('popupopen', () => highlightCard(p.id));
+    } else {
+      // Ordinateur : aperçu au survol, fiche au clic.
+      m.bindTooltip(mapPreview(p, false), { direction:'top', offset:[0,-14], opacity:1,
+                                            className:'map-prev-tip', sticky:false });
+      m.on('click', () => openDrawerById(p.id));
+    }
     m.addTo(map);
     markers[p.id] = m;
   });
