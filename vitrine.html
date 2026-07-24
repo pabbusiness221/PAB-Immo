@@ -524,6 +524,13 @@
   .leaflet-popup.map-prev-pop .leaflet-popup-tip{background:var(--surface);}
   .map-prev-pop .map-prev{border:0;box-shadow:none;cursor:pointer;}
   .map-prev-pop .map-prev:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  /* Cible tactile élargie : au doigt, un marqueur de 32 px est petit à viser.
+     Un halo transparent étend la zone touchable sans rien changer à l'aspect —
+     un tap dans le halo atteint le marqueur et ouvre l'aperçu. */
+  @media (pointer: coarse){
+    .custom-marker{position:relative;}
+    .custom-marker::after{content:'';position:absolute;inset:-11px;border-radius:50%;}
+  }
 </style>
 <!-- Ce que Google doit savoir de l'agence elle-meme. Les annonces, elles,
      sont decrites dans les fiches de bien/ : cette page les construit en
