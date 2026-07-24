@@ -492,6 +492,28 @@
   /* Utilitaire d'accessibilité : masque visuellement un libellé
      tout en le laissant lisible par les lecteurs d'écran. */
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+
+  /* ---------- Aperçu d'un bien au survol d'un marqueur ---------- */
+  /* On neutralise l'habillage par défaut de l'infobulle Leaflet (fond blanc,
+     bordure, flèche) pour poser notre propre carte à la place. L'infobulle
+     n'intercepte pas la souris, donc le marqueur reste cliquable dessous. */
+  .leaflet-tooltip.map-prev-tip{background:transparent;border:0;box-shadow:none;padding:0;white-space:normal;}
+  .leaflet-tooltip.map-prev-tip::before{display:none;}
+  .map-prev{width:212px;background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--radius-md);overflow:hidden;box-shadow:var(--shadow-lg);
+    font-family:'Inter',sans-serif;animation:mpvIn .16s var(--ease);}
+  @keyframes mpvIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+  @media (prefers-reduced-motion:reduce){.map-prev{animation:none;}}
+  .mpv-photo{height:106px;background-size:cover;background-position:center;background-repeat:no-repeat;
+    position:relative;display:flex;align-items:center;justify-content:center;}
+  .mpv-op{position:absolute;top:8px;left:8px;background:rgba(255,255,255,0.92);color:var(--ink);
+    font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:999px;}
+  .mpv-spo{position:absolute;top:8px;right:8px;background:var(--night);color:var(--accent);
+    font-size:10px;font-weight:700;padding:2px 9px;border-radius:999px;border:1px solid rgba(226,162,44,0.45);}
+  .mpv-body{padding:9px 11px 11px;}
+  .mpv-title{font-family:'Manrope',sans-serif;font-weight:800;font-size:13px;color:var(--ink);line-height:1.25;}
+  .mpv-meta{font-size:11px;color:var(--ink-soft);margin-top:3px;}
+  .mpv-price{font-family:'Manrope',sans-serif;font-weight:800;font-size:13.5px;color:var(--ink);margin-top:5px;}
 </style>
 <!-- Ce que Google doit savoir de l'agence elle-meme. Les annonces, elles,
      sont decrites dans les fiches de bien/ : cette page les construit en
@@ -1184,12 +1206,24 @@ try {
 }
 
 
-function popupContent(p){
-  return `<div class="popup-card">
-    <div class="pt">${p.type} — ${esc(p.commune)}</div>
-    <div class="pm">${p.surface} ${surfaceUnit(p.type)}${p.rooms && p.rooms.chambres != null ? ' · '+p.rooms.chambres+' ch. · '+p.rooms.sdb+' sdb' : ''}</div>
-    <div class="pp">${fcfa(p.price)}${p.operation==='Location'?' /mois':''}</div>
-    <a class="plink" onclick="openDrawerById('${p.id}')">Voir la fiche →</a>
+// Aperçu affiché au survol d'un marqueur : une carte compacte avec photo,
+// pour reconnaître un bien sans cliquer. Le clic, lui, ouvre la fiche complète.
+function mapPreview(p){
+  const cover = coverUrl(p, 280, 55);
+  const rooms = p.rooms && p.rooms.chambres != null ? ' · ' + p.rooms.chambres + ' ch.' : '';
+  const fond = cover
+    ? `background-image:url('${cover}')`
+    : `background:linear-gradient(135deg, ${TYPE_COLOR[p.type] || '#123027'}, #161B22)`;
+  return `<div class="map-prev">
+    <div class="mpv-photo" style="${fond}">
+      <span class="mpv-op">${esc(p.operation)}</span>
+      ${p.sponsorisee ? '<span class="mpv-spo">Sponsorisé</span>' : ''}
+    </div>
+    <div class="mpv-body">
+      <div class="mpv-title">${esc(p.type)} — ${esc(p.commune)}</div>
+      <div class="mpv-meta">${p.surface} ${surfaceUnit(p.type)}${rooms}</div>
+      <div class="mpv-price">${fcfa(p.price)}${p.operation==='Location' ? ' /mois' : ''}</div>
+    </div>
   </div>`;
 }
 function openDrawerById(id){
@@ -1203,8 +1237,12 @@ function rebuildMarkers(list){
   markers = {};
   list.forEach(p => {
     const m = L.marker([p.lat,p.lng], { icon: markerIcon(p, p.id===state.selected) });
-    m.bindPopup(popupContent(p), { maxWidth:220 });
-    m.on('click', () => { highlightCard(p.id); });
+    // Survol : aperçu. Clic : la fiche complète. Sur mobile, faute de survol,
+    // le tap déclenche directement le clic, donc la fiche — le comportement
+    // attendu au doigt.
+    m.bindTooltip(mapPreview(p), { direction:'top', offset:[0,-14], opacity:1,
+                                   className:'map-prev-tip', sticky:false });
+    m.on('click', () => openDrawerById(p.id));
     m.addTo(map);
     markers[p.id] = m;
   });
