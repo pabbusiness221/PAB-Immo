@@ -63,7 +63,9 @@
     border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 6px;flex-shrink:0;}
   .menu-sep{height:1px;background:rgba(255,255,255,0.10);margin:5px 4px;}
 
-  .searchbar{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.16);border-radius:999px;padding:10px 16px;flex:1;max-width:420px;transition:border-color .2s var(--ease), background-color .2s var(--ease), box-shadow .2s var(--ease);}
+  .searchbar{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.16);border-radius:999px;padding:10px 16px;flex:0 1 440px;transition:border-color .2s var(--ease), background-color .2s var(--ease), box-shadow .2s var(--ease);}
+  /* Groupe d'actions collé à droite pour une barre plus lisible. */
+  .header-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-left:auto;}
   .searchbar:focus-within{border-color:var(--accent);background:rgba(255,255,255,0.13);box-shadow:var(--focus-ring);}
   .searchbar svg{stroke:rgba(255,255,255,0.55);flex-shrink:0;}
   .searchbar input{border:none;outline:none;font-size:13px;width:100%;background:transparent;font-family:'Inter',sans-serif;color:#fff;}
@@ -469,6 +471,19 @@
     </div>
     <!-- Outils de gestion regroupés dans un menu : la barre reste nette. Chaque
          entrée garde son identifiant d'origine, donc son câblage JavaScript. -->
+    <!-- Groupe d'actions aligné à droite. Réception et Prospects sont
+         mis en avant ; le reste vit dans le menu. -->
+    <div class="header-actions">
+      <button class="btn btn-inbox" id="inboxBtn" title="Boîte de réception">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
+        <span class="btn-label">Réception</span>
+        <span class="inbox-badge" id="inboxBadge" style="display:none;">0</span>
+      </button>
+      <button class="btn btn-inbox" id="prospectsBtn" style="display:none;" title="Prospects">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/></svg>
+        <span class="btn-label">Prospects</span>
+        <span class="inbox-badge" id="prospectsBadge" style="display:none;"></span>
+      </button>
     <div class="tools-wrap">
       <button class="btn btn-inbox tools-trigger" id="toolsMenuBtn" aria-haspopup="true" aria-expanded="false" title="Menu des outils">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -476,16 +491,6 @@
         <span class="inbox-badge" id="toolsMenuBadge" style="display:none;"></span>
       </button>
       <div class="tools-menu" id="toolsMenu" role="menu" hidden>
-        <button class="menu-item" id="inboxBtn" role="menuitem">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
-          <span class="mi-label">Boîte de réception</span>
-          <span class="menu-badge" id="inboxBadge" style="display:none;">0</span>
-        </button>
-        <button class="menu-item" id="prospectsBtn" role="menuitem" style="display:none;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/></svg>
-          <span class="mi-label">Prospects</span>
-          <span class="menu-badge" id="prospectsBadge" style="display:none;"></span>
-        </button>
         <button class="menu-item" id="agencesBtn" role="menuitem" style="display:none;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M10 21v-6h4v6"/></svg>
           <span class="mi-label">Agences</span>
@@ -516,6 +521,7 @@
       <span class="btn-label">Ajouter un bien</span>
     </button>
     <button class="btn-logout" id="logoutBtn">Déconnexion</button>
+    </div>
   </div>
 </header>
 
@@ -2500,7 +2506,7 @@ document.getElementById('avisBtn').onclick = openAvis;
 
   // Pastille du menu = somme des pastilles visibles des outils. On observe les
   // pastilles individuelles plutôt que de modifier chaque fonction majBadge*.
-  const badges = ['inboxBadge', 'prospectsBadge', 'agencesBadge', 'avisBadge'];
+  const badges = ['agencesBadge', 'avisBadge'];
   window.refreshMenuBadge = function(){
     let total = 0;
     badges.forEach(id => {
