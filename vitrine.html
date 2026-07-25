@@ -139,6 +139,20 @@
   .trust-item .ti{width:32px;height:32px;border-radius:10px;background:rgba(226,162,44,0.16);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--accent);}
   .trust-item strong{display:block;color:#fff;font-size:12.5px;font-weight:700;font-family:'Manrope',sans-serif;}
   .trust-item span{display:block;color:rgba(255,255,255,0.55);font-size:11.5px;margin-top:1px;}
+  /* Bandeau de confiance en défilement continu. Armé par JS uniquement hors
+     « animations réduites » : la piste contient les repères puis une copie
+     décorative, et la translation de -50 % boucle sans couture (la marge
+     portée par chaque repère rend le raccord parfait). Il se met en pause au
+     survol. Sans JS, la disposition d'origine reste, entièrement lisible. */
+  .hero-trust[data-marquee]{display:block;overflow:hidden;padding-bottom:0;
+    -webkit-mask-image:linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+            mask-image:linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);}
+  .hero-trust[data-marquee] .trust-track{display:flex;flex-wrap:nowrap;width:max-content;
+    animation:trustScroll 38s linear infinite;}
+  .hero-trust[data-marquee] .trust-track .trust-item{flex:0 0 auto;margin-right:12px;}
+  .hero-trust[data-marquee]:hover .trust-track,
+  .hero-trust[data-marquee]:focus-within .trust-track{animation-play-state:paused;}
+  @keyframes trustScroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
 
   /* ---------- Barre de filtres ---------- */
   .toolbar{max-width:1400px;margin:-44px auto 0;padding:18px 20px;position:relative;z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);}
@@ -2326,7 +2340,39 @@ loadReviews();
             n => n > 1 ? `${n} collaborateurs de confiance` : '1 collaborateur de confiance');
     }
   } catch(e){ /* chiffres indisponibles : les libellés seuls restent justes */ }
+  // Une fois les chiffres posés, on lance le défilement continu : les copies
+  // décoratives reprennent ainsi le bon libellé (« 11 clients », etc.).
+  buildTrustMarquee();
 })();
+
+// Défilement continu des repères de confiance. On déplace les repères dans une
+// piste, puis on en ajoute une copie décorative (masquée aux lecteurs d'écran)
+// pour boucler sans couture. Neutralisé si l'utilisateur réduit les animations.
+function buildTrustMarquee(){
+  try{
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const host = document.querySelector('.hero-trust');
+    if(!host || host.dataset.marquee) return;
+    const items = Array.prototype.slice.call(host.querySelectorAll('.trust-item'));
+    if(items.length < 2) return;
+    const track = document.createElement('div');
+    track.className = 'trust-track';
+    items.forEach(it => track.appendChild(it));            // déplace les originaux
+    items.forEach(it => {                                  // copie décorative
+      const c = it.cloneNode(true);
+      c.setAttribute('aria-hidden', 'true');
+      c.removeAttribute('id');
+      track.appendChild(c);
+    });
+    host.appendChild(track);
+    host.dataset.marquee = '1';
+    // Vitesse constante quel que soit le nombre de repères (~42 px/s).
+    requestAnimationFrame(() => {
+      const demi = track.scrollWidth / 2;
+      if(demi > 0) track.style.animationDuration = Math.max(20, Math.round(demi / 42)) + 's';
+    });
+  }catch(e){ /* le bandeau statique reste parfaitement lisible */ }
+}
 
 // Les deux pages partagent le même domaine, donc la même session Supabase :
 // une personne déjà connectée à son espace est reconnue ici sans aucun écran
