@@ -18,10 +18,14 @@ name: Actualiser les fiches
 
 on:
   schedule:
-    # 04h00 UTC, soit 04h00 à Dakar : les changements de la veille sont en
-    # ligne avant l'ouverture.
-    - cron: '0 4 * * *'
-  # Bouton « Run workflow » dans l'onglet Actions, pour une saisie urgente.
+    # Toutes les 15 minutes. Un bien fraîchement publié obtient ainsi sa fiche
+    # statique — la seule page que WhatsApp/Facebook savent lire pour afficher
+    # SA photo, SON type et SON lieu — en un quart d'heure au lieu d'attendre
+    # la nuit. Les exécutions sans changement sont des non-événements (voir
+    # l'étape de publication) : elles ne coûtent presque rien et ne notifient
+    # jamais.
+    - cron: '*/15 * * * *'
+  # Bouton « Run workflow » dans l'onglet Actions, pour forcer tout de suite.
   workflow_dispatch:
 
 # Deux exécutions simultanées se marcheraient sur les pieds au moment du push.
@@ -45,17 +49,18 @@ jobs:
       - name: Régénérer les fiches
         run: python outils/generer-pages.py
 
-      # Le contrôle passe avant la publication : mieux vaut une action en échec,
-      # qui envoie un mail, qu'un site incohérent mis en ligne sans bruit.
-      - name: Vérifier la cohérence
-        run: python outils/verifier-mise-en-ligne.py
-
       - name: Publier s'il y a du nouveau
         run: |
           if [ -z "$(git status --porcelain)" ]; then
             echo "Aucun changement : rien à publier."
             exit 0
           fi
+          # Le contrôle de cohérence ne tourne que lorsqu'il y a réellement à
+          # publier : les exécutions à vide (l'immense majorité, toutes les
+          # 15 min) ne peuvent donc pas échouer ni notifier. Quand il y a du
+          # nouveau, en revanche, il reste un verrou : mieux vaut une action en
+          # échec, qui envoie un mail, qu'un site incohérent publié sans bruit.
+          python outils/verifier-mise-en-ligne.py
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # -A est indispensable : le script supprime les fiches des biens
