@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mentions légales — PAB Immo</title>
+<meta name="robots" content="noindex" />
+<meta name="description" content="Mentions légales de PAB Immo — éditeur, hébergement et propriété intellectuelle." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="commun.css" />
+<style>
+  body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;margin:0;-webkit-font-smoothing:antialiased;line-height:1.65;}
+  .legal-top{background:linear-gradient(155deg,var(--night) 0%,var(--night-2) 62%,#1A1710 100%);color:#fff;padding:26px 20px 30px;}
+  .legal-top-in{max-width:760px;margin:0 auto;}
+  .legal-back{display:inline-flex;align-items:center;gap:7px;color:rgba(255,255,255,0.7);text-decoration:none;font-size:13px;font-weight:600;transition:color .2s var(--ease);}
+  .legal-back:hover{color:var(--accent);}
+  .legal-brand{font-family:'Manrope',sans-serif;font-weight:800;font-size:17px;margin:18px 0 0;letter-spacing:-.01em;}
+  .legal-brand span{color:var(--accent);}
+  .legal-top h1{font-family:'Manrope',sans-serif;font-weight:800;font-size:clamp(24px,4vw,32px);letter-spacing:-.02em;margin:10px 0 0;}
+  .legal-wrap{max-width:760px;margin:0 auto;padding:38px 20px 70px;}
+  .legal-wrap h2{font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;letter-spacing:.02em;margin:34px 0 10px;padding-top:22px;border-top:1px solid var(--border);}
+  .legal-wrap h2:first-of-type{border-top:none;padding-top:0;margin-top:0;}
+  .legal-wrap p{margin:0 0 12px;font-size:15px;}
+  .legal-wrap ul{margin:0 0 14px;padding-left:20px;}
+  .legal-wrap li{margin:6px 0;font-size:15px;}
+  .legal-wrap a{color:var(--accent-dark);}
+  .legal-key{color:var(--ink-soft);font-weight:600;}
+  .todo{background:var(--accent-soft);border:1px dashed var(--accent);border-radius:8px;padding:1px 8px;font-size:13.5px;font-weight:700;color:var(--accent-dark);}
+  .legal-foot{max-width:760px;margin:0 auto;padding:0 20px 60px;font-size:12.5px;color:var(--ink-soft);}
+  .legal-foot a{color:var(--accent-dark);text-decoration:none;font-weight:600;}
+</style>
+</head>
+<body>
+<header class="legal-top">
+  <div class="legal-top-in">
+    <a class="legal-back" href="vitrine.html">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg>
+      Retour au site
+    </a>
+    <p class="legal-brand">PAB <span>Immo</span></p>
+    <h1>Mentions légales</h1>
+  </div>
+</header>
+
+<main class="legal-wrap">
+  <h2>Éditeur du site</h2>
+  <p>Le présent site est édité par <strong>PAB Immo</strong>, agence immobilière exerçant à Dakar et Thiès (Sénégal).</p>
+  <ul>
+    <li><span class="legal-key">NINEA :</span> 012603686</li>
+    <li><span class="legal-key">RCCM :</span> SN DKR 2025 A 44101</li>
+    <li><span class="legal-key">Téléphone / WhatsApp :</span> <a href="tel:+221778494111">+221 77 849 41 11</a></li>
+    <li><span class="legal-key">E-mail :</span> <span class="todo">à compléter</span></li>
+    <li><span class="legal-key">Directeur de la publication :</span> <span class="todo">à compléter</span></li>
+  </ul>
+
+  <h2>Hébergement</h2>
+  <p>Le site est hébergé par <strong>GitHub Pages</strong> — GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis (<a href="https://github.com" target="_blank" rel="noopener">github.com</a>).</p>
+  <p>Les données des formulaires (alertes, candidatures, avis) sont traitées via <strong>Supabase</strong>, prestataire d'hébergement de base de données.</p>
+
+  <h2>Propriété intellectuelle</h2>
+  <p>L'ensemble des contenus présents sur ce site — textes, photographies des biens, logo et éléments graphiques — est la propriété de PAB Immo ou de ses partenaires. Toute reproduction, représentation ou diffusion, totale ou partielle, sans autorisation écrite préalable est interdite.</p>
+
+  <h2>Responsabilité</h2>
+  <p>Les informations sur les biens (prix, surfaces, disponibilité) sont fournies à titre indicatif et vérifiées avant publication. Elles peuvent évoluer ; seules les informations confirmées par l'agence lors d'un rendez-vous font foi. PAB Immo ne saurait être tenue responsable d'une erreur ou d'une omission.</p>
+
+  <h2>Données personnelles</h2>
+  <p>Le traitement de vos données personnelles est décrit dans notre <a href="confidentialite.html">politique de confidentialité</a>.</p>
+</main>
+
+<footer class="legal-foot">
+  © <span id="year">2026</span> PAB Immo · Dakar &amp; Thiès · <a href="vitrine.html">Retour au site</a>
+</footer>
+<script>(function(){var y=document.getElementById('year');if(y)y.textContent=new Date().getFullYear();})();</script>
+</body>
+</html>
