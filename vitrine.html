@@ -1921,7 +1921,10 @@ function renderList(){
     state.selected = p.id;
     renderList();
     rebuildMarkers(filtered());
-    if(map) map.flyTo([p.lat,p.lng], 12, {duration:0.6});
+    // Uniquement si la carte est visible : masquée (vue liste sur téléphone)
+    // elle a une taille nulle et Leaflet lèverait « Invalid LatLng (NaN,NaN) »
+    // à chaque image de l'animation.
+    if(map && map.getSize().x > 0) map.flyTo([p.lat,p.lng], 12, {duration:0.6});
   };
   el.querySelectorAll('.card').forEach(c=>{
     c.onclick = () => ouvrirAnnonce(c.dataset.id);
@@ -1955,7 +1958,12 @@ function highlightCard(id){
     card.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
   const p = PROPERTIES.find(x => String(x.id) === String(id));
-  if(p && map){
+  // On ne recentre la carte que si elle est réellement visible. En vue liste
+  // sur téléphone, la carte est masquée (taille 0) : Leaflet y calcule alors
+  // un déplacement à partir d'une taille nulle et lève « Invalid LatLng
+  // (NaN, NaN) » à chaque image de l'animation. Inutile de toute façon d'y
+  // voler vers un point qu'on ne voit pas.
+  if(p && map && map.getSize().x > 0){
     map.flyTo([p.lat, p.lng], 12, { duration: 0.6 });
   }
 }
@@ -2308,7 +2316,7 @@ function openPropertyFromURL(){
   isRestoringFromURL = true;
   openDrawer(p);
   isRestoringFromURL = false;
-  if(map) map.setView([p.lat, p.lng], 13);
+  if(map && map.getSize().x > 0) map.setView([p.lat, p.lng], 13);
 }
 
 window.addEventListener('popstate', () => {
