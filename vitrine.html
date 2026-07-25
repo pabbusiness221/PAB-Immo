@@ -97,11 +97,7 @@
     animation:heroZoom 26s ease-in-out infinite alternate;}
   .hero-veil{position:absolute;inset:0;z-index:0;pointer-events:none;
     background:linear-gradient(103deg, rgba(9,17,14,0.95) 0%, rgba(10,20,16,0.90) 34%, rgba(11,21,17,0.74) 62%, rgba(12,22,19,0.62) 100%);}
-  .hero-veil::before{content:'';position:absolute;inset:-22% -12%;pointer-events:none;
-    background:radial-gradient(620px 400px at 50% 42%, rgba(226,162,44,0.20), transparent 62%);
-    animation:heroHalo 20s ease-in-out infinite alternate;}
   @keyframes heroZoom{from{transform:scale(1);}to{transform:scale(1.09);}}
-  @keyframes heroHalo{0%{transform:translate(-5%,-2%);}100%{transform:translate(7%,3%);}}
   .hero::after{content:'';position:absolute;inset:0;background:
     repeating-linear-gradient(0deg, rgba(255,255,255,0.032) 0px, rgba(255,255,255,0.032) 1px, transparent 1px, transparent 34px),
     repeating-linear-gradient(90deg, rgba(255,255,255,0.032) 0px, rgba(255,255,255,0.032) 1px, transparent 1px, transparent 34px);
