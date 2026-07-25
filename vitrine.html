@@ -357,6 +357,12 @@
   .avis-carte .a-bas{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}
   .avis-carte .a-nom{font-weight:800;font-size:13.5px;}
   .avis-carte .a-date{font-size:11.5px;color:var(--ink-soft);}
+  .avis-plus{display:flex;justify-content:center;margin-top:18px;}
+  .avis-plus:empty{display:none;}
+  .avis-plus-btn{background:var(--surface);border:1.5px solid var(--border);color:var(--ink);
+    border-radius:999px;padding:11px 24px;font-size:13.5px;font-weight:700;cursor:pointer;
+    font-family:'Inter',sans-serif;transition:all .2s var(--ease);}
+  .avis-plus-btn:hover{border-color:var(--accent);color:var(--gold);background:var(--accent-soft);}
   .avis-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 24px 24px;margin-top:16px;}
   .avis-form.hidden{display:none;}
   .avis-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;}
@@ -932,6 +938,7 @@
     </div>
 
     <div class="avis-liste" id="avisListe"></div>
+    <div class="avis-plus" id="avisPlus"></div>
 
     <form class="avis-form hidden" id="avisForm" novalidate>
       <div class="avis-form-grid">
@@ -2510,27 +2517,45 @@ function etoilesHtml(n){
   return s;
 }
 
+// La page reste compacte : on n'affiche que les premiers avis, un bouton
+// déplie le reste. Les plus récents passent en tête (tri de la requête).
+const AVIS_APERCU = 3;
+let AVIS = [];
+let avisDeplie = false;
+
 async function loadReviews(){
-  const { data, error } = await db.from('public_reviews').select('*');
+  const { data, error } = await db.from('public_reviews')
+    .select('*')
+    .order('created_at', { ascending: false });   // plus récents d'abord
   if(error) return;                       // pas d'avis à afficher, on n'encombre pas
   const liste = document.getElementById('avisListe');
-  const avis = data || [];
+  const plus = document.getElementById('avisPlus');
+  AVIS = data || [];
+  avisDeplie = false;
 
-  if(!avis.length){
+  if(!AVIS.length){
     liste.innerHTML = '<p class="avis-vide">Aucun avis publié pour le moment. Soyez le premier à partager votre expérience.</p>';
+    plus.innerHTML = '';
     return;
   }
 
-  // Moyenne, arrondie au dixième.
-  const moyenne = avis.reduce((t, a) => t + a.rating, 0) / avis.length;
+  // Moyenne, arrondie au dixième — calculée sur TOUS les avis, pas seulement
+  // ceux affichés.
+  const moyenne = AVIS.reduce((t, a) => t + a.rating, 0) / AVIS.length;
   const resume = document.getElementById('avisResume');
   document.getElementById('avisMoyenne').textContent = moyenne.toFixed(1).replace('.', ',');
   document.getElementById('avisEtoilesMoy').innerHTML = etoilesHtml(Math.round(moyenne));
-  document.getElementById('avisCompte').textContent =
-    `sur ${avis.length} avis`;
+  document.getElementById('avisCompte').textContent = `sur ${AVIS.length} avis`;
   resume.hidden = false;
 
-  liste.innerHTML = avis.map(a => `
+  renderAvisListe();
+}
+
+function renderAvisListe(){
+  const liste = document.getElementById('avisListe');
+  const plus = document.getElementById('avisPlus');
+  const aMontrer = avisDeplie ? AVIS : AVIS.slice(0, AVIS_APERCU);
+  liste.innerHTML = aMontrer.map(a => `
     <div class="avis-carte">
       <div class="a-etoiles" aria-label="${a.rating} étoiles sur 5">${etoilesHtml(a.rating)}</div>
       <p class="a-texte">${esc(a.comment)}</p>
@@ -2539,6 +2564,21 @@ async function loadReviews(){
         <span class="a-date">${new Date(a.created_at).toLocaleDateString('fr-FR', {month:'long', year:'numeric'})}</span>
       </div>
     </div>`).join('');
+
+  if(AVIS.length > AVIS_APERCU){
+    plus.innerHTML = `<button type="button" class="avis-plus-btn" id="avisPlusBtn" aria-expanded="${avisDeplie}">${
+      avisDeplie ? 'Réduire' : `Voir tous les avis (${AVIS.length})`
+    }</button>`;
+    document.getElementById('avisPlusBtn').onclick = () => {
+      avisDeplie = !avisDeplie;
+      renderAvisListe();
+      // En repliant, on remonte en tête de section pour ne pas laisser
+      // l'utilisateur flotter dans le vide laissé par les avis masqués.
+      if(!avisDeplie) document.getElementById('avis').scrollIntoView({ behavior:'smooth', block:'start' });
+    };
+  } else {
+    plus.innerHTML = '';
+  }
 }
 
 // Sélecteur d'étoiles cliquable pour le formulaire.
