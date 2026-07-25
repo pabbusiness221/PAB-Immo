@@ -26,7 +26,7 @@
   /* flex-wrap dès le départ : entre ~680 et ~1100 px, brand + recherche +
      trois boutons + déconnexion ne tiennent pas sur une ligne. L'ancien
      overflow-x:clip masquait le problème en coupant le bouton hors écran. */
-  .header-inner{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px 22px;max-width:1400px;margin:0 auto;}
+  .header-inner{display:flex;flex-wrap:nowrap;align-items:center;gap:12px;padding:12px 22px;max-width:1400px;margin:0 auto;}
   .brand{display:flex;align-items:center;gap:11px;flex-shrink:0;}
   .brand p{margin:1px 0 0;font-size:10.5px;color:rgba(255,255,255,0.52);letter-spacing:.06em;text-transform:uppercase;font-weight:600;}
 
@@ -62,10 +62,13 @@
   .menu-badge{background:var(--danger);color:#fff;font-size:10.5px;font-weight:800;min-width:19px;height:19px;
     border-radius:999px;display:flex;align-items:center;justify-content:center;padding:0 6px;flex-shrink:0;}
   .menu-sep{height:1px;background:rgba(255,255,255,0.10);margin:5px 4px;}
+  .menu-item-danger{color:#E88A72;}
+  .menu-item-danger:hover{background:rgba(192,73,44,0.18);color:#fff;}
 
-  .searchbar{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.16);border-radius:999px;padding:10px 16px;flex:0 1 440px;transition:border-color .2s var(--ease), background-color .2s var(--ease), box-shadow .2s var(--ease);}
-  /* Groupe d'actions collé à droite pour une barre plus lisible. */
-  .header-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-left:auto;}
+  .searchbar{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.16);border-radius:999px;padding:10px 16px;flex:1 1 200px;min-width:110px;max-width:440px;transition:border-color .2s var(--ease), background-color .2s var(--ease), box-shadow .2s var(--ease);}
+  /* Groupe d'actions collé à droite, insécable : la recherche se rétrécit
+     avant que la barre ne passe à la ligne. */
+  .header-actions{display:flex;align-items:center;gap:9px;flex-wrap:nowrap;flex-shrink:0;margin-left:auto;}
   .searchbar:focus-within{border-color:var(--accent);background:rgba(255,255,255,0.13);box-shadow:var(--focus-ring);}
   .searchbar svg{stroke:rgba(255,255,255,0.55);flex-shrink:0;}
   .searchbar input{border:none;outline:none;font-size:13px;width:100%;background:transparent;font-family:'Inter',sans-serif;color:#fff;}
@@ -375,19 +378,16 @@
   }
 
   @media (max-width: 680px){
-    .header-inner{flex-wrap:wrap;padding:12px 16px;gap:9px;}
+    /* Téléphone : la marque et les actions tiennent sur la première ligne,
+       la recherche prend toute la largeur en dessous. Déconnexion a rejoint
+       le menu, ce qui libère la place et évite une troisième ligne. */
+    .header-inner{flex-wrap:wrap;padding:11px 14px;gap:8px;}
     .brand h1{font-size:15px;}
     .brand p{display:none;}
-    /* La recherche et « Déconnexion » partagent la même ligne : le bouton
-       occupait une troisième ligne à lui seul sur un en-tête collant qui
-       mangeait déjà 154 px, soit un cinquième de l'écran en permanence. */
-    /* flex-basis en pourcentage et non `auto` : sinon la barre réclame la
-       largeur de son contenu, occupe la ligne entière et repousse le
-       bouton sur une troisième. */
-    .searchbar{order:3;flex:1 1 55%;min-width:0;max-width:none;margin-top:2px;}
-    .btn-label{display:none;}
-    .btn-primary, .btn-inbox{padding:10px 14px;}
-    .btn-logout{order:4;flex:0 0 auto;white-space:nowrap;padding:11px 8px;min-height:40px;}
+    .searchbar{order:3;flex:1 1 100%;min-width:0;max-width:none;margin-top:2px;}
+    .header-actions{gap:6px;}
+    .btn-primary, .btn-inbox{padding:9px 12px;min-height:40px;}
+    .tools-menu{min-width:210px;max-width:calc(100vw - 28px);}
     /* Indicateurs resserrés : on en voit trois d'un coup au lieu de deux. */
     .stat{padding:12px 14px;min-width:112px;gap:10px;}
     .stat-dot{width:34px;height:34px;border-radius:10px;}
@@ -429,6 +429,10 @@
     .kpi-grid{grid-template-columns:repeat(2,1fr);}
     .analytics-body{padding:18px 16px 32px;}
     .analytics-header{padding:14px 16px;}
+    /* Téléphone étroit : on ne garde que le logo. Le titre et les quatre
+       actions ne tenaient pas ensemble ; le logo suffit à identifier la page,
+       et la marque + les actions reviennent sur une seule ligne. */
+    .brand h1{display:none;}
   }
 
   @media (max-width: 380px){
@@ -514,13 +518,17 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 010 18a15 15 0 010-18z"/></svg>
           <span class="mi-label">Voir la vitrine</span>
         </a>
+        <div class="menu-sep"></div>
+        <button class="menu-item menu-item-danger" id="logoutBtn" role="menuitem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+          <span class="mi-label">Déconnexion</span>
+        </button>
       </div>
     </div>
     <button class="btn btn-primary" id="addPropertyBtn">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       <span class="btn-label">Ajouter un bien</span>
     </button>
-    <button class="btn-logout" id="logoutBtn">Déconnexion</button>
     </div>
   </div>
 </header>
