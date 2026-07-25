@@ -29,6 +29,11 @@
   "modifie": "2026-07-23",
   "premiere": "2026-07-22"
  },
+ "CH-2026-5515": {
+  "empreinte": "754d2f6ad1d99b3e8c3397d9e4b3e30d47d7dbdb",
+  "modifie": "2026-07-25",
+  "premiere": "2026-07-25"
+ },
  "CH-2026-5713": {
   "empreinte": "7e27f1973cda91517fefd849434530214e30c6b3",
   "modifie": "2026-07-23",
@@ -48,6 +53,11 @@
   "empreinte": "6881578a6cabe6ded47a7e683fb1d91c61b1c114",
   "modifie": "2026-07-24",
   "premiere": "2026-07-23"
+ },
+ "ST-2026-8903": {
+  "empreinte": "8bdb131869641d5191d98394f207d0a63895891c",
+  "modifie": "2026-07-25",
+  "premiere": "2026-07-25"
  },
  "TEST": {
   "empreinte": "e6f225decc44f1752824e8f4728a9223e99f615d",
@@ -71,11 +81,6 @@
  },
  "TF-2024-0912": {
   "empreinte": "454eeb1ce3b84e4e523d5a203856f942a71072a5",
-  "modifie": "2026-07-23",
-  "premiere": "2026-07-22"
- },
- "TF-2026-2096": {
-  "empreinte": "b5a0850d14632282f95063648de217e48f6ee7d4",
   "modifie": "2026-07-23",
   "premiere": "2026-07-22"
  },
@@ -108,6 +113,11 @@
   "empreinte": "04c9eea730271a8ff301f732d19bc76f5856985c",
   "modifie": "2026-07-23",
   "premiere": "2026-07-22"
+ },
+ "TF-2026-5481": {
+  "empreinte": "8f2c51ee0427d701cd7ebb1c9bb902a9dd3a8050",
+  "modifie": "2026-07-25",
+  "premiere": "2026-07-25"
  },
  "TF-2026-5797": {
   "empreinte": "8f2d0f4a15807d9addf4174989f77f93263e2ac8",
