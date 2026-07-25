@@ -1295,7 +1295,6 @@ function compressImage(file, maxDimension = 1920, quality = 0.82){
       canvas.toBlob((blob) => {
         if(!blob || blob.size >= file.size){ resolve(file); return; }
         const compressed = new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type:'image/jpeg' });
-        console.log(`Photo compressée : ${(file.size/1024).toFixed(0)} Ko → ${(compressed.size/1024).toFixed(0)} Ko`);
         resolve(compressed);
       }, 'image/jpeg', quality);
     };
@@ -1308,13 +1307,13 @@ function renderPhotoGrid(){
   const el = document.getElementById('photoGrid');
   const existingHtml = editingPhotos.map(ph => `
     <div class="photo-thumb">
-      <img src="${photoUrl(ph.storage_path, 200, 60)}" loading="lazy" decoding="async" onerror="photoFallback(this)" />
+      <img src="${photoUrl(ph.storage_path, 200, 60)}" alt="Photo du bien" loading="lazy" decoding="async" onerror="photoFallback(this)" />
       ${ph.is_cover ? '<span class="cov-badge">Couverture</span>' : ''}
       <button type="button" class="rm" data-remove-existing="${ph.id}">×</button>
     </div>`).join('');
   const pendingHtml = pendingFiles.map((pf,i) => `
     <div class="photo-thumb">
-      <img src="${pf.previewUrl}" />
+      <img src="${pf.previewUrl}" alt="Aperçu de la photo à envoyer" />
       <button type="button" class="rm" data-remove-pending="${i}">×</button>
     </div>`).join('');
   el.innerHTML = existingHtml + pendingHtml + `

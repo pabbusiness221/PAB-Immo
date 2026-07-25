@@ -142,17 +142,27 @@
   /* Bandeau de confiance en défilement continu. Armé par JS uniquement hors
      « animations réduites » : la piste contient les repères puis une copie
      décorative, et la translation de -50 % boucle sans couture (la marge
-     portée par chaque repère rend le raccord parfait). Il se met en pause au
-     survol. Sans JS, la disposition d'origine reste, entièrement lisible. */
-  .hero-trust[data-marquee]{display:block;overflow:hidden;padding-bottom:0;
-    -webkit-mask-image:linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
-            mask-image:linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);}
+     portée par chaque repère rend le raccord parfait). Le fondu des bords vit
+     sur une sous-couche (.trust-viewport) pour que le bouton pause, lui, reste
+     net. Il se met en pause au survol ET par le bouton (accessible au clavier,
+     critère WCAG « contenu en mouvement »). Sans JS, la disposition d'origine
+     reste, entièrement lisible. */
+  .hero-trust[data-marquee]{display:block;position:relative;padding-bottom:0;}
+  .hero-trust[data-marquee] .trust-viewport{overflow:hidden;
+    -webkit-mask-image:linear-gradient(90deg, transparent, #000 5%, #000 92%, transparent);
+            mask-image:linear-gradient(90deg, transparent, #000 5%, #000 92%, transparent);}
   .hero-trust[data-marquee] .trust-track{display:flex;flex-wrap:nowrap;width:max-content;
     animation:trustScroll 38s linear infinite;}
   .hero-trust[data-marquee] .trust-track .trust-item{flex:0 0 auto;margin-right:12px;}
   .hero-trust[data-marquee]:hover .trust-track,
-  .hero-trust[data-marquee]:focus-within .trust-track{animation-play-state:paused;}
+  .hero-trust[data-marquee].is-paused .trust-track{animation-play-state:paused;}
   @keyframes trustScroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+  .trust-pause{position:absolute;top:50%;right:0;transform:translateY(-50%);z-index:2;
+    width:30px;height:30px;border-radius:50%;display:grid;place-items:center;cursor:pointer;
+    background:rgba(12,22,19,0.72);border:1px solid rgba(255,255,255,0.18);color:#fff;
+    transition:background .2s var(--ease), border-color .2s var(--ease), color .2s var(--ease);}
+  .trust-pause:hover{background:rgba(12,22,19,0.92);border-color:var(--accent);color:var(--accent);}
+  .trust-pause svg{width:12px;height:12px;}
 
   /* ---------- Barre de filtres ---------- */
   .toolbar{max-width:1400px;margin:-44px auto 0;padding:18px 20px;position:relative;z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);}
@@ -2366,7 +2376,29 @@ function buildTrustMarquee(){
       c.removeAttribute('id');
       track.appendChild(c);
     });
-    host.appendChild(track);
+    // Le fondu des bords s'applique à cette sous-couche, pas au bouton pause.
+    const viewport = document.createElement('div');
+    viewport.className = 'trust-viewport';
+    viewport.appendChild(track);
+    host.appendChild(viewport);
+
+    // Bouton pause : mécanisme d'arrêt accessible au clavier, exigé pour tout
+    // contenu qui défile seul plus de quelques secondes.
+    const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+    const ICON_PLAY  = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'trust-pause';
+    btn.setAttribute('aria-pressed', 'false');
+    btn.setAttribute('aria-label', 'Mettre en pause le défilement des repères');
+    btn.innerHTML = ICON_PAUSE;
+    btn.addEventListener('click', () => {
+      const enPause = host.classList.toggle('is-paused');
+      btn.setAttribute('aria-pressed', enPause ? 'true' : 'false');
+      btn.setAttribute('aria-label', enPause ? 'Reprendre le défilement des repères' : 'Mettre en pause le défilement des repères');
+      btn.innerHTML = enPause ? ICON_PLAY : ICON_PAUSE;
+    });
+    host.appendChild(btn);
     host.dataset.marquee = '1';
     // Vitesse constante quel que soit le nombre de repères (~42 px/s).
     requestAnimationFrame(() => {
