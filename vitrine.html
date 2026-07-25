@@ -83,13 +83,25 @@
      plus dense à gauche, derrière le texte, et s'éclaircit à droite pour
      laisser respirer la ville. Le dégradé nuit reste en dernière couche :
      c'est lui qu'on voit tant que la photo n'est pas chargée. */
-  .hero{background:
-      linear-gradient(103deg, rgba(9,17,14,0.95) 0%, rgba(10,20,16,0.90) 34%, rgba(11,21,17,0.74) 62%, rgba(12,22,19,0.62) 100%),
-      radial-gradient(900px 420px at 78% -10%, rgba(226,162,44,0.16), transparent 62%),
-      url('assets/dakar-aerienne.jpg') center 45% / cover no-repeat,
-      linear-gradient(155deg, var(--night) 0%, var(--night-2) 58%, #1A1710 100%);
+  /* Fond du héros en couches empilées : la photo aérienne vit sur sa propre
+     couche pour pouvoir « respirer » (zoom très lent, effet cinéma) sans
+     entraîner le texte ; un voile sombre garantit la lisibilité, et un halo
+     doré dérive doucement par-dessus, dans la couleur de marque. Le dégradé
+     nuit reste en dernière couche : c'est lui qu'on voit tant que la photo
+     n'est pas chargée. */
+  .hero{background:linear-gradient(155deg, var(--night) 0%, var(--night-2) 58%, #1A1710 100%);
     background-color:var(--night);
     padding:58px 22px 92px;position:relative;overflow:hidden;}
+  .hero-bg{position:absolute;inset:-3%;z-index:0;
+    background:url('assets/dakar-aerienne.jpg') center 45% / cover no-repeat;
+    animation:heroZoom 26s ease-in-out infinite alternate;}
+  .hero-veil{position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:linear-gradient(103deg, rgba(9,17,14,0.95) 0%, rgba(10,20,16,0.90) 34%, rgba(11,21,17,0.74) 62%, rgba(12,22,19,0.62) 100%);}
+  .hero-veil::before{content:'';position:absolute;inset:-22% -12%;pointer-events:none;
+    background:radial-gradient(620px 400px at 50% 42%, rgba(226,162,44,0.20), transparent 62%);
+    animation:heroHalo 20s ease-in-out infinite alternate;}
+  @keyframes heroZoom{from{transform:scale(1);}to{transform:scale(1.09);}}
+  @keyframes heroHalo{0%{transform:translate(-5%,-2%);}100%{transform:translate(7%,3%);}}
   .hero::after{content:'';position:absolute;inset:0;background:
     repeating-linear-gradient(0deg, rgba(255,255,255,0.032) 0px, rgba(255,255,255,0.032) 1px, transparent 1px, transparent 34px),
     repeating-linear-gradient(90deg, rgba(255,255,255,0.032) 0px, rgba(255,255,255,0.032) 1px, transparent 1px, transparent 34px);
@@ -98,7 +110,8 @@
   .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;margin:0 0 16px;}
   .hero-eyebrow::before{content:'';width:22px;height:1.5px;background:var(--accent);opacity:.8;}
   .hero h2{color:#fff;font-size:clamp(32px,4.6vw,52px);font-weight:800;margin:0 0 14px;letter-spacing:-0.025em;line-height:1.06;max-width:15ch;}
-  .hero h2 em{font-style:normal;color:var(--accent);}
+  .hero h2 em{font-style:normal;color:var(--accent);display:inline-block;transition:opacity .38s var(--ease), transform .38s var(--ease);}
+  .hero h2 em.swap-out{opacity:0;transform:translateY(-7px);}
   .hero p{color:rgba(255,255,255,0.74);font-size:15.5px;margin:0 0 26px;max-width:520px;line-height:1.6;}
   .hero p b{color:#fff;font-weight:600;}
   .hero-search{display:flex;gap:10px;flex-wrap:wrap;max-width:640px;width:100%;}
@@ -694,9 +707,11 @@
 <main id="contenu">
 <p class="lecture-seule" id="annonceResultats" role="status" aria-live="polite"></p>
 <div class="hero">
+  <div class="hero-bg" aria-hidden="true"></div>
+  <div class="hero-veil" aria-hidden="true"></div>
   <div class="hero-inner">
     <p class="hero-eyebrow">Trouvez. Investissez. Vivez.</p>
-    <h2 class="hero-title">Trouvez le bien <em>qui vous ressemble.</em></h2>
+    <h2 class="hero-title">Trouvez le bien <em id="heroRotate">qui vous ressemble.</em></h2>
     <p>Terrains, maisons, appartements, studios et champs agricoles sélectionnés à <b>Dakar</b> et <b>Thiès</b> - vérifiés et prêts à visiter.</p>
     <div class="hero-search">
       <div class="searchbar">
@@ -2603,6 +2618,43 @@ document.querySelectorAll('#viewToggle button').forEach(b=>{
   if(heroStat){
     new MutationObserver(watchCounts).observe(heroStat, {childList:true});
     watchCounts();
+  }
+
+  // Titre du héros : la fin dorée change en douceur, pour vendre plus qu'un
+  // seul message.
+  var rot = document.getElementById('heroRotate');
+  if(rot){
+    var phrases = ['qui vous ressemble.', 'prêt à visiter.', 'au bon prix.', 'à Dakar & Thiès.'];
+    var pi = 0;
+    setInterval(function(){
+      rot.classList.add('swap-out');
+      setTimeout(function(){
+        pi = (pi + 1) % phrases.length;
+        rot.textContent = phrases[pi];
+        rot.classList.remove('swap-out');
+      }, 400);
+    }, 3200);
+  }
+
+  // Champ de recherche : des exemples s'écrivent puis s'effacent, pour animer
+  // et suggérer quoi chercher. S'arrête dès que le visiteur clique dedans.
+  var search = document.getElementById('search');
+  if(search){
+    var ex = ['Almadies…', 'Terrain à Thiès…', 'Appartement à Mermoz…', 'Saly…', 'Point E…'];
+    var ei = 0, ci = 0, del = false, on = true, tmr;
+    function tw(){
+      if(!on) return;
+      var w = ex[ei];
+      ci += del ? -1 : 1;
+      search.setAttribute('placeholder', w.slice(0, ci));
+      if(!del && ci >= w.length){ del = true; tmr = setTimeout(tw, 1500); }
+      else if(del && ci <= 0){ del = false; ei = (ei + 1) % ex.length; tmr = setTimeout(tw, 280); }
+      else tmr = setTimeout(tw, del ? 45 : 82);
+    }
+    function stopTw(){ on = false; clearTimeout(tmr); search.setAttribute('placeholder', 'Une commune, une région…'); }
+    search.addEventListener('focus', stopTw, {once:true});
+    search.addEventListener('input', stopTw, {once:true});
+    tmr = setTimeout(tw, 900);
   }
 })();
 </script>
