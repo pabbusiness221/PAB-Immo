@@ -2251,10 +2251,11 @@ function initDrawerMap(p){
   destroyDrawerMap();          // détruit proprement la carte précédente
   mapContainer.innerHTML = '';
   drawerMapInstance = L.map(mapContainer, { zoomControl:false, attributionControl:false }).setView([p.lat, p.lng], 14);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom:19,
-    subdomains:'abc'
-  }).addTo(drawerMapInstance);
+  // Même choix Plan / Satellite que la carte principale (gratuit, sans clé).
+  const fdPlan = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, subdomains:'abc' });
+  const fdSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom:19 });
+  fdPlan.addTo(drawerMapInstance);
+  L.control.layers({ 'Plan': fdPlan, 'Satellite': fdSat }, null, { position:'topright' }).addTo(drawerMapInstance);
   L.marker([p.lat, p.lng]).addTo(drawerMapInstance);
   drawerMapInstance.invalidateSize();
 }
