@@ -496,6 +496,16 @@
     .mobile-contact-bar{display:flex;}
     .mobile-contact-bar .btn{min-width:0;}
     .btn{min-height:44px;}
+    /* Défilement plus fluide sur téléphone. Le flou d'arrière-plan
+       (backdrop-filter) doit être recalculé à chaque image tant qu'un
+       élément flou reste à l'écran pendant qu'on fait défiler la liste :
+       c'est ce qui causait les petits à-coups. On le remplace par des
+       fonds pleins — invisible à l'œil à cette taille, bien plus léger à
+       afficher. L'en-tête, les pastilles et la barre de contact fixe sont
+       les trois éléments concernés car ils restent visibles au défilement. */
+    header{background:#0C1613;backdrop-filter:none;-webkit-backdrop-filter:none;}
+    .mobile-contact-bar{background:#fff;backdrop-filter:none;-webkit-backdrop-filter:none;}
+    .pill{backdrop-filter:none;-webkit-backdrop-filter:none;}
     .chip{padding:11px 15px;}
     /* Liens de pied de page : 16 px de haut, c'était intouchable au doigt. */
     .footer-links{gap:2px;}
