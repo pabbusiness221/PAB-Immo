@@ -1563,8 +1563,10 @@ function uniqueSorted(field){
 function populateAdvSearchOptions(){
   const regionSel = document.getElementById('adv_region');
   const currentRegion = regionSel.value;
-  regionSel.innerHTML = '<option value="">Toutes régions</option>' +
-    uniqueSorted('region').map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
+  // Les régions sont fixées à la source (REGIONS dans commun.js : Dakar, Thiès)
+  // et non déduites des données : une donnée parasite (« THIES », « Rufisque »…)
+  // ne peut donc plus apparaître comme suggestion de recherche.
+  regionSel.innerHTML = regionOptions(currentRegion, true);
   regionSel.value = currentRegion;
 
   refreshDepartementOptions();
