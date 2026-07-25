@@ -48,7 +48,10 @@
   @keyframes fadeInUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 
   /* ---------- En-tête ---------- */
-  header{position:sticky;top:0;z-index:40;background:rgba(12,22,19,0.92);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.08);}
+  header{position:sticky;top:0;z-index:40;background:rgba(12,22,19,0.92);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.08);transition:box-shadow .28s var(--ease), background-color .28s var(--ease);}
+  /* Ombre discrète qui apparaît dès qu'on quitte le haut de page : l'en-tête
+     se détache alors du contenu qui défile dessous. */
+  header.scrolled{box-shadow:0 14px 34px -20px rgba(0,0,0,0.75);background:rgba(12,22,19,0.97);}
   .header-inner{display:flex;align-items:center;gap:20px;padding:12px 22px;max-width:1400px;margin:0 auto;}
   .brand{display:flex;align-items:center;gap:11px;margin-right:auto;}
   .brand h1 span{color:var(--accent);}
@@ -104,7 +107,22 @@
   .searchbar input{border:none;outline:none;font-size:14.5px;width:100%;background:transparent;font-family:'Inter',sans-serif;color:var(--ink);}
   .searchbar input::placeholder{color:#9AA39F;}
   .hero-stat{color:rgba(255,255,255,0.72);font-size:12.5px;margin-top:18px;display:flex;align-items:center;gap:6px;}
-  .hero-stat b{color:var(--accent);font-family:'Manrope',sans-serif;font-size:15px;}
+  .hero-stat b{color:var(--accent);font-family:'Manrope',sans-serif;font-size:15px;font-variant-numeric:tabular-nums;}
+  /* Séquence d'entrée de l'accueil : chaque élément monte en fondu, l'un
+     après l'autre. N'est joué que si l'utilisateur n'a pas demandé à réduire
+     les animations ; sinon tout s'affiche normalement, sans mouvement. */
+  @keyframes heroRise{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+  @media (prefers-reduced-motion: no-preference){
+    .hero-eyebrow, .hero-title, .hero-inner > p:not(.hero-eyebrow), .hero-search, .hero-stat, .hero-trust{
+      animation:heroRise .6s var(--ease) backwards;
+    }
+    .hero-eyebrow{animation-delay:.05s;}
+    .hero-title{animation-delay:.13s;}
+    .hero-inner > p:not(.hero-eyebrow){animation-delay:.22s;}
+    .hero-search{animation-delay:.31s;}
+    .hero-stat{animation-delay:.40s;}
+    .hero-trust{animation-delay:.48s;}
+  }
 
   /* Arguments de confiance sous le hero */
   .hero-trust{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px;}
@@ -140,10 +158,24 @@
   .panel-map{flex:1;position:-webkit-sticky;position:sticky;top:86px;align-self:flex-start;height:calc(100vh - 108px);min-height:440px;border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--border);z-index:1;}
 
   /* ---------- Carte d'annonce ---------- */
-  .card{position:relative;background:var(--surface);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow);cursor:pointer;transition:transform .28s var(--ease), box-shadow .28s var(--ease), border-color .28s var(--ease);border:1px solid var(--border);animation:fadeInUp .4s var(--ease) backwards;}
+  .card{position:relative;background:var(--surface);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow);cursor:pointer;transition:transform .28s var(--ease), box-shadow .28s var(--ease), border-color .28s var(--ease);border:1px solid var(--border);}
   .card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-color:#D6D1C6;}
-  .card-photo{aspect-ratio:16/10;height:auto;display:flex;align-items:center;justify-content:center;position:relative;background-color:var(--surface-alt);}
-  .card-photo::after{content:'';position:absolute;inset:auto 0 0 0;height:56%;background:linear-gradient(to top, rgba(10,18,15,0.55), transparent);pointer-events:none;}
+  /* Apparition des annonces au défilement. L'état masqué n'est posé que si le
+     JS ajoute « js-anim » (uniquement quand les animations sont permises) :
+     sans JS ou en animations réduites, les cartes restent visibles. */
+  .js-anim .card{opacity:0;transform:translateY(16px);transition:opacity .55s var(--ease), transform .55s var(--ease);}
+  .js-anim .card.is-in{opacity:1;transform:none;transition:transform .28s var(--ease), box-shadow .28s var(--ease), border-color .28s var(--ease), opacity .55s var(--ease);}
+  .card-photo{aspect-ratio:16/10;height:auto;display:flex;align-items:center;justify-content:center;position:relative;background-color:var(--surface-alt);overflow:hidden;}
+  /* La photo vit sur sa propre couche (::before) : elle peut zoomer au survol
+     sans entraîner les pastilles ni le bouton favori posés au-dessus. */
+  .card-photo::before{content:'';position:absolute;inset:0;z-index:0;background:var(--cover, var(--surface-alt)) center/cover no-repeat;transition:transform .55s var(--ease);}
+  .card-photo::after{content:'';position:absolute;inset:auto 0 0 0;height:56%;z-index:1;background:linear-gradient(to top, rgba(10,18,15,0.55), transparent);pointer-events:none;}
+  .card-photo-ico{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;width:100%;height:100%;}
+  .card-photo .fav-btn{z-index:3;}
+  /* Zoom léger de la photo au survol — ordinateur uniquement (souris fine). */
+  @media (hover:hover) and (pointer:fine){
+    .card:hover .card-photo::before{transform:scale(1.06);}
+  }
   .pill{font-size:10.5px;font-weight:800;padding:5px 11px;border-radius:999px;white-space:nowrap;letter-spacing:.01em;z-index:2;backdrop-filter:blur(4px);}
   .card-body{padding:15px 16px 16px;}
   .card-top h3{font-size:15.5px;font-weight:800;margin:0;letter-spacing:-0.012em;}
@@ -1453,7 +1485,7 @@ function renderChips(){
 }
 
 function renderHeroStat(){
-  document.getElementById('heroStat').innerHTML = `<b>${PROPERTIES.length}</b>&nbsp;biens disponibles à Dakar et Thiès`;
+  document.getElementById('heroStat').innerHTML = `<b data-count="${PROPERTIES.length}">${PROPERTIES.length}</b>&nbsp;biens disponibles à Dakar et Thiès`;
 }
 
 // ============================================================
@@ -1769,8 +1801,8 @@ function renderList(){
     const cover = coverUrl(p, 480, 60);
     return `
     <div class="card ${state.selected===p.id?'selected':''}" data-id="${p.id}">
-      <div class="card-photo" style="background:${cover?`center/cover no-repeat url('${cover}')`:`linear-gradient(135deg, ${TYPE_COLOR[p.type]}, #161B22)`}">
-        ${cover?'':typeIcon(p.type)}
+      <div class="card-photo" style="--cover:${cover?`url('${cover}')`:`linear-gradient(135deg, ${TYPE_COLOR[p.type]}, #161B22)`};">
+        ${cover?'':`<span class="card-photo-ico">${typeIcon(p.type)}</span>`}
         <button type="button" class="fav-btn ${isFav(p.id)?'active':''}" data-fav-id="${p.id}" aria-label="Ajouter aux favoris">${favIconSvg(isFav(p.id))}</button>
         <span class="pill" style="position:absolute;bottom:10px;left:10px;background:${STATUS_COLOR[p.status]};color:#fff;">${STATUS_LABEL[p.status]}</span>
         <span class="pill" style="position:absolute;top:10px;left:10px;background:rgba(255,255,255,0.92);color:var(--ink);">${p.operation}</span>
@@ -2489,6 +2521,90 @@ document.querySelectorAll('#viewToggle button').forEach(b=>{
     if(b.dataset.view==='map' && map) setTimeout(()=>map.invalidateSize(), 100);
   };
 });
+</script>
+<script>
+/* Micro-animations d'ambiance — présentation pure, aucune logique métier.
+   Révélation des annonces au défilement, compteurs, ombre d'en-tête.
+   Entièrement neutralisé si l'utilisateur a demandé à réduire les animations. */
+(function(){
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // En-tête : ombre dès qu'on quitte le haut de page (léger, toujours actif).
+  var header = document.querySelector('header');
+  if(header){
+    var ticking = false;
+    function onScroll(){
+      if(ticking) return; ticking = true;
+      requestAnimationFrame(function(){
+        header.classList.toggle('scrolled', window.scrollY > 6);
+        ticking = false;
+      });
+    }
+    addEventListener('scroll', onScroll, {passive:true});
+    onScroll();
+  }
+
+  // Le reste est décoratif : on s'arrête là si les animations sont réduites
+  // ou si le navigateur ne sait pas détecter l'entrée à l'écran.
+  if(reduce || !('IntersectionObserver' in window)) return;
+  document.documentElement.classList.add('js-anim');
+
+  // Révélation des annonces au défilement, avec un léger décalage en cascade.
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(!e.isIntersecting) return;
+      var el = e.target;
+      el.classList.add('is-in');
+      io.unobserve(el);
+      // Le décalage servait à l'entrée ; on le retire ensuite pour que le
+      // survol reste vif.
+      el.addEventListener('transitionend', function h(){
+        el.style.transitionDelay = '';
+        el.removeEventListener('transitionend', h);
+      });
+    });
+  }, {rootMargin:'0px 0px -8% 0px', threshold:0.08});
+
+  function watchCards(){
+    document.querySelectorAll('#list .card:not([data-io])').forEach(function(c, i){
+      c.setAttribute('data-io','1');
+      c.style.transitionDelay = Math.min(i, 7) * 55 + 'ms';
+      io.observe(c);
+    });
+  }
+  var list = document.getElementById('list');
+  if(list){
+    new MutationObserver(watchCards).observe(list, {childList:true});
+    watchCards();
+  }
+
+  // Compteurs : les nombres (<b data-count>) montent de 0 à leur valeur.
+  function countUp(el){
+    if(el.dataset.counted) return; el.dataset.counted = '1';
+    var target = parseInt(el.getAttribute('data-count'), 10) || 0;
+    if(target <= 0){ el.textContent = target; return; }
+    el.textContent = '0';
+    var dur = 900, t0 = null;
+    function step(ts){
+      if(!t0) t0 = ts;
+      var p = Math.min((ts - t0) / dur, 1);
+      el.textContent = Math.round((1 - Math.pow(1 - p, 3)) * target);
+      if(p < 1) requestAnimationFrame(step); else el.textContent = target;
+    }
+    requestAnimationFrame(step);
+  }
+  var cio = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ countUp(e.target); cio.unobserve(e.target); } });
+  }, {threshold:0.6});
+  function watchCounts(){
+    document.querySelectorAll('[data-count]:not([data-counted])').forEach(function(el){ cio.observe(el); });
+  }
+  var heroStat = document.getElementById('heroStat');
+  if(heroStat){
+    new MutationObserver(watchCounts).observe(heroStat, {childList:true});
+    watchCounts();
+  }
+})();
 </script>
 </body>
 </html>
