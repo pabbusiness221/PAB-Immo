@@ -44,7 +44,11 @@ SITE = "https://pabbusiness221.github.io/PAB-Immo"
 
 TEL = "+221778494111"
 TEL_AFFICHE = "+221 77 849 41 11"
+EMAIL = "pab.business221@gmail.com"
 AGENCE = "PAB Immo"
+# Mentions légales, reprises telles quelles au pied des fiches générées.
+NINEA = "012603686"
+RCCM = "SN DKR 2025 A 44101"
 
 # Jeton de validation Google Search Console. Le récupérer dans Search Console
 # (Ajouter une propriété > Préfixe d'URL > Balise HTML), coller ici la valeur
@@ -476,7 +480,10 @@ def page_bien(b, photos, voisins=(), publiee=None):
   .wa{{background:#25D366;color:#fff;}} .tel{{background:var(--accent);color:#1E1607;}}
 {STYLE_VIGNETTES}
   .retour{{display:inline-block;margin-top:30px;font-size:14px;font-weight:700;color:var(--gold);}}
-  footer{{background:var(--night);color:rgba(255,255,255,.5);font-size:12.5px;text-align:center;padding:26px 20px;line-height:1.7;}}
+  footer{{background:var(--night);color:rgba(255,255,255,.5);font-size:12.5px;text-align:center;padding:26px 20px;line-height:1.9;}}
+  footer a{{color:rgba(255,255,255,.72);text-decoration:none;font-weight:600;}}
+  footer a:hover{{color:var(--gold);}}
+  footer .reg{{opacity:.65;font-size:11.5px;}}
 </style>
 <script type="application/ld+json">
 {donnees_structurees(b, photos, url, publiee or date.today().isoformat())}
@@ -525,7 +532,9 @@ def page_bien(b, photos, voisins=(), publiee=None):
 
 <footer>
   {AGENCE} — terrains, maisons, appartements et champs agricoles à Dakar &amp; Thiès<br>
-  {TEL_AFFICHE} · visites sur rendez-vous
+  {TEL_AFFICHE} · {EMAIL} · visites sur rendez-vous<br>
+  <a href="../mentions-legales.html">Mentions légales</a> · <a href="../confidentialite.html">Politique de confidentialité</a><br>
+  <span class="reg">© {date.today().year} {AGENCE} · NINEA {NINEA} · RCCM {RCCM}</span>
 </footer>
 </body>
 </html>
@@ -627,7 +636,10 @@ def page_index(biens, par_bien):
   h2{{font-family:'Manrope',sans-serif;font-size:17px;font-weight:800;margin:32px 0 14px;}}
 {STYLE_VIGNETTES}
   .retour{{display:inline-block;margin-top:30px;font-size:14px;font-weight:700;color:var(--gold);}}
-  footer{{background:var(--night);color:rgba(255,255,255,.5);font-size:12.5px;text-align:center;padding:26px 20px;line-height:1.7;}}
+  footer{{background:var(--night);color:rgba(255,255,255,.5);font-size:12.5px;text-align:center;padding:26px 20px;line-height:1.9;}}
+  footer a{{color:rgba(255,255,255,.72);text-decoration:none;font-weight:600;}}
+  footer a:hover{{color:var(--gold);}}
+  footer .reg{{opacity:.65;font-size:11.5px;}}
 </style>
 <script type="application/ld+json">
 {ld}
@@ -648,7 +660,9 @@ def page_index(biens, par_bien):
 </main>
 
 <footer>
-  {AGENCE} — {TEL_AFFICHE} · visites sur rendez-vous
+  {AGENCE} — {TEL_AFFICHE} · {EMAIL} · visites sur rendez-vous<br>
+  <a href="../mentions-legales.html">Mentions légales</a> · <a href="../confidentialite.html">Politique de confidentialité</a><br>
+  <span class="reg">© {date.today().year} {AGENCE} · NINEA {NINEA} · RCCM {RCCM}</span>
 </footer>
 </body>
 </html>
