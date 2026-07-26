@@ -317,6 +317,7 @@
             <span class="tool"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Prospects</span>
             <span class="tool"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14"/></svg>Agences<span class="pip">2</span></span>
             <span class="tool"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Journal</span>
+            <span class="tool"><svg viewBox="0 0 24 24"><path d="M12 17.3l-6.2 3.7 1.6-7L2 9.2l7.1-.6L12 2l2.9 6.6 7.1.6-5.4 4.8 1.6 7z"/></svg>Avis<span class="pip">1</span></span>
             <span class="tool"><svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>Statistiques</span>
             <span class="tool"><svg viewBox="0 0 24 24"><path d="M4 4h16v12H5.2L4 18z"/></svg>R&#233;ception</span>
             <span class="tool add"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Ajouter un bien</span>
@@ -453,6 +454,36 @@
       </figure>
     </section>
 
+    <!-- ========== AVIS (MOD&#201;RATION) ========== -->
+    <section id="s-avis" data-roles="admin">
+      <p class="eyebrow"><span class="n">R&#233;putation</span></p>
+      <h2 class="sec">Mod&#233;rer les avis clients</h2>
+      <p>Un visiteur peut laisser un <strong>avis</strong> (une note sur 5 &#233;toiles et un commentaire) en bas
+        de la vitrine. Ces avis sont <strong>mod&#233;r&#233;s</strong> : un avis d&#233;pos&#233; n'appara&#238;t
+        <strong>pas</strong> tout de suite. Il arrive dans le bouton <strong>Avis</strong> de la barre
+        d'outils, avec le statut <em>En attente</em>.</p>
+      <figure>
+        <div class="shot" style="padding:18px;background:var(--panel-2);">
+          <div class="card" style="max-width:none;">
+            <div class="bd">
+              <div style="color:var(--gold);letter-spacing:2px;">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+              <p style="margin:6px 0;">&#171; Accompagnement s&#233;rieux, visite bien organis&#233;e. &#187;</p>
+              <div class="foot"><span class="sf"><b>Awa D.</b></span>
+                <span class="acts" style="gap:8px;"><span class="act msg">Publier</span><span class="out">Refuser</span></span></div>
+            </div>
+          </div>
+        </div>
+        <figcaption>&#192; vous de <b>Publier</b> l'avis (il devient visible sur la vitrine) ou de le
+          <b>Refuser</b> s'il est inappropri&#233; ou hors sujet.</figcaption>
+      </figure>
+      <ul>
+        <li>La <strong>note moyenne</strong> montr&#233;e aux visiteurs ne compte que les avis publi&#233;s.</li>
+        <li>La vitrine n'affiche que les <strong>trois plus r&#233;cents</strong>, avec un bouton
+          &#171; Voir tous les avis &#187; : la page reste compacte m&#234;me avec beaucoup d'avis.</li>
+        <li>Personne ne peut publier son propre avis directement &#8212; le verrou est dans la base de donn&#233;es.</li>
+      </ul>
+    </section>
+
     <!-- ========== AGENCES ========== -->
     <section id="s-agences" data-roles="admin">
       <p class="eyebrow"><span class="n">Partenaires</span></p>
@@ -511,8 +542,11 @@
       <p>Le bouton <strong>Vitrine</strong> vous met &#224; leur place. Le guide <em>Client</em> (en haut de
         cette page) d&#233;taille leur parcours. En r&#233;sum&#233;, ils disposent de :</p>
       <ul>
-        <li><strong>Recherche et filtres</strong> &#8212; par commune, prix, surface, chambres, ou autour d'un point sur la carte.</li>
-        <li><strong>Liste et carte</strong>, <strong>favoris</strong>, et une <strong>fiche</strong> par bien avec WhatsApp, appel, message et rendez-vous.</li>
+        <li><strong>Recherche universelle</strong> &#8212; une seule barre qui retrouve un bien par n'importe
+          quelle information (type, lieu, prix, r&#233;f&#233;rence, pi&#232;ces&#8230;), plus des filtres fins.</li>
+        <li><strong>Liste et carte</strong> (avec vue <strong>Plan / Satellite</strong>), <strong>favoris</strong>,
+          et une <strong>fiche</strong> par bien avec WhatsApp, appel, message et rendez-vous.</li>
+        <li><strong>Avis clients</strong> &#8212; que vous mod&#233;rez (voir la section pr&#233;c&#233;dente).</li>
         <li><strong>Partage</strong> et <strong>abonnement aux alertes</strong>.</li>
         <li><strong>Devenir collaborateur</strong> &#8212; le formulaire par lequel les agences vous postulent.</li>
       </ul>
@@ -552,8 +586,10 @@
     <section id="c-chercher" data-roles="client">
       <p class="eyebrow"><span class="n">Trouver</span></p>
       <h2 class="sec">Chercher un bien</h2>
-      <p>Depuis la page d'accueil, tapez une <strong>commune, une r&#233;gion ou une r&#233;f&#233;rence</strong> dans la
-        barre de recherche, ou affinez avec les filtres.</p>
+      <p>Depuis la page d'accueil, tapez <strong>n'importe quelle information</strong> dans la barre de
+        recherche &#8212; un type (&#171; appartement &#187;), un lieu, un prix, une r&#233;f&#233;rence, &#171; &#224; louer &#187;,
+        &#171; 3 chambres &#187;&#8230; Elle ignore les accents (&#171; thies &#187; trouve &#171; Thi&#232;s &#187;). Vous pouvez aussi
+        affiner avec les filtres.</p>
       <figure>
         <div class="shot"><div class="chips">
           <span class="chip on">Tous les biens<span class="c">30</span></span>
@@ -566,7 +602,9 @@
           prix, surface, nombre de chambres, ou <b>autour d'un point sur la carte</b>.</figcaption>
       </figure>
       <ul>
-        <li><strong>Liste ou carte</strong> &#8212; basculez d'un affichage &#224; l'autre ; chaque bien appara&#238;t des deux c&#244;t&#233;s.</li>
+        <li><strong>Liste ou carte</strong> &#8212; basculez d'un affichage &#224; l'autre ; chaque bien appara&#238;t
+          des deux c&#244;t&#233;s. Sur la carte, un bouton <strong>Plan / Satellite</strong> (en haut &#224; droite)
+          bascule en vue a&#233;rienne.</li>
         <li><strong>Favoris</strong> &#8212; le petit c&#339;ur garde un bien de c&#244;t&#233;. Vos favoris restent sur votre
           appareil, sans compte.</li>
       </ul>
@@ -615,6 +653,25 @@
       </ul>
     </section>
 
+    <!-- ========== CLIENT : AVIS ========== -->
+    <section id="c-avis" data-roles="client">
+      <p class="eyebrow"><span class="n">Votre exp&#233;rience</span></p>
+      <h2 class="sec">Laisser un avis</h2>
+      <p>Tout en bas de la vitrine, vous pouvez partager votre exp&#233;rience : une <strong>note</strong> (de 1
+        &#224; 5 &#233;toiles) et un <strong>commentaire</strong>. C'est le bouton <strong>&#171; Laisser un avis &#187;</strong>.</p>
+      <figure>
+        <div class="shot" style="padding:18px;background:var(--panel-2);">
+          <div style="text-align:center;">
+            <div style="color:var(--gold);font-size:26px;letter-spacing:4px;">&#9733;&#9733;&#9733;&#9733;&#9734;</div>
+            <div class="in" style="margin:10px auto;max-width:340px;text-align:left;">Votre avis&#8230;</div>
+            <span class="act msg">Envoyer mon avis</span>
+          </div>
+        </div>
+        <figcaption>Votre avis n'appara&#238;t pas tout de suite : l'agence le <b>relit</b> avant de le publier,
+          pour garder des avis fiables. Les plus r&#233;cents s'affichent en premier.</figcaption>
+      </figure>
+    </section>
+
     <!-- ========== CLIENT : ALERTES ========== -->
     <section id="c-alertes" data-roles="client">
       <p class="eyebrow"><span class="n">Ne rien manquer</span></p>
@@ -651,7 +708,7 @@
       <p data-roles="collab">Une question qui d&#233;passe la gestion de vos biens ? Contactez l'&#233;quipe PAB Immo :
         elle garde la main sur la publication, les agences et le r&#233;f&#233;rencement.</p>
       <p data-roles="client">Une question ? &#201;crivez-nous sur WhatsApp ou appelez-nous &#8212; nous r&#233;pondons vite.</p>
-      <p>PAB Immo &#8212; Dakar &amp; Thi&#232;s &#183; Guide mis &#224; jour le 22 juillet 2026.</p>
+      <p>PAB Immo &#8212; Dakar &amp; Thi&#232;s &#183; Guide mis &#224; jour le 25 juillet 2026.</p>
     </footer>
 
   </main>
@@ -661,9 +718,9 @@
   const titres = {
     's-intro':'Bienvenue', 's-login':'Se connecter', 's-bar':"La barre d'outils",
     's-biens':'G\u00e9rer les biens', 's-badges':'Badges de confiance', 's-sponso':'Mettre en avant',
-    's-demandes':'Demandes des clients', 's-agences':'Agences collaboratrices', 's-stats':'Statistiques',
+    's-demandes':'Demandes des clients', 's-avis':'Mod\u00e9rer les avis', 's-agences':'Agences collaboratrices', 's-stats':'Statistiques',
     's-alertes':'Alertes email', 's-vitrine':'C\u00f4t\u00e9 client', 's-entretien':'Entretien',
-    'c-chercher':'Chercher un bien', 'c-contact':"Contacter l'agence",
+    'c-chercher':'Chercher un bien', 'c-contact':"Contacter l'agence", 'c-avis':'Laisser un avis',
     'c-alertes':'\u00catre alert\u00e9', 'c-partage':'Partager & nous rejoindre'
   };
   const list = document.getElementById('tocList');
