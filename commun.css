@@ -8,43 +8,46 @@
    se charge AVANT le <style> de chaque page, qui peut donc surcharger au besoin.
    ============================================================================ */
 
-:root{
-    --bg:#F6F5F2;
-    --surface:#FFFFFF;
-    --surface-alt:#F2F0EA;
-    --ink:#131A17;
-    --ink-soft:#6B7772;
-    --border:#E6E3DB;
-
-    --primary:#123027;
-    --primary-dark:#0B1F19;
-    --accent:#E2A22C;
-    --accent-dark:#C8871A;
-    --accent-soft:#FBF2DF;
-
-    --success:#2F7A4E;
-    --warning:#D08A16;
-    --danger:#C4432F;
-
-    /* Couleurs métier (cohérentes avec TYPE_COLOR / STATUS_COLOR en JS) */
-    --brick:#B24A2C;   /* Terrain */
-    --navy:#2E4A61;    /* Maison */
-    --teal:#1F7A73;    /* Appartement */
-    --gold:#8F6414;    /* Réservé / valeur */
-    --sage:#3F7A49;    /* Disponible */
-    --stone:#8B9199;   /* Vendu / Loué */
-
-    --night:#0C1613;
-    --night-2:#14261F;
-
-    --radius-sm:12px;
-    --radius-md:16px;
-    --radius-lg:20px;
-    --radius-xl:28px;
-    --ease:cubic-bezier(.4,0,.2,1);
-    --shadow:0 1px 2px rgba(18,48,39,0.04), 0 10px 24px -14px rgba(18,48,39,0.20);
-    --shadow-lg:0 28px 60px -24px rgba(12,22,19,0.34);
-    --focus-ring:0 0 0 3px rgba(226,162,44,0.45);
+:root{
+    --bg:#F6F5F2;
+    --surface:#FFFFFF;
+    --surface-alt:#F2F0EA;
+    --ink:#131A17;
+    /* #6B7772 (l'original) ne passait pas le seuil WCAG AA sur --bg
+       (4,27:1, il faut 4,5:1). Assombri à teinte égale : 4,93:1 sur --bg,
+       5,38:1 sur --surface — le changement n'est quasiment pas perceptible. */
+    --ink-soft:#626D68;
+    --border:#E6E3DB;
+
+    --primary:#123027;
+    --primary-dark:#0B1F19;
+    --accent:#E2A22C;
+    --accent-dark:#C8871A;
+    --accent-soft:#FBF2DF;
+
+    --success:#2F7A4E;
+    --warning:#D08A16;
+    --danger:#C4432F;
+
+    /* Couleurs métier (cohérentes avec TYPE_COLOR / STATUS_COLOR en JS) */
+    --brick:#B24A2C;   /* Terrain */
+    --navy:#2E4A61;    /* Maison */
+    --teal:#1F7A73;    /* Appartement */
+    --gold:#8F6414;    /* Réservé / valeur */
+    --sage:#3F7A49;    /* Disponible */
+    --stone:#8B9199;   /* Vendu / Loué */
+
+    --night:#0C1613;
+    --night-2:#14261F;
+
+    --radius-sm:12px;
+    --radius-md:16px;
+    --radius-lg:20px;
+    --radius-xl:28px;
+    --ease:cubic-bezier(.4,0,.2,1);
+    --shadow:0 1px 2px rgba(18,48,39,0.04), 0 10px 24px -14px rgba(18,48,39,0.20);
+    --shadow-lg:0 28px 60px -24px rgba(12,22,19,0.34);
+    --focus-ring:0 0 0 3px rgba(226,162,44,0.45);
   }
 
 *{box-sizing:border-box;}

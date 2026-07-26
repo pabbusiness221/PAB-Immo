@@ -543,7 +543,9 @@
     .card-foot{flex-direction:column;align-items:flex-start;gap:3px;margin-top:9px;padding-top:9px;}
     .price{font-size:13.5px;}
     .surface-txt{font-size:11px;}
-    .card-photo .fav-btn{width:36px;height:36px;top:8px;right:8px;}
+    /* 44x44 minimum (WCAG 2.5.5 / norme tactile usuelle) : à 36px, un doigt
+       un peu large touche à côté. */
+    .card-photo .fav-btn{width:44px;height:44px;top:6px;right:6px;}
     .card-photo .pill{font-size:9.5px;padding:3px 8px;}
     .list-pager{flex-direction:column;padding:14px;}
     .pager-btn{width:100%;}
@@ -570,7 +572,9 @@
     header{background:#0C1613;backdrop-filter:none;-webkit-backdrop-filter:none;}
     .mobile-contact-bar{background:#fff;backdrop-filter:none;-webkit-backdrop-filter:none;}
     .pill{backdrop-filter:none;-webkit-backdrop-filter:none;}
-    .chip{padding:11px 15px;}
+    /* min-height 44px (norme tactile) sans changer l'apparence : la puce
+       reste visuellement identique, seule sa zone cliquable grandit. */
+    .chip{padding:11px 15px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;}
     /* Liens de pied de page : 16 px de haut, c'était intouchable au doigt. */
     .footer-links{gap:2px;}
     .footer-links a{padding:9px 0;}
@@ -582,7 +586,7 @@
        barre de contact fixe déjà présente en bas d'écran. */
     .alert-card{display:none;}
     .alert-form-mobile-title{display:block;}
-    .fav-btn{width:40px;height:40px;}
+    .fav-btn{width:44px;height:44px;}
     .gallery-main{min-height:0;padding:12px;}
     .gallery-nav,.gallery-close{width:44px;height:44px;}
     .adv-search-grid{grid-template-columns:1fr;padding:16px 16px 8px;}
