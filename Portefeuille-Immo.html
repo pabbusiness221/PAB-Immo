@@ -1499,7 +1499,7 @@ function useCurrentPosition(){
   
   navigator.geolocation.getCurrentPosition(
     async (pos) => {
-      const { latitude, longitude } = pos.coords;
+      const { latitude, longitude, accuracy } = pos.coords;
       setFormLatLng(latitude, longitude);
       formMarker.setLatLng([latitude, longitude]);
       formMapInstance.setView([latitude, longitude], 16);
@@ -1508,11 +1508,31 @@ function useCurrentPosition(){
 
       btn.disabled = false;
       btn.innerHTML = originalText;
+
+      // Un ordinateur n'a presque jamais de puce GPS : il devine la position
+      // via le Wi-Fi ou l'adresse IP, avec une marge d'erreur qui peut
+      // atteindre plusieurs kilomètres — surtout au Sénégal, où la base de
+      // données Wi-Fi des grands fournisseurs est peu fournie. Le navigateur
+      // renvoie cette marge (accuracy, en mètres) : on prévient plutôt que de
+      // laisser croire à une position exacte.
+      const precise = Number.isFinite(accuracy);
+      const tresApprox = precise && accuracy > 500;
+      const approx = precise && accuracy > 50 && accuracy <= 500;
+      let couleur = '#3F7A49', texte;
+      if(tresApprox){
+        couleur = '#C4432F';
+        texte = `⚠ Position très approximative (± ${Math.round(accuracy)} m) — probablement un ordinateur sans GPS. Ajustez le marqueur sur la carte avant d'enregistrer.`;
+      } else if(approx){
+        couleur = '#D08A16';
+        texte = `Position capturée à ± ${Math.round(accuracy)} m — vérifiez/ajustez le marqueur sur la carte pour plus de précision.`;
+      } else {
+        texte = localiseOk ? '✓ Position capturée · commune, département et région remplis' : '✓ Position capturée (vérifiez commune/département manuellement)';
+      }
       const msg = document.createElement('div');
-      msg.style.cssText = 'position:fixed;top:20px;right:20px;background:#3F7A49;color:#fff;padding:12px 16px;border-radius:8px;font-size:13px;font-weight:600;z-index:999;box-shadow:var(--shadow-lg)';
-      msg.textContent = localiseOk ? '✓ Position capturée · commune, département et région remplis' : '✓ Position capturée (vérifiez commune/département manuellement)';
+      msg.style.cssText = `position:fixed;top:20px;right:20px;max-width:340px;background:${couleur};color:#fff;padding:12px 16px;border-radius:8px;font-size:13px;font-weight:600;line-height:1.4;z-index:999;box-shadow:var(--shadow-lg)`;
+      msg.textContent = texte;
       document.body.appendChild(msg);
-      setTimeout(() => msg.remove(), 3000);
+      setTimeout(() => msg.remove(), tresApprox || approx ? 6000 : 3000);
     },
     (err) => {
       btn.disabled = false;
