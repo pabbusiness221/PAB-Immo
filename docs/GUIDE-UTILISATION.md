@@ -1,6 +1,6 @@
 # Guide d'utilisation — PAB Immo
 
-Dernière mise à jour : **22 juillet 2026**
+Dernière mise à jour : **25 juillet 2026**
 
 Ce guide explique comment faire fonctionner le site au quotidien. Il s'adresse à
 vous, sans supposer de connaissances techniques. Les sujets purement techniques
@@ -63,6 +63,7 @@ De gauche à droite, selon votre niveau de compte :
 | **Prospects** | Le suivi des personnes qui vous ont contacté (admin) |
 | **Agences** | Les collaborateurs et les candidatures d'agences (admin) |
 | **Journal** | L'historique de qui a fait quoi (admin) |
+| **Avis** | La modération des avis clients laissés sur la vitrine (admin) |
 | **Statistiques** | Les chiffres de fréquentation et de conversion |
 | **Boîte de réception** | Les messages et demandes de rendez-vous (admin) |
 | **Ajouter un bien** | Le formulaire de création (bouton doré) |
@@ -176,6 +177,22 @@ depuis combien de jours chacun n'a pas donné signe de vie, pour savoir qui
 relancer. Le **taux de conversion** en haut se calcule sur les dossiers tranchés
 (conclus + perdus), pas sur le total — il ne chute pas à chaque nouveau contact.
 
+### Modérer les avis clients
+
+Un visiteur peut laisser un **avis** (une note sur 5 étoiles + un commentaire) en
+bas de la vitrine. Ces avis sont **modérés** : un avis déposé n'apparaît **pas**
+tout de suite. Il arrive dans le bouton **Avis** de la barre d'outils, avec le
+statut *En attente*.
+
+À vous de le **publier** (il devient alors visible sur la vitrine) ou de le
+**refuser** s'il est inapproprié, mensonger ou hors sujet. La note moyenne
+affichée aux visiteurs ne compte que les avis publiés. La vitrine n'en montre que
+les **trois plus récents**, avec un bouton « Voir tous les avis » pour déplier le
+reste — la page reste donc compacte même avec beaucoup d'avis.
+
+> Personne ne peut publier son propre avis directement : le verrou est dans la
+> base de données, pas seulement à l'écran.
+
 ---
 
 ## 8. Les agences collaboratrices
@@ -238,25 +255,37 @@ enregistrée, mais personne n'est prévenu.
 
 Pour vous mettre à leur place, ouvrez la vitrine par le bouton **Vitrine**.
 
-- **Recherche** par commune, région ou référence, et filtres par type, prix,
-  surface, chambres, ou autour d'un point sur la carte.
-- **Liste et carte** : chaque bien apparaît des deux côtés.
+- **Recherche universelle** : une seule barre qui retrouve un bien par **n'importe
+  quelle information** — type, opération (« à louer »…), quartier, commune,
+  département, région, statut, **référence**, **prix**, nombre de pièces,
+  superficie ou description. Elle ignore les accents et la casse (« thies »
+  trouve « Thiès »). En plus, des **filtres avancés** : prix, surface, chambres,
+  ou autour d'un point sur la carte.
+- **Liste et carte** : chaque bien apparaît des deux côtés. La carte propose un
+  bouton **Plan / Satellite** (vue aérienne) en haut à droite.
 - **Favoris** : le visiteur peut marquer des biens (gardés sur son appareil).
-- **Fiche d'un bien** : photos, caractéristiques, carte, et boutons **WhatsApp**
-  et **Appeler**, plus un formulaire de message et de rendez-vous.
+- **Fiche d'un bien** : photos, caractéristiques, carte (Plan / Satellite), et
+  boutons **WhatsApp** et **Appeler**, plus un formulaire de message et de
+  rendez-vous.
+- **Avis** : en bas de page, le visiteur peut laisser une note et un commentaire.
+  Ils n'apparaissent qu'après votre validation (voir §7, *Modérer les avis*).
 - **Partage** : le bouton *Partager* envoie un lien qui, sur WhatsApp ou
   Facebook, affiche la photo et le prix du bien.
 - **Devenir collaborateur** : en bas de page, le formulaire par lequel les
   agences vous postulent (voir §8).
+- **Bas de page** : réseaux sociaux, coordonnées, et les pages **Mentions
+  légales** et **Politique de confidentialité**.
 
 ---
 
 ## 12. Les tâches d'entretien
 
 **Régénérer les fiches Google** : chaque bien publié a une page dédiée que Google
-peut lire. Elle est reconstruite **automatiquement chaque nuit**. Pour ne pas
-attendre, un bouton *Run workflow* existe sur GitHub. Détails et cas où c'est
-nécessaire : [MISE-EN-LIGNE.md](MISE-EN-LIGNE.md).
+et les aperçus de partage (WhatsApp, Facebook) savent lire. Elle est reconstruite
+**automatiquement toutes les 15 minutes**. Un bien fraîchement ajouté est donc
+partageable avec sa photo, son type et son lieu en un quart d'heure au plus. Pour
+ne pas attendre, un bouton *Run workflow* existe sur GitHub. Détails :
+[MISE-EN-LIGNE.md](MISE-EN-LIGNE.md).
 
 **Sauvegardes** : la procédure pour sauvegarder et restaurer vos données est
 dans [SAUVEGARDES.md](SAUVEGARDES.md). À faire régulièrement une fois en ligne.
@@ -267,7 +296,8 @@ dans [SAUVEGARDES.md](SAUVEGARDES.md). À faire régulièrement une fois en lign
 
 | Symptôme | Explication |
 |---|---|
-| Un bien publié n'apparaît pas sur Google | Normal : sa fiche est régénérée la nuit, et l'indexation prend des semaines. Voir [REFERENCEMENT.md](REFERENCEMENT.md). |
+| Un bien publié n'apparaît pas sur Google | Normal : sa fiche est régénérée toutes les 15 min, mais l'indexation par Google prend des semaines. Voir [REFERENCEMENT.md](REFERENCEMENT.md). |
+| Le partage d'un bien tout neuf ne montre pas sa photo | Sa fiche n'est pas encore régénérée. Attendez 15 min, ou lancez *Run workflow*. Un bien doit aussi avoir au moins une photo. |
 | Le bandeau rouge des emails persiste | Il reflète les 7 derniers jours ; il part dès qu'un envoi réussit. Voir §10. |
 | Un bien n'apparaît pas sur la carte | Vérifiez sa latitude et sa longitude. |
 | Un collaborateur ne voit pas un bien | Normal s'il n'en est pas le propriétaire : chacun ne voit que les siens. |

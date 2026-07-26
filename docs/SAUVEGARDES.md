@@ -1,6 +1,6 @@
 # Sauvegardes et restauration — PAB Immo
 
-Dernière vérification du schéma : **21 juillet 2026**
+Dernier test de restauration complet : **21 juillet 2026** · schéma revalidé (syntaxe) : **25 juillet 2026**
 Projet Supabase : `avanktgaxepzpqmsiauz` (région eu-west-1)
 
 ---
@@ -140,11 +140,14 @@ Une sauvegarde jamais restaurée n'est pas une sauvegarde. Le test se fait sur u
 | Un collaborateur ne peut pas certifier son propre bien | ✅ refusé par le déclencheur |
 | Un collaborateur peut confirmer la disponibilité | ✅ |
 
-> **Depuis ce test, le schéma a grandi.** Le pipeline de prospects du 22 juillet 2026
-> ajoute une table, une vue, quatre fonctions, trois déclencheurs, deux index et
-> quatre politiques. Sa syntaxe et son ordre de déclaration ont été vérifiés hors
-> ligne, mais **il n'a pas été rejoué sur une base vierge**. Le tableau ci-dessus
-> reste le constat du 21 juillet, il n'a pas été réécrit après coup.
+> **Depuis ce test, le schéma a grandi.** Le pipeline de prospects (22 juillet
+> 2026) ajoute une table, une vue, quatre fonctions, trois déclencheurs, deux
+> index et quatre politiques. Les **avis clients** (25 juillet) ajoutent la table
+> `reviews`, la vue `public_reviews`, la vue `public_stats`, deux déclencheurs
+> (limite anti-spam + horodatage de modération) et leurs politiques. L'ensemble a
+> été vérifié syntaxiquement hors ligne (pglast), mais **n'a pas été rejoué sur
+> une base vierge**. Le tableau ci-dessus reste le constat du 21 juillet, il n'a
+> pas été réécrit après coup.
 
 **Un défaut réel a été trouvé et corrigé grâce à ce test** : la colonne `location`
 était transcrite en `default (st_setsrid(...))` alors qu'il s'agit d'une colonne

@@ -1,6 +1,6 @@
 # Mise en ligne — procédure
 
-Dernière mise à jour : **22 juillet 2026**
+Dernière mise à jour : **25 juillet 2026**
 
 Le site est actuellement **en maintenance**. Ce document décrit la bascule vers
 le site public, dans l'ordre. Il existe parce que la bascule touche cinq
@@ -18,10 +18,18 @@ publiant de fausses annonces.
 | `index.html` | Copie de la page de maintenance, pour couvrir la racine du dossier. |
 | `vitrine.html` | Le vrai catalogue, en `noindex`, invisible du public. |
 | `Portefeuille-Immo.html` | L'espace de gestion. Accessible normalement. |
-| `bien/` | 24 fiches générées à partir de **données fictives**. |
+| `mentions-legales.html`, `confidentialite.html` | Pages légales (en `noindex`). Reliées au pied de la vitrine. |
+| `bien/` | Les fiches générées à partir de **données fictives**. |
 
-Les 24 biens en base sont un **jeu d'essai**. Ils seront supprimés et remplacés
-par le vrai portefeuille.
+Les biens en base sont un **jeu d'essai**. Ils seront supprimés et remplacés par
+le vrai portefeuille. Attention : quelques-uns portent une référence ou une
+région de test (« THIES », « Région de Dakar », réf. `…-test`) — ils partent avec
+le reste au nettoyage.
+
+> **Prérequis d'hébergement** (à régler avant l'annonce publique) : passer le
+> projet **Supabase en plan Pro** (le gratuit se met en pause et plafonne le
+> trafic) et **vérifier le domaine d'envoi chez Resend** pour des e-mails d'alerte
+> fiables. Voir aussi [NOM-DE-DOMAINE.md](NOM-DE-DOMAINE.md).
 
 ---
 
@@ -122,12 +130,16 @@ lorsque le générateur est passé. Une fiche non régénérée continue d'annon
 ancien prix, ou un bien déjà vendu.
 
 **C'est automatique.** L'action `.github/workflows/actualiser-fiches.yml`
-régénère et publie les fiches **chaque nuit à 4 h** (heure de Dakar). Elle ne
-committe que s'il y a réellement du nouveau, et refuse de publier si le
-vérificateur trouve une incohérence — auquel cas GitHub envoie un mail.
+régénère et publie les fiches **toutes les 15 minutes**. Un bien fraîchement
+ajouté est ainsi visible de Google — et surtout **partageable avec sa photo, son
+type et son lieu** sur WhatsApp/Facebook — en un quart d'heure au plus, au lieu
+d'attendre la nuit. Le contrôle de cohérence ne s'exécute que lorsqu'il y a
+réellement quelque chose à publier : les exécutions à vide (l'immense majorité)
+ne peuvent ni échouer ni envoyer de mail. En cas d'incohérence sur un vrai
+changement, la publication est refusée et GitHub envoie un mail.
 
-**Pour ne pas attendre la nuit** : onglet **Actions** du dépôt → *Actualiser les
-fiches* → bouton **Run workflow**. Comptez deux minutes.
+**Pour ne pas attendre les 15 minutes** : onglet **Actions** du dépôt →
+*Actualiser les fiches* → bouton **Run workflow**. Comptez deux minutes.
 
 **Manuellement**, si besoin :
 
@@ -139,8 +151,9 @@ git add -A && git commit -m "Actualiser les fiches" && git push
 
 > **Deux choses à savoir sur les actions planifiées.** GitHub les **désactive
 > après 60 jours sans aucune activité** sur le dépôt — il envoie un mail avant,
-> et un simple clic les réactive. Et l'heure de déclenchement peut glisser d'une
-> heure quand ses serveurs sont chargés ; ce n'est pas une panne.
+> et un simple clic les réactive. Et un déclenchement toutes les 15 min peut
+> glisser de quelques minutes quand ses serveurs sont chargés ; ce n'est pas une
+> panne.
 
 ### Ce que l'action ne fait pas
 

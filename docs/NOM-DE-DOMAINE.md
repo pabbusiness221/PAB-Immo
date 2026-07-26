@@ -1,6 +1,6 @@
 # Brancher un nom de domaine
 
-Dernière mise à jour : **22 juillet 2026**
+Dernière mise à jour : **25 juillet 2026**
 
 ---
 
@@ -92,10 +92,10 @@ Dans [`outils/generer-pages.py`](../outils/generer-pages.py) :
 SITE = "https://pabimmo.sn"        # sans barre oblique finale
 ```
 
-Puis `python outils/generer-pages.py`. Les 25 fiches, le `sitemap.xml` et le
+Puis `python outils/generer-pages.py`. Toutes les fiches, le `sitemap.xml` et le
 `robots.txt` se réécrivent avec la nouvelle adresse.
 
-### Six lignes à changer à la main
+### Les balises absolues à changer à la main
 
 Dans `vitrine.html` (ou `Biens-Immo.html` s'il a déjà été renommé) — ces balises
 doivent figurer en dur dans le code source, les moteurs et les réseaux sociaux
@@ -104,6 +104,7 @@ ne les liraient pas autrement :
 | Balise | Nouvelle valeur |
 |---|---|
 | `og:image` | `https://pabimmo.sn/assets/dakar-aerienne.jpg` |
+| `og:image:secure_url` | `https://pabimmo.sn/assets/dakar-aerienne.jpg` |
 | `og:url` | `https://pabimmo.sn/Biens-Immo.html` |
 | `canonical` | `https://pabimmo.sn/Biens-Immo.html` |
 | `twitter:image` | `https://pabimmo.sn/assets/dakar-aerienne.jpg` |

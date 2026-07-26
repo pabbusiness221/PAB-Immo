@@ -1,6 +1,6 @@
 # Référencement — PAB Immo
 
-Dernière mise à jour : **22 juillet 2026**
+Dernière mise à jour : **25 juillet 2026**
 
 ---
 
@@ -30,7 +30,7 @@ n'a nulle part où aller. Trois liaisons évitent ça :
 
 | Fichier | Rôle |
 |---|---|
-| `bien/index.html` | Index statique du catalogue. C'est la seule page en HTML pur qui pointe vers les 24 fiches — la vitrine, construite en JavaScript, n'affiche aucun lien dans son code source. |
+| `bien/index.html` | Index statique du catalogue. C'est la seule page en HTML pur qui pointe vers toutes les fiches — la vitrine, construite en JavaScript, n'affiche aucun lien dans son code source. |
 | Bloc « Autres biens » | Trois biens proches en fin de chaque fiche, classés par commune, puis type, puis opération. |
 | `bien/index.json` | Liste des fiches réellement écrites. La vitrine s'en sert pour ouvrir la fiche d'un bien ; comme elle ne lit que ce qui existe, elle ne peut pas fabriquer de lien mort. |
 
@@ -48,6 +48,10 @@ python outils/generer-pages.py
 Un bien ajouté, modifié, dépublié ou archivé ne sera reflété qu'après un nouveau
 passage du script. Le dossier `bien/` est reconstruit de zéro à chaque fois :
 un bien dépublié ne laisse pas de page fantôme derrière lui.
+
+> En pratique vous n'avez rien à lancer : l'action GitHub le fait **toutes les
+> 15 minutes** (voir [MISE-EN-LIGNE.md](MISE-EN-LIGNE.md)). Ce rappel manuel ne
+> sert qu'en dépannage.
 
 ---
 
@@ -125,7 +129,7 @@ sitemap.xml
 ```
 
 L'adresse complète est `https://pabbusiness221.github.io/PAB-Immo/sitemap.xml`
-(déjà en ligne, XML validé, 25 adresses).
+(déjà en ligne, XML validé — il liste automatiquement toutes les fiches).
 
 ---
 
@@ -147,9 +151,9 @@ pour un site neuf.
 
 ## 5. Sur quelles recherches viser
 
-Avec 24 biens, se battre sur « immobilier Sénégal » ou « agence immobilière
-Dakar » est perdu d'avance : ces requêtes sont tenues par des portails à
-plusieurs milliers d'annonces.
+Avec un catalogue de cette taille, se battre sur « immobilier Sénégal » ou
+« agence immobilière Dakar » est perdu d'avance : ces requêtes sont tenues par
+des portails à plusieurs milliers d'annonces.
 
 Les requêtes atteignables sont **précises**, et ce sont elles qui amènent des
 acheteurs sérieux :
