@@ -1494,40 +1494,12 @@ function rebuildMarkers(list){
   });
 }
 
-// ---- Recherche universelle -------------------------------------------------
-// La barre ne visait au départ que la commune et la région. Elle couvre
-// désormais TOUTE l'information publique d'un bien : type, opération, lieu
-// (quartier, commune, département, région), statut, référence, prix, pièces,
-// superficie et description. La comparaison ignore accents et casse, et chaque
-// mot tapé doit se retrouver quelque part dans la fiche : « appartement thies »
-// trouve un appartement à Thiès, « 3 chambres louer » un logement à louer de
-// trois chambres.
-function sansAccents(s){
-  return String(s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-}
-function texteRecherche(p){
-  if(p._recherche) return p._recherche;
-  const parts = [
-    p.ref, p.type, p.operation,
-    p.operation === 'Vente' ? 'à vendre vente achat acheter' : '',
-    p.operation === 'Location' ? 'à louer location louer loyer' : '',
-    p.commune, p.region, p.quartier, p.departement,
-    p.status, STATUS_LABEL[p.status] || '',
-    p.desc,
-    (p.type === 'Champ agricole') ? 'hectare hectares champ agricole terre' : '',
-    Number.isFinite(p.surface) ? p.surface + (typeof surfaceUnit === 'function' ? ' ' + surfaceUnit(p.type) : '') : '',
-    Number.isFinite(p.price) ? p.price + ' fcfa ' + p.price.toLocaleString('fr-FR') : ''
-  ];
-  if(p.rooms){
-    if(p.rooms.chambres != null) parts.push(p.rooms.chambres + ' chambres chambre');
-    if(p.rooms.salons != null) parts.push(p.rooms.salons + ' salon salons séjour');
-    if(p.rooms.sdb != null) parts.push(p.rooms.sdb + ' salle de bain douche sdb');
-    if(p.rooms.cuisine) parts.push('cuisine');
-    if(Array.isArray(p.rooms.autres) && p.rooms.autres.length) parts.push(p.rooms.autres.join(' '));
-  }
-  p._recherche = sansAccents(parts.filter(Boolean).join(' '));
-  return p._recherche;
-}
+// sansAccents() et texteRecherche() — la recherche universelle (type,
+// opération, lieu, statut, référence, prix, pièces, description...) — vivent
+// désormais dans commun.js, partagées avec le portefeuille : la recherche
+// admin ne couvrait auparavant que commune/région/référence/quartier, une
+// incohérence avec celle-ci. « appartement thies » trouve un appartement à
+// Thiès, « 3 chambres louer » un logement à louer de trois chambres.
 
 function filtered(){
   return PROPERTIES.filter(p=>{

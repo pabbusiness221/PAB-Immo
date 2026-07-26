@@ -471,7 +471,7 @@
     </div>
     <div class="searchbar">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="search" placeholder="Rechercher une commune, une région, une référence…" />
+      <input id="search" placeholder="Rechercher : type, lieu, prix, réf, pièces…" />
     </div>
     <!-- Outils de gestion regroupés dans un menu : la barre reste nette. Chaque
          entrée garde son identifiant d'origine, donc son câblage JavaScript. -->
@@ -766,8 +766,12 @@ function filtered(){
     if(state.type!=='Tous' && p.type!==state.type) return false;
     if(state.status!=='Tous' && p.status!==state.status) return false;
     if(state.search){
-      const q=state.search.toLowerCase();
-      if(!((p.commune||'').toLowerCase().includes(q)||(p.region||'').toLowerCase().includes(q)||(p.ref||'').toLowerCase().includes(q)||(p.quartier||'').toLowerCase().includes(q))) return false;
+      // Même recherche universelle que la vitrine (commun.js) : type,
+      // opération, lieu, statut, référence, prix, pièces, description...
+      // au lieu de commune/région/référence/quartier seulement.
+      const hay = texteRecherche(p);
+      const mots = sansAccents(state.search).split(/\s+/).filter(Boolean);
+      if(!mots.every(m => hay.includes(m))) return false;
     }
     return true;
   });

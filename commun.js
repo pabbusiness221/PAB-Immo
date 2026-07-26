@@ -59,6 +59,43 @@ function esc(s){
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+// ---- Recherche universelle -------------------------------------------------
+// Partagée par la vitrine et le portefeuille : auparavant dupliquée, la
+// recherche admin ne couvrait que commune/région/référence/quartier alors que
+// celle de la vitrine couvrait tout (type, opération, prix, pièces, statut,
+// description...). Une seule barre tapait donc deux comportements différents
+// selon la page. La comparaison ignore accents et casse ; chaque mot tapé doit
+// se retrouver quelque part dans la fiche.
+function sansAccents(s){
+  return String(s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+function texteRecherche(p){
+  if(p._recherche) return p._recherche;
+  // STATUS_LABEL (libellés côté vitrine, ex. « Sous offre ») n'existe que sur
+  // la vitrine : absent côté admin, on retombe simplement sur le statut brut.
+  const libelleStatut = (typeof STATUS_LABEL !== 'undefined' && STATUS_LABEL[p.status]) || '';
+  const parts = [
+    p.ref, p.type, p.operation,
+    p.operation === 'Vente' ? 'à vendre vente achat acheter' : '',
+    p.operation === 'Location' ? 'à louer location louer loyer' : '',
+    p.commune, p.region, p.quartier, p.departement,
+    p.status, libelleStatut,
+    p.desc,
+    (p.type === 'Champ agricole') ? 'hectare hectares champ agricole terre' : '',
+    Number.isFinite(p.surface) ? p.surface + ' ' + surfaceUnit(p.type) : '',
+    Number.isFinite(p.price) ? p.price + ' fcfa ' + p.price.toLocaleString('fr-FR') : ''
+  ];
+  if(p.rooms){
+    if(p.rooms.chambres != null) parts.push(p.rooms.chambres + ' chambres chambre');
+    if(p.rooms.salons != null) parts.push(p.rooms.salons + ' salon salons séjour');
+    if(p.rooms.sdb != null) parts.push(p.rooms.sdb + ' salle de bain douche sdb');
+    if(p.rooms.cuisine) parts.push('cuisine');
+    if(Array.isArray(p.rooms.autres) && p.rooms.autres.length) parts.push(p.rooms.autres.join(' '));
+  }
+  p._recherche = sansAccents(parts.filter(Boolean).join(' '));
+  return p._recherche;
+}
+
 // ---- Icônes par type de bien ----------------------------------------------
 // Les tracés sont stockés sans dimension : c'est typeIcon qui pose la taille
 // demandée. Auparavant chaque page gardait ses icônes à une taille figée et les
