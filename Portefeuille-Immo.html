@@ -576,22 +576,22 @@
 </div>
 
 <div class="overlay" id="overlay"></div>
-<div class="drawer" id="drawer"></div>
+<div class="drawer" id="drawer" role="dialog" aria-modal="true"></div>
 <div class="overlay" id="formOverlay"></div>
-<div class="drawer" id="formDrawerPanel"></div>
+<div class="drawer" id="formDrawerPanel" role="dialog" aria-modal="true"></div>
 <div class="gallery-modal hidden" id="galleryModal"></div>
 
 <div class="overlay" id="inboxOverlay"></div>
-<div class="drawer" id="inboxDrawer"></div>
+<div class="drawer" id="inboxDrawer" role="dialog" aria-modal="true"></div>
 <div class="overlay" id="journalOverlay"></div>
-<div class="drawer" id="journalDrawer"></div>
+<div class="drawer" id="journalDrawer" role="dialog" aria-modal="true"></div>
 <div class="overlay" id="agencesOverlay"></div>
-<div class="drawer" id="agencesDrawer"></div>
+<div class="drawer" id="agencesDrawer" role="dialog" aria-modal="true"></div>
 <div class="overlay" id="prospectsOverlay"></div>
-<div class="drawer" id="prospectsDrawer"></div>
+<div class="drawer" id="prospectsDrawer" role="dialog" aria-modal="true"></div>
 <div class="overlay" id="avisOverlay"></div>
-<div class="drawer" id="avisDrawer"></div>
-<div class="analytics-overlay hidden" id="analyticsOverlay"></div>
+<div class="drawer" id="avisDrawer" role="dialog" aria-modal="true"></div>
+<div class="analytics-overlay hidden" id="analyticsOverlay" role="dialog" aria-modal="true"></div>
 
 <!-- Versions figées (pas juste « @2 ») et intégrité vérifiée (SRI) : sans
      cela, jsDelivr peut servir une version mineure différente d'un jour à
@@ -1070,6 +1070,7 @@ function openDrawer(p){
   document.getElementById('drawer').classList.add('open');
   document.getElementById('overlay').classList.add('open');
   updateScrollLock();
+  focoliserPanneauAdmin('drawer');
 }
 async function archiveProperty(prop){
   if(!confirm("Archiver ce bien ? Il quittera la vitrine cliente et les listes courantes, mais restera consultable et restaurable dans l'onglet Archives.")) return;
@@ -1236,6 +1237,7 @@ function closeDrawer(){
   renderList();
   rebuildMarkers(filtered());
   updateScrollLock();
+  rendreFocusApresPanneauAdmin();
 }
 document.getElementById('overlay').onclick = closeDrawer;
 
@@ -1244,6 +1246,7 @@ function closeForm(){
   document.getElementById('formOverlay').classList.remove('open');
   document.getElementById('formDrawerPanel').classList.remove('open');
   updateScrollLock();
+  rendreFocusApresPanneauAdmin();
 }
 document.getElementById('formOverlay').onclick = closeForm;
 document.getElementById('addPropertyBtn').onclick = () => openForm(null);
@@ -1677,6 +1680,7 @@ function openForm(existing){
   document.getElementById('formOverlay').classList.add('open');
   document.getElementById('formDrawerPanel').classList.add('open');
   updateScrollLock();
+  focoliserPanneauAdmin('formDrawerPanel');
 }
 
 async function saveProperty(existing){
@@ -2075,15 +2079,51 @@ function renderInboxList(){
   }
 }
 
+// ---- Accessibilité clavier des tiroirs et du panneau statistiques ---------
+// Aucun des tiroirs (réception, journal, agences, prospects, avis, formulaire
+// de bien) ni le panneau statistiques ne se fermaient au clavier, et rien
+// n'empêchait Tab de s'en échapper vers la page masquée derrière — même
+// défaut que celui trouvé et corrigé sur le tiroir de fiche de la vitrine.
+// Élément qui avait le focus avant l'ouverture : on l'y ramène à la fermeture.
+let _elementAvantPanneauAdmin = null;
+function focoliserPanneauAdmin(panneauId){
+  _elementAvantPanneauAdmin = document.activeElement;
+  const panneau = document.getElementById(panneauId);
+  const cible = panneau && panneau.querySelector('.drawer-close, .analytics-close');
+  if(cible) cible.focus();
+}
+function rendreFocusApresPanneauAdmin(){
+  if(_elementAvantPanneauAdmin){ _elementAvantPanneauAdmin.focus(); _elementAvantPanneauAdmin = null; }
+}
+function panneauAdminOuvert(){
+  const analytics = document.getElementById('analyticsOverlay');
+  return document.querySelector('.drawer.open')
+    || (analytics && !analytics.classList.contains('hidden') ? analytics : null);
+}
+document.addEventListener('keydown', e => {
+  const panneau = panneauAdminOuvert();
+  if(!panneau) return;
+  if(e.key === 'Escape'){ panneau.querySelector('.drawer-close, .analytics-close')?.click(); return; }
+  if(e.key !== 'Tab') return;
+  const focusables = [...panneau.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+    .filter(el => el.offsetParent !== null);
+  if(!focusables.length) return;
+  const premier = focusables[0], dernier = focusables[focusables.length - 1];
+  if(e.shiftKey && document.activeElement === premier){ e.preventDefault(); dernier.focus(); }
+  else if(!e.shiftKey && document.activeElement === dernier){ e.preventDefault(); premier.focus(); }
+});
+
 async function openInbox(){
   await loadInboxData();
   renderInbox();
   document.getElementById('inboxDrawer').classList.add('open');
   document.getElementById('inboxOverlay').classList.add('open');
+  focoliserPanneauAdmin('inboxDrawer');
 }
 function closeInbox(){
   document.getElementById('inboxDrawer').classList.remove('open');
   document.getElementById('inboxOverlay').classList.remove('open');
+  rendreFocusApresPanneauAdmin();
 }
 document.getElementById('inboxOverlay').onclick = closeInbox;
 document.getElementById('inboxBtn').onclick = openInbox;
@@ -2240,10 +2280,12 @@ async function openJournal(){
   renderJournal();
   document.getElementById('journalDrawer').classList.add('open');
   document.getElementById('journalOverlay').classList.add('open');
+  focoliserPanneauAdmin('journalDrawer');
 }
 function closeJournal(){
   document.getElementById('journalDrawer').classList.remove('open');
   document.getElementById('journalOverlay').classList.remove('open');
+  rendreFocusApresPanneauAdmin();
 }
 document.getElementById('journalOverlay').onclick = closeJournal;
 document.getElementById('journalBtn').onclick = openJournal;
@@ -2459,10 +2501,12 @@ async function openAgences(){
   renderAgences();
   document.getElementById('agencesDrawer').classList.add('open');
   document.getElementById('agencesOverlay').classList.add('open');
+  focoliserPanneauAdmin('agencesDrawer');
 }
 function closeAgences(){
   document.getElementById('agencesDrawer').classList.remove('open');
   document.getElementById('agencesOverlay').classList.remove('open');
+  rendreFocusApresPanneauAdmin();
 }
 document.getElementById('agencesOverlay').onclick = closeAgences;
 document.getElementById('agencesBtn').onclick = openAgences;
@@ -2551,10 +2595,12 @@ async function openAvis(){
   renderAvis();
   document.getElementById('avisDrawer').classList.add('open');
   document.getElementById('avisOverlay').classList.add('open');
+  focoliserPanneauAdmin('avisDrawer');
 }
 function closeAvis(){
   document.getElementById('avisDrawer').classList.remove('open');
   document.getElementById('avisOverlay').classList.remove('open');
+  rendreFocusApresPanneauAdmin();
 }
 document.getElementById('avisOverlay').onclick = closeAvis;
 document.getElementById('avisBtn').onclick = openAvis;
@@ -2767,10 +2813,12 @@ async function openProspects(){
   if(err) console.warn('Prospects :', err.message);
   document.getElementById('prospectsDrawer').classList.add('open');
   document.getElementById('prospectsOverlay').classList.add('open');
+  focoliserPanneauAdmin('prospectsDrawer');
 }
 function closeProspects(){
   document.getElementById('prospectsDrawer').classList.remove('open');
   document.getElementById('prospectsOverlay').classList.remove('open');
+  rendreFocusApresPanneauAdmin();
 }
 document.getElementById('prospectsOverlay').onclick = closeProspects;
 document.getElementById('prospectsBtn').onclick = openProspects;
@@ -3097,6 +3145,7 @@ async function openAnalytics(){
     <div class="analytics-body" id="analyticsBody"><p style="text-align:center;color:var(--ink-soft);padding:60px 0;">Chargement des statistiques…</p></div>
   `;
   document.getElementById('analyticsCloseBtn').onclick = closeAnalytics;
+  focoliserPanneauAdmin('analyticsOverlay');
   const data = await loadAnalyticsData();
   await ensureChartJs();
   renderAnalytics(data);
@@ -3105,6 +3154,7 @@ function closeAnalytics(){
   document.getElementById('analyticsOverlay').classList.add('hidden');
   analyticsCharts.forEach(c=>c.destroy());
   analyticsCharts = [];
+  rendreFocusApresPanneauAdmin();
 }
 document.getElementById('analyticsBtn').onclick = openAnalytics;
 

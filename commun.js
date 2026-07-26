@@ -198,38 +198,58 @@ function getPropertyPhotos(p){
 // ---- Galerie plein écran ---------------------------------------------------
 // updateScrollLock est défini par chaque page : la vitrine doit aussi tenir
 // compte de son tiroir de fiche, l'espace de gestion de ses trois panneaux.
+//
+// Élément qui avait le focus avant l'ouverture (la vignette cliquée) : on l'y
+// ramène à la fermeture, comme pour le tiroir de fiche.
+let elementAvantGalerie = null;
+
 function openPhotoGallery(p, startIndex = 0){
   const photos = getPropertyPhotos(p);
   if(!photos.length) return;
   const modal = document.getElementById('galleryModal');
   let currentIndex = Math.max(0, Math.min(startIndex, photos.length - 1));
+  elementAvantGalerie = document.activeElement;
 
-  function renderGallery(){
+  // foyer indique quel bouton doit reprendre le focus une fois le HTML
+  // reconstruit : chaque clic (prev/next/vignette) détruit et recrée tout le
+  // contenu, donc le focus se perdrait sinon à chaque image affichée.
+  function renderGallery(foyer){
     const current = photos[currentIndex];
     modal.innerHTML = `
-      <div class="gallery-shell">
+      <div class="gallery-shell" role="dialog" aria-modal="true" aria-label="Photo ${currentIndex + 1} sur ${photos.length}">
         <div class="gallery-main">
-          <button type="button" class="gallery-nav prev" data-action="prev" ${currentIndex===0?'disabled':''}>‹</button>
+          <button type="button" class="gallery-nav prev" data-action="prev" ${currentIndex===0?'disabled':''} aria-label="Photo précédente">‹</button>
           <img src="${current.url}" alt="Photo ${currentIndex + 1}" />
-          <button type="button" class="gallery-nav next" data-action="next" ${currentIndex===photos.length - 1?'disabled':''}>›</button>
-          <button type="button" class="gallery-close" data-action="close">×</button>
+          <button type="button" class="gallery-nav next" data-action="next" ${currentIndex===photos.length - 1?'disabled':''} aria-label="Photo suivante">›</button>
+          <button type="button" class="gallery-close" data-action="close" aria-label="Fermer la galerie">×</button>
           <div class="gallery-counter">${currentIndex + 1}/${photos.length}</div>
         </div>
         <div class="gallery-thumbs">
-          ${photos.map((ph, idx) => `<button type="button" class="${idx===currentIndex?'active':''}" data-index="${idx}"><img src="${ph.thumb}" alt="Miniature ${idx + 1}" loading="lazy" decoding="async" onerror="photoFallback(this)" /></button>`).join('')}
+          ${photos.map((ph, idx) => `<button type="button" class="${idx===currentIndex?'active':''}" data-index="${idx}" aria-label="Photo ${idx + 1} sur ${photos.length}" aria-current="${idx===currentIndex?'true':'false'}"><img src="${ph.thumb}" alt="" loading="lazy" decoding="async" onerror="photoFallback(this)" /></button>`).join('')}
         </div>
       </div>`;
 
-    modal.querySelector('[data-action="prev"]').onclick = () => { currentIndex = Math.max(0, currentIndex - 1); renderGallery(); };
-    modal.querySelector('[data-action="next"]').onclick = () => { currentIndex = Math.min(photos.length - 1, currentIndex + 1); renderGallery(); };
+    modal.querySelector('[data-action="prev"]').onclick = () => { currentIndex = Math.max(0, currentIndex - 1); renderGallery('prev'); };
+    modal.querySelector('[data-action="next"]').onclick = () => { currentIndex = Math.min(photos.length - 1, currentIndex + 1); renderGallery('next'); };
     modal.querySelector('[data-action="close"]').onclick = closePhotoGallery;
     modal.querySelectorAll('[data-index]').forEach(btn => {
-      btn.onclick = () => { currentIndex = Number(btn.dataset.index); renderGallery(); };
+      btn.onclick = () => { currentIndex = Number(btn.dataset.index); renderGallery('index'); };
     });
+
+    // Reporter le focus après reconstruction : sur le bouton demandé s'il
+    // existe et n'est pas désactivé, sinon sur la fermeture (repli sûr).
+    const cible = foyer==='prev' ? modal.querySelector('[data-action="prev"]:not([disabled])')
+                : foyer==='next' ? modal.querySelector('[data-action="next"]:not([disabled])')
+                : foyer==='index' ? modal.querySelector('[data-index].active')
+                : null;
+    (cible || modal.querySelector('[data-action="close"]')).focus();
   }
 
-  renderGallery();
+  // Le retrait de « hidden » doit précéder renderGallery() : tant que la
+  // modale est display:none, le bouton de fermeture n'est pas réellement
+  // focalisable et le .focus() à l'intérieur échoue silencieusement.
   modal.classList.remove('hidden');
+  renderGallery(null);
   updateScrollLock();
   modal.onclick = (e) => { if(e.target === modal) closePhotoGallery(); };
 }
@@ -239,7 +259,27 @@ function closePhotoGallery(){
   modal.classList.add('hidden');
   modal.innerHTML = '';
   updateScrollLock();
+  // Rendre le focus à la vignette qui a ouvert la galerie plutôt que de le
+  // laisser retomber en haut de page.
+  if(elementAvantGalerie){ elementAvantGalerie.focus(); elementAvantGalerie = null; }
 }
+
+// Échap ferme la galerie, les flèches gauche/droite changent de photo, et Tab
+// reste piégé à l'intérieur tant qu'elle est ouverte — même raisonnement que
+// pour le tiroir de fiche (aria-modal="true" doit être une promesse tenue).
+document.addEventListener('keydown', e => {
+  const modal = document.getElementById('galleryModal');
+  if(!modal || modal.classList.contains('hidden')) return;
+  if(e.key === 'Escape'){ closePhotoGallery(); return; }
+  if(e.key === 'ArrowLeft'){ modal.querySelector('[data-action="prev"]:not([disabled])')?.click(); return; }
+  if(e.key === 'ArrowRight'){ modal.querySelector('[data-action="next"]:not([disabled])')?.click(); return; }
+  if(e.key !== 'Tab') return;
+  const focusables = [...modal.querySelectorAll('button:not([disabled])')].filter(el => el.offsetParent !== null);
+  if(!focusables.length) return;
+  const premier = focusables[0], dernier = focusables[focusables.length - 1];
+  if(e.shiftKey && document.activeElement === premier){ e.preventDefault(); dernier.focus(); }
+  else if(!e.shiftKey && document.activeElement === dernier){ e.preventDefault(); premier.focus(); }
+});
 
 // ---- Pagination de liste ---------------------------------------------------
 // state.page et PER_PAGE appartiennent à chaque page : la vitrine pagine par

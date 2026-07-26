@@ -768,31 +768,35 @@
   </div>
 </div>
 
+<!-- Repère pour la navigation par titres des lecteurs d'écran : sans lui, on
+     saute directement du titre du héros aux 20 titres H3 des annonces, sans
+     rien pour situer la section recherche/résultats. -->
+<h2 class="sr-only" id="titreBiens">Rechercher et parcourir les biens disponibles</h2>
 <div class="toolbar">
   <div class="chips-row">
-    <div class="chip-group">
-      <span class="chip-group-label">Type de bien</span>
+    <div class="chip-group" role="group" aria-label="Type de bien">
+      <span class="chip-group-label" aria-hidden="true">Type de bien</span>
       <div class="chips" id="chipsType"></div>
     </div>
     <div class="divider"></div>
-    <div class="chip-group">
-      <span class="chip-group-label">Vente &amp; location</span>
+    <div class="chip-group" role="group" aria-label="Vente et location">
+      <span class="chip-group-label" aria-hidden="true">Vente &amp; location</span>
       <div class="chips" id="chipsOp"></div>
     </div>
     <div class="divider"></div>
-    <button class="chip fav-chip" id="favToggleChip">
+    <button class="chip fav-chip" id="favToggleChip" aria-pressed="false">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>
       <span>Mes favoris</span>
     </button>
-    <button class="chip" id="advSearchToggle">
+    <button class="chip" id="advSearchToggle" aria-expanded="false" aria-controls="advSearchPanel">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="7" cy="18" r="2" fill="currentColor" stroke="none"/></svg>
       <span>Recherche avancée</span>
       <span class="adv-badge" id="advBadge" style="display:none;">0</span>
     </button>
   </div>
   <div class="view-toggle" id="viewToggle" style="margin-top:12px;">
-    <button data-view="list" class="active">Liste</button>
-    <button data-view="map">Carte</button>
+    <button data-view="list" class="active" aria-pressed="true">Liste</button>
+    <button data-view="map" aria-pressed="false">Carte</button>
   </div>
 </div>
 
@@ -868,7 +872,7 @@
   <div class="alert-card">
     <div class="ai"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg></div>
     <div class="at"><strong>Aucun bien ne correspond aujourd'hui ?</strong><p>Laissez votre email, on vous préviendra pour les prochains biens qui correspondent.</p></div>
-    <button class="btn btn-primary alert-toggle-btn" id="alertToggleBtn">Être alerté(e)</button>
+    <button class="btn btn-primary alert-toggle-btn" id="alertToggleBtn" aria-expanded="false" aria-controls="alertForm">Être alerté(e)</button>
   </div>
   <div class="alert-form hidden" id="alertForm">
     <div class="alert-form-inner">
@@ -1535,10 +1539,12 @@ function filtered(){
 const NAV = [['Tous','Tous les biens'],['Terrain','Terrains'],['Maison','Maisons'],['Appartement','Appartements'],['Studio','Studios'],['Champ agricole','Champs agricoles']];
 const OPS = [['Tous','Vente & location'],['Vente','Vente'],['Location','Location']];
 function renderChips(){
+  // aria-pressed reflète l'état actif : sans lui, un lecteur d'écran annonce
+  // « Terrains, bouton » sans jamais dire si ce filtre est sélectionné.
   document.getElementById('chipsType').innerHTML = NAV.map(([key,label])=>
-    `<button class="chip ${state.type===key?'active':''}" data-type="${key}">${label}</button>`).join('');
+    `<button class="chip ${state.type===key?'active':''}" data-type="${key}" aria-pressed="${state.type===key}">${label}</button>`).join('');
   document.getElementById('chipsOp').innerHTML = OPS.map(([key,label])=>
-    `<button class="chip ${state.op===key?'active':''}" data-op="${key}">${label}</button>`).join('');
+    `<button class="chip ${state.op===key?'active':''}" data-op="${key}" aria-pressed="${state.op===key}">${label}</button>`).join('');
   document.querySelectorAll('[data-type]').forEach(b=>b.onclick=()=>{ state.type=b.dataset.type; render(); });
   document.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>{ state.op=b.dataset.op; majEtiquettePrix(); render(); });
 }
@@ -1715,7 +1721,9 @@ function initAdvancedSearch(){
   updateAdvBadge();
 
   document.getElementById('advSearchToggle').onclick = () => {
-    document.getElementById('advSearchPanel').classList.toggle('hidden');
+    const panneau = document.getElementById('advSearchPanel');
+    const ouvert = panneau.classList.toggle('hidden') === false;
+    document.getElementById('advSearchToggle').setAttribute('aria-expanded', String(ouvert));
   };
 
   // Tout changement de critère suit le même protocole : on enregistre, on
@@ -1864,7 +1872,7 @@ function renderList(){
     <div class="card ${state.selected===p.id?'selected':''}" data-id="${p.id}">
       <div class="card-photo"${cover?'':` style="--cover:linear-gradient(135deg, ${TYPE_COLOR[p.type]}, #161B22);"`}>
         ${cover?`<img class="card-photo-img" src="${cover}" alt="" loading="lazy" decoding="async">`:`<span class="card-photo-ico">${typeIcon(p.type)}</span>`}
-        <button type="button" class="fav-btn ${isFav(p.id)?'active':''}" data-fav-id="${p.id}" aria-label="Ajouter aux favoris">${favIconSvg(isFav(p.id))}</button>
+        <button type="button" class="fav-btn ${isFav(p.id)?'active':''}" data-fav-id="${p.id}" aria-pressed="${isFav(p.id)}" aria-label="${isFav(p.id)?'Retirer des favoris':'Ajouter aux favoris'}">${favIconSvg(isFav(p.id))}</button>
         <span class="pill" style="position:absolute;bottom:10px;left:10px;background:${STATUS_COLOR[p.status]};color:#fff;">${STATUS_LABEL[p.status]}</span>
         <span class="pill" style="position:absolute;top:10px;left:10px;background:rgba(255,255,255,0.92);color:var(--ink);">${p.operation}</span>
         ${p.sponsorisee ? `<span class="pill pill-sponso" title="Cette annonce bénéficie d'une mise en avant payante">Sponsorisé</span>` : ''}
@@ -1984,7 +1992,7 @@ function openDrawer(p){
       <button class="drawer-close" id="drawerClose" aria-label="Fermer la fiche">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#161B22" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
-      <button type="button" class="fav-btn ${isFav(p.id)?'active':''}" id="drawerFavBtn" aria-label="Ajouter aux favoris">${favIconSvg(isFav(p.id))}</button>
+      <button type="button" class="fav-btn ${isFav(p.id)?'active':''}" id="drawerFavBtn" aria-pressed="${isFav(p.id)}" aria-label="${isFav(p.id)?'Retirer des favoris':'Ajouter aux favoris'}">${favIconSvg(isFav(p.id))}</button>
       <span class="pill" style="position:absolute;left:16px;bottom:-13px;background:${STATUS_COLOR[p.status]};color:#fff;box-shadow:var(--shadow)">${STATUS_LABEL[p.status]}</span>
       <span class="pill" style="position:absolute;right:16px;bottom:-13px;background:#fff;color:var(--ink);box-shadow:var(--shadow)">${p.operation}</span>
     </div>
@@ -2114,8 +2122,11 @@ function openDrawer(p){
   });
   document.getElementById('drawerFavBtn').onclick = () => {
     toggleFav(p.id);
-    document.getElementById('drawerFavBtn').classList.toggle('active', isFav(p.id));
-    document.getElementById('drawerFavBtn').innerHTML = favIconSvg(isFav(p.id));
+    const fb = document.getElementById('drawerFavBtn');
+    fb.classList.toggle('active', isFav(p.id));
+    fb.setAttribute('aria-pressed', String(isFav(p.id)));
+    fb.setAttribute('aria-label', isFav(p.id) ? 'Retirer des favoris' : 'Ajouter aux favoris');
+    fb.innerHTML = favIconSvg(isFav(p.id));
     renderList();
   };
   document.getElementById('shareBtn').onclick = () => shareProperty(p);
@@ -2214,9 +2225,28 @@ function closeDrawer(){
 
 // Échap ferme le tiroir. C'est le geste attendu de toute fenêtre modale, et le
 // seul moyen d'en sortir au clavier si le bouton de fermeture est hors de vue.
+//
+// Tab est piégé à l'intérieur tant que le tiroir est ouvert : sans ça,
+// role="dialog"/aria-modal="true" font une promesse que le clavier ne tenait
+// pas — après quelques Tab, le focus quittait le tiroir et atterrissait sur
+// un élément de la page derrière, invisible sous le voile sombre. Vérifié :
+// avant ce correctif, 26 tabulations suffisaient à en sortir.
 document.addEventListener('keydown', e=>{
-  if(e.key !== 'Escape') return;
-  if(document.getElementById('drawer').classList.contains('open')) closeDrawer();
+  const tiroir = document.getElementById('drawer');
+  if(!tiroir.classList.contains('open')) return;
+  if(e.key === 'Escape'){ closeDrawer(); return; }
+  if(e.key !== 'Tab') return;
+  // offsetParent === null exclut les éléments dans un panneau display:none (le
+  // tiroir a deux onglets internes, Message/RDV : un seul est visible à la
+  // fois). Sans ce filtre, le bouton du panneau caché était pris pour le
+  // dernier élément — .focus() dessus échoue silencieusement puisqu'il n'est
+  // pas réellement focalisable, et le piège ne se refermait jamais.
+  const focusables = [...tiroir.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+    .filter(el => el.offsetParent !== null);
+  if(!focusables.length) return;
+  const premier = focusables[0], dernier = focusables[focusables.length - 1];
+  if(e.shiftKey && document.activeElement === premier){ e.preventDefault(); dernier.focus(); }
+  else if(!e.shiftKey && document.activeElement === dernier){ e.preventDefault(); premier.focus(); }
 });
 
 let drawerMapInstance = null;
@@ -2409,19 +2439,26 @@ document.getElementById('search').addEventListener('input', e=>{
 
 document.getElementById('favToggleChip').onclick = () => {
   state.favOnly = !state.favOnly;
-  document.getElementById('favToggleChip').classList.toggle('active', state.favOnly);
+  const chip = document.getElementById('favToggleChip');
+  chip.classList.toggle('active', state.favOnly);
+  chip.setAttribute('aria-pressed', String(state.favOnly));
   render();
 };
 
 document.getElementById('alertToggleBtn').onclick = () => {
-  document.getElementById('alertForm').classList.toggle('hidden');
+  const form = document.getElementById('alertForm');
+  const ouvert = form.classList.toggle('hidden') === false;
+  document.getElementById('alertToggleBtn').setAttribute('aria-expanded', String(ouvert));
+  if(ouvert){ form.scrollIntoView({ behavior:'smooth', block:'nearest' }); document.getElementById('alert_email').focus(); }
 };
 document.getElementById('alertToggleBtnMobile').onclick = () => {
   const form = document.getElementById('alertForm');
   const wasHidden = form.classList.contains('hidden');
   form.classList.toggle('hidden');
+  document.getElementById('alertToggleBtn').setAttribute('aria-expanded', String(wasHidden));
   if(wasHidden){
     form.scrollIntoView({behavior:'smooth', block:'start'});
+    document.getElementById('alert_email').focus();
   }
 };
 document.getElementById('alertSubmitBtn').onclick = async () => {
@@ -2650,8 +2687,9 @@ document.getElementById('avisForm').onsubmit = async (e) => {
 
 document.querySelectorAll('#viewToggle button').forEach(b=>{
   b.onclick = ()=>{
-    document.querySelectorAll('#viewToggle button').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('#viewToggle button').forEach(x=>{ x.classList.remove('active'); x.setAttribute('aria-pressed','false'); });
     b.classList.add('active');
+    b.setAttribute('aria-pressed','true');
     document.getElementById('split').dataset.view = b.dataset.view;
     if(b.dataset.view==='map' && map) setTimeout(()=>map.invalidateSize(), 100);
   };
