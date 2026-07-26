@@ -32,7 +32,7 @@
 <meta name="twitter:description" content="Terrains, maisons, appartements et champs agricoles à Dakar et Thiès." />
 <meta name="twitter:image" content="https://pabbusiness221.github.io/PAB-Immo/assets/dakar-aerienne.jpg" />
 <meta name="description" content="Terrains, maisons, appartements, studios et champs agricoles à vendre et à louer à Dakar et Thiès — PAB Immo." />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="commun.css" />
@@ -1114,8 +1114,12 @@
   </a>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Versions figées (pas juste « @2 ») et intégrité vérifiée (SRI) : sans
+     cela, jsDelivr peut servir une version mineure différente d'un jour à
+     l'autre sans qu'aucun commit ne change ici, et rien ne détecterait un
+     fichier altéré côté CDN. -->
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8" integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy" crossorigin="anonymous"></script>
 <!-- Code partage par les deux pages : voir l en-tete de commun.js -->
 <script src="commun.js"></script>
 <script>
