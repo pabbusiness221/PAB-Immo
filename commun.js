@@ -236,6 +236,40 @@ function openPhotoGallery(p, startIndex = 0){
       btn.onclick = () => { currentIndex = Number(btn.dataset.index); renderGallery('index'); };
     });
 
+    // Glisser pour naviguer — souris et tactile unifiés via les Pointer
+    // Events, en plus des flèches (pas à leur place). setPointerCapture
+    // garde le geste même si le doigt sort de l'image en cours de route.
+    // Une légère résistance sur la première/dernière photo signale qu'on ne
+    // peut pas aller plus loin, plutôt que de ne rien montrer du tout.
+    const img = modal.querySelector('.gallery-main img');
+    let depart = null, largeur = 0;
+    img.onpointerdown = (e) => {
+      depart = e.clientX;
+      largeur = img.getBoundingClientRect().width || 1;
+      img.style.transition = 'none';
+      try{ img.setPointerCapture(e.pointerId); }catch(err){}
+    };
+    img.onpointermove = (e) => {
+      if(depart === null) return;
+      let delta = e.clientX - depart;
+      const enButee = (currentIndex === 0 && delta > 0) || (currentIndex === photos.length - 1 && delta < 0);
+      if(enButee) delta *= 0.35;
+      img.style.transform = `translateX(${delta}px)`;
+    };
+    const relacherGlissement = (e) => {
+      if(depart === null) return;
+      const delta = (e.clientX ?? depart) - depart;
+      depart = null;
+      img.style.transition = 'transform .25s var(--ease)';
+      const seuil = largeur * 0.15; // 15 % de la largeur : un vrai geste, pas un tremblement
+      if(delta <= -seuil && currentIndex < photos.length - 1){ modal.querySelector('[data-action="next"]').click(); }
+      else if(delta >= seuil && currentIndex > 0){ modal.querySelector('[data-action="prev"]').click(); }
+      else { img.style.transform = 'translateX(0)'; }
+    };
+    img.onpointerup = relacherGlissement;
+    img.onpointercancel = relacherGlissement;
+    img.ondragstart = () => false;
+
     // Reporter le focus après reconstruction : sur le bouton demandé s'il
     // existe et n'est pas désactivé, sinon sur la fermeture (repli sûr).
     const cible = foyer==='prev' ? modal.querySelector('[data-action="prev"]:not([disabled])')

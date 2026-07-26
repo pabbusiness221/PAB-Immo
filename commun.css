@@ -108,7 +108,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .gallery-modal.hidden{display:none;}
 .gallery-shell{width:min(980px,100%);background:#fff;border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow-lg);}
 .gallery-main{position:relative;display:flex;align-items:center;justify-content:center;min-height:420px;background:#0D1512;padding:16px;}
-.gallery-main img{max-width:100%;max-height:64vh;object-fit:contain;border-radius:12px;}
+.gallery-main img{max-width:100%;max-height:64vh;object-fit:contain;border-radius:12px;touch-action:pan-y;user-select:none;-webkit-user-drag:none;}
+/* Glisser pour naviguer : curseur adapté à la souris uniquement (le doigt n'a
+   pas besoin de cet indice visuel). */
+@media (hover:hover) and (pointer:fine){
+  .gallery-main img{cursor:grab;}
+  .gallery-main img:active{cursor:grabbing;}
+}
 .gallery-nav,.gallery-close{position:absolute;border:none;cursor:pointer;background:rgba(255,255,255,0.94);color:var(--ink);width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);font-size:21px;transition:transform .15s ease;}
 .gallery-nav:disabled{opacity:.35;cursor:not-allowed;}
 .gallery-nav{top:50%;transform:translateY(-50%);}
