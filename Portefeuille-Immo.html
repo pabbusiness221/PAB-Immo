@@ -1410,8 +1410,47 @@ async function geocodeSearch(){
   btn.disabled = false; btn.textContent = original;
 }
 
-// Déduit Commune / Région / Quartier à partir de lat/lng via le géocodage inversé de Nominatim,
-// et remplit les champs du formulaire. Retourne true si au moins un champ a pu être rempli.
+// --- Normalisation des libellés du géocodage inversé --------------------------
+// Nominatim écrit « Région de Thiès », « Thiès Department », « Commune de Mbour »,
+// « Département de Rufisque »… Ces formes ne correspondent pas aux valeurs
+// standard du site : le menu Région est verrouillé sur Dakar/Thiès, et le champ
+// Département attend un nom de la liste (Dakar, Guédiawaye, Pikine, Rufisque,
+// Thiès, Mbour, Tivaouane). Sans normalisation, .value = "Région de Thiès" ne
+// correspond à aucune option et le champ reste vide. On ramène donc chaque
+// libellé à sa forme standard ; à défaut de correspondance, on laisse vide
+// plutôt que d'inscrire une valeur fausse.
+function _sansAccents(s){
+  return String(s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+function _standardiser(valeur, liste){
+  if(!valeur) return '';
+  const base = _sansAccents(valeur)
+    .replace(/\b(departement|department|region|arrondissement|commune|prefecture|ville|of|de|du|des|d)\b/g, ' ')
+    .replace(/[^a-z\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  const compact = base.replace(/\s/g, '');   // « m bour » → « mbour »
+  for(const item of liste){
+    const it = _sansAccents(item).replace(/[^a-z]/g, '');   // « M'bour » → « mbour »
+    if(!it) continue;
+    if(base === it || base.split(' ').includes(it) || base.includes(it) ||
+       compact === it || compact.includes(it)) return item;
+  }
+  return '';
+}
+// Retire les préfixes administratifs (« Commune de », « Communauté rurale de »…)
+// pour ne garder que le nom du lieu.
+function _nettoyerLieu(s){
+  return String(s ?? '').replace(/^(Commune|Communaut[eé] rurale|Arrondissement|Ville|Quartier)\s+(de\s+|des\s+|du\s+|d['’])?/i, '').trim();
+}
+// La liste des départements vient du datalist du formulaire : source unique.
+function _departementsStd(){
+  const opts = document.querySelectorAll('#departement_list option');
+  return opts.length ? [...opts].map(o => o.value)
+                     : ['Dakar', 'Guédiawaye', 'Pikine', 'Rufisque', 'Thiès', 'Mbour', 'Tivaouane'];
+}
+
+// Déduit Commune / Région / Département / Quartier à partir de lat/lng via le
+// géocodage inversé de Nominatim, en libellés STANDARDISÉS, et remplit les
+// champs. Retourne true si au moins un champ a pu être rempli.
 async function reverseGeocodeAndFill(lat, lng){
   try {
     const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&addressdetails=1&accept-language=fr&zoom=14`);
@@ -1420,17 +1459,21 @@ async function reverseGeocodeAndFill(lat, lng){
     const a = data && data.address;
     if(!a) return false;
 
-    // Les libellés OSM varient selon les zones (urbain/rural) : on essaie plusieurs
-    // niveaux plausibles, du plus spécifique au plus général.
-    const commune = a.city || a.town || a.municipality || a.village || '';
-    const region = a.state || a.region || '';
-    const departement = a.county || a.state_district || '';
-    const quartier = a.suburb || a.neighbourhood || a.quarter || a.city_district || a.hamlet || '';
+    // Les libellés OSM varient selon les zones (urbain/rural) : on essaie
+    // plusieurs niveaux plausibles, du plus spécifique au plus général.
+    const communeBrut = a.city || a.town || a.municipality || a.village || '';
+    const commune = _nettoyerLieu(communeBrut);
+    // Région ramenée à Dakar ou Thiès (REGIONS vient de commun.js).
+    const region = _standardiser(a.state || a.region, REGIONS);
+    // Département ramené à la liste standard ; à défaut, on tente la commune
+    // (au Sénégal, chef-lieu et département portent souvent le même nom).
+    const departement = _standardiser(a.county || a.state_district || communeBrut, _departementsStd());
+    const quartier = _nettoyerLieu(a.suburb || a.neighbourhood || a.quarter || a.city_district || a.hamlet || '');
 
-    if(commune) document.getElementById('f_commune').value = commune;
-    if(region) document.getElementById('f_region').value = region;
+    if(commune)     document.getElementById('f_commune').value = commune;
+    if(region)      document.getElementById('f_region').value = region;
     if(departement) document.getElementById('f_departement').value = departement;
-    if(quartier) document.getElementById('f_quartier').value = quartier;
+    if(quartier)    document.getElementById('f_quartier').value = quartier;
 
     return !!(commune || region || departement || quartier);
   } catch(err){
@@ -1459,7 +1502,7 @@ function useCurrentPosition(){
       btn.innerHTML = originalText;
       const msg = document.createElement('div');
       msg.style.cssText = 'position:fixed;top:20px;right:20px;background:#3F7A49;color:#fff;padding:12px 16px;border-radius:8px;font-size:13px;font-weight:600;z-index:999;box-shadow:var(--shadow-lg)';
-      msg.textContent = localiseOk ? '✓ Position capturée et commune/région/quartier remplis' : '✓ Position capturée avec succès';
+      msg.textContent = localiseOk ? '✓ Position capturée · commune, département et région remplis' : '✓ Position capturée (vérifiez commune/département manuellement)';
       document.body.appendChild(msg);
       setTimeout(() => msg.remove(), 3000);
     },
@@ -1471,7 +1514,9 @@ function useCurrentPosition(){
       else if(err.code === 3) message = "La géolocalisation a pris trop de temps. Vérifiez votre signal GPS.";
       alert(message);
     },
-    { enableHighAccuracy:true, timeout:10000 }
+    // maximumAge:0 force une position fraîche (jamais une lecture en cache) ;
+    // enableHighAccuracy demande le GPS le plus précis disponible.
+    { enableHighAccuracy:true, timeout:15000, maximumAge:0 }
   );
 }
 
