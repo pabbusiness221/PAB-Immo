@@ -22,7 +22,7 @@
   @keyframes fadeInUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 
   /* ---------- Barre de travail ---------- */
-  header{position:sticky;top:0;z-index:40;background:rgba(12,22,19,0.94);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.08);}
+  header{position:sticky;top:0;z-index:40;background:rgba(3,25,40,0.94);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.08);}
   /* flex-wrap dès le départ : entre ~680 et ~1100 px, brand + recherche +
      trois boutons + déconnexion ne tiennent pas sur une ligne. L'ancien
      overflow-x:clip masquait le problème en coupant le bouton hors écran. */
@@ -31,7 +31,7 @@
   .brand p{margin:1px 0 0;font-size:10.5px;color:rgba(255,255,255,0.52);letter-spacing:.06em;text-transform:uppercase;font-weight:600;}
 
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:999px;font-weight:700;font-size:13px;cursor:pointer;padding:10px 18px;font-family:'Inter',sans-serif;transition:transform .2s var(--ease), box-shadow .2s var(--ease), background-color .2s var(--ease), filter .2s var(--ease);line-height:1.2;}
-  .btn:hover{transform:translateY(-1px);box-shadow:0 10px 22px -12px rgba(12,22,19,0.5);}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 10px 22px -12px rgba(3,25,40,0.5);}
   .btn-danger{background:var(--danger);color:#fff;box-shadow:var(--shadow);}
   .btn-danger:hover{filter:brightness(0.94);}
   /* Boutons d'action posés sur la barre nuit */
@@ -97,7 +97,7 @@
   .view-toggle{display:none;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:4px;margin-top:12px;width:fit-content;}
   .rdv-view-toggle{display:flex;gap:6px;background:var(--surface-alt);border:1px solid var(--border);border-radius:999px;padding:4px;width:fit-content;}
   .view-toggle button, .rdv-view-toggle button{border:none;background:transparent;border-radius:999px;padding:8px 18px;font-size:12.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s var(--ease);}
-  .view-toggle button.active, .rdv-view-toggle button.active{background:var(--primary);color:#fff;box-shadow:0 6px 14px -8px rgba(18,48,39,0.8);}
+  .view-toggle button.active, .rdv-view-toggle button.active{background:var(--primary);color:#fff;box-shadow:0 6px 14px -8px rgba(3,25,40,0.8);}
 
   /* ---------- Liste + carte ---------- */
   .split{max-width:1400px;margin:18px auto 48px;padding:0 20px;display:flex;gap:20px;align-items:flex-start;}
@@ -152,9 +152,9 @@
   .confiance-etat{flex-shrink:0;font-size:11.5px;font-weight:700;color:var(--ink-soft);background:var(--surface-alt);border-radius:999px;padding:6px 12px;}
   .confiance-etat.ok{color:var(--success);background:rgba(47,122,78,0.12);}
   @keyframes pulse{
-    0%{box-shadow:0 0 0 0 rgba(226,162,44,0.55),0 3px 10px rgba(0,0,0,0.28);}
-    70%{box-shadow:0 0 0 16px rgba(226,162,44,0),0 3px 10px rgba(0,0,0,0.28);}
-    100%{box-shadow:0 0 0 0 rgba(226,162,44,0),0 3px 10px rgba(0,0,0,0.28);}
+    0%{box-shadow:0 0 0 0 rgba(242,174,5,0.55),0 3px 10px rgba(0,0,0,0.28);}
+    70%{box-shadow:0 0 0 16px rgba(242,174,5,0),0 3px 10px rgba(0,0,0,0.28);}
+    100%{box-shadow:0 0 0 0 rgba(242,174,5,0),0 3px 10px rgba(0,0,0,0.28);}
   }
   @keyframes spin{
     to{transform:rotate(360deg);}
@@ -162,8 +162,8 @@
 
   /* ---------- Connexion ---------- */
   .auth-overlay{position:fixed;inset:0;background:
-      radial-gradient(800px 400px at 70% 0%, rgba(226,162,44,0.16), transparent 62%),
-      linear-gradient(155deg, var(--night) 0%, var(--night-2) 60%, #1A1710 100%);
+      radial-gradient(800px 400px at 70% 0%, rgba(242,174,5,0.16), transparent 62%),
+      linear-gradient(155deg, var(--night) 0%, var(--night-2) 60%, #123152 100%);
     display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;}
   .auth-box{background:var(--surface);border-radius:var(--radius-xl);padding:34px 30px;width:100%;max-width:380px;box-shadow:var(--shadow-lg);animation:fadeInUp .4s var(--ease);}
   .auth-box h2{font-size:21px;margin:0 0 6px;letter-spacing:-0.02em;}
@@ -187,7 +187,7 @@
   .photo-grid{display:flex;flex-wrap:wrap;gap:9px;margin-top:9px;}
   .photo-thumb{position:relative;width:78px;height:78px;border-radius:var(--radius-sm);overflow:hidden;background:var(--surface-alt);flex-shrink:0;box-shadow:inset 0 0 0 1px var(--border);}
   .photo-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
-  .photo-thumb .rm{position:absolute;top:3px;right:3px;background:rgba(12,22,19,0.7);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:12px;line-height:1;cursor:pointer;}
+  .photo-thumb .rm{position:absolute;top:3px;right:3px;background:rgba(3,25,40,0.7);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:12px;line-height:1;cursor:pointer;}
   .photo-thumb .cov-badge{position:absolute;bottom:3px;left:3px;background:var(--accent);color:#1E1607;font-size:8px;font-weight:800;padding:2px 6px;border-radius:6px;}
   .photo-add-btn{width:78px;height:78px;border-radius:var(--radius-sm);border:1.5px dashed var(--border);background:var(--surface-alt);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink-soft);flex-shrink:0;transition:all .2s var(--ease);}
   .photo-add-btn:hover{border-color:var(--accent);color:var(--gold);background:var(--accent-soft);}
@@ -197,7 +197,7 @@
   /* ---------- Boîte de réception ---------- */
   .inbox-tabs{display:flex;gap:6px;padding:18px 20px 0;}
   .inbox-tab{flex:1;border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:10px 8px;font-size:12.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s var(--ease);}
-  .inbox-tab:hover{border-color:#CFCABE;color:var(--ink);}
+  .inbox-tab:hover{border-color:#C9D3E0;color:var(--ink);}
   .inbox-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);}
 
   .inbox-search-row{display:flex;gap:8px;padding:12px 20px 0;}
@@ -306,7 +306,7 @@
   .pros-coord{font-size:12px;color:var(--ink-soft);margin-top:2px;word-break:break-word;}
   .pros-faits{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;}
   .pros-fait{font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--surface-alt);color:var(--ink-soft);}
-  .pros-fait.chaud{background:rgba(226,162,44,.16);color:#8F6414;}
+  .pros-fait.chaud{background:rgba(242,174,5,.16);color:#8F6414;}
   .pros-select{border:1px solid var(--border);border-radius:9px;padding:6px 9px;font-size:12px;font-weight:700;font-family:inherit;background:var(--surface);color:var(--ink);cursor:pointer;flex-shrink:0;}
   .pros-notes{width:100%;margin-top:9px;border:1px solid var(--border);border-radius:9px;padding:8px 10px;font-family:inherit;font-size:12.5px;color:var(--ink);background:var(--bg);resize:vertical;min-height:38px;}
   .pros-notes:focus{outline:none;border-color:var(--accent);}
@@ -334,7 +334,7 @@
   /* ---------- Tableau de bord analytique ---------- */
   .analytics-overlay{position:fixed;inset:0;background:var(--bg);z-index:1000;overflow-y:auto;}
   .analytics-overlay.hidden{display:none;}
-  .analytics-header{position:sticky;top:0;z-index:5;background:rgba(12,22,19,0.96);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.08);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;}
+  .analytics-header{position:sticky;top:0;z-index:5;background:rgba(3,25,40,0.96);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.08);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;}
   .analytics-header h2{margin:0;font-size:20px;color:#fff;letter-spacing:-0.02em;}
   .analytics-header p{margin:3px 0 0;font-size:12.5px;color:rgba(255,255,255,0.55);}
   .analytics-close{border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.09);border-radius:999px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;transition:background-color .2s var(--ease);}
@@ -363,7 +363,7 @@
   .analytics-note strong{color:var(--ink);font-weight:700;}
   /* Rappel d'action : des RDV confirmés dont la date est passée faussent
      silencieusement le taux de conversion tant qu'on ne les requalifie pas. */
-  .analytics-rappel{margin:-8px 0 22px;font-size:12.5px;line-height:1.6;color:var(--ink);background:var(--accent-soft);border:1px solid rgba(226,162,44,0.45);border-left:3px solid var(--accent);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:12px 15px;}
+  .analytics-rappel{margin:-8px 0 22px;font-size:12.5px;line-height:1.6;color:var(--ink);background:var(--accent-soft);border:1px solid rgba(242,174,5,0.45);border-left:3px solid var(--accent);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:12px 15px;}
   .analytics-rappel strong{font-weight:800;}
 
   /* Réglage de la vitrine, réservé à l'admin. */
@@ -456,9 +456,9 @@
   @media (max-width: 380px){
     .grid2{grid-template-columns:1fr;}
   }
-  .chips, .stats, .gallery-thumbs, .drawer{scrollbar-width:thin;scrollbar-color:#D5D0C6 transparent;}
+  .chips, .stats, .gallery-thumbs, .drawer{scrollbar-width:thin;scrollbar-color:#C9D3E0 transparent;}
   .chips::-webkit-scrollbar, .stats::-webkit-scrollbar, .gallery-thumbs::-webkit-scrollbar{height:6px;}
-  .chips::-webkit-scrollbar-thumb, .stats::-webkit-scrollbar-thumb, .gallery-thumbs::-webkit-scrollbar-thumb, .drawer::-webkit-scrollbar-thumb{background:#D5D0C6;border-radius:999px;}
+  .chips::-webkit-scrollbar-thumb, .stats::-webkit-scrollbar-thumb, .gallery-thumbs::-webkit-scrollbar-thumb, .drawer::-webkit-scrollbar-thumb{background:#C9D3E0;border-radius:999px;}
   .chip:active, .btn:active, .inbox-tab:active, .view-toggle button:active{transform:scale(.97);}
 </style>
 </head>
@@ -1915,7 +1915,7 @@ function renderInbox(){
   renderInboxList();
 }
 
-const RDV_STATUS_COLOR = { 'En attente':'#B8842A', 'Confirmé':'#16A34A', 'Réalisée':'#123027', 'Annulé':'#8B9199' };
+const RDV_STATUS_COLOR = { 'En attente':'#B8842A', 'Confirmé':'#16A34A', 'Réalisée':'#031928', 'Annulé':'#8B9199' };
 
 // Rendu réutilisable d'une liste de RDV (vue Liste ET détail du jour sélectionné en vue Calendrier)
 function renderRdvItems(container, items){
@@ -2167,7 +2167,7 @@ let journalPage = 1;
 // tel quel plutôt que d'être ignoré silencieusement.
 const JOURNAL_ACTIONS = {
   create_property:          { label:'Bien créé',            couleur:'#2F7A4E', icone:'+' },
-  update_property:          { label:'Bien modifié',         couleur:'#6B7772', icone:'✎' },
+  update_property:          { label:'Bien modifié',         couleur:'#5A6B7C', icone:'✎' },
   update_status:            { label:'Statut changé',        couleur:'#C8871A', icone:'⇄' },
   archive_property:         { label:'Bien archivé',         couleur:'#8B9199', icone:'▤' },
   restore_property:         { label:'Bien restauré',        couleur:'#1F7A73', icone:'↺' },
@@ -2175,7 +2175,7 @@ const JOURNAL_ACTIONS = {
 };
 
 function journalActionInfo(action){
-  return JOURNAL_ACTIONS[action] || { label: action, couleur:'#6B7772', icone:'•' };
+  return JOURNAL_ACTIONS[action] || { label: action, couleur:'#5A6B7C', icone:'•' };
 }
 
 function journalActeur(actorId){
@@ -3130,7 +3130,10 @@ function topPropertiesList(counts, emptyLabel){
 
 // Palette des graphiques alignée sur le thème (vert profond / or) — valeurs
 // de présentation uniquement, la logique des graphiques est inchangée.
-const CHART_COLORS = { primary:'#123027', success:'#2F7A4E', warning:'#E2A22C', danger:'#C4432F', ink:'#131A17', soft:'#6B7772', border:'#E6E3DB' };
+// Alignées sur les jetons de commun.css : les graphiques appartiennent à la
+// même palette que le reste, sinon l'écran des statistiques donne l'impression
+// d'un autre logiciel.
+const CHART_COLORS = { primary:'#031928', success:'#397042', warning:'#F2AE05', danger:'#C4432F', ink:'#0B1520', soft:'#5A6B7C', border:'#E2E7EE' };
 
 // Chargement résilient de Chart.js : si le CDN principal a échoué (script blanc,
 // blocage réseau, URL obsolète), on tente d'autres sources avant d'abandonner.
