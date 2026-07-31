@@ -15,14 +15,12 @@
 // vérifie elle-même que ce jeton appartient bien à l'administrateur avant
 // d'agir — on ne fait jamais confiance à ce que la page déclare.
 //
-// Secrets requis : SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ADMIN_USER_ID
-//                  SITE_REDIRECT_URL (adresse où l'agence choisit son mot de passe)
+// Secrets requis : SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY — tous deux
+// fournis d'office par Supabase, donc rien à configurer à la main.
+// Facultatif : SITE_REDIRECT_URL (page où l'agence choisit son mot de passe).
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-// L'identifiant de l'admin est un secret de configuration, pas une valeur
-// écrite en dur : le jour où il change, on le change ici sans redéployer.
-const ADMIN_USER_ID = Deno.env.get("ADMIN_USER_ID");
 const REDIRECT_URL = Deno.env.get("SITE_REDIRECT_URL") || "";
 
 const CORS = {
@@ -41,21 +39,41 @@ function reponse(corps: unknown, statut = 200) {
 // Vérifie que l'appelant est bien l'administrateur, à partir de son jeton.
 // Retourne son identifiant, ou null si le jeton est absent, invalide, expiré,
 // ou appartient à quelqu'un d'autre.
+//
+// La question « est-ce l'admin ? » est posée À LA BASE, via la fonction SQL
+// is_admin() déjà utilisée par toutes les politiques RLS. Deux avantages sur
+// une comparaison avec un identifiant recopié dans un secret :
+//   · une seule source de vérité — le jour où l'admin change, on ne modifie
+//     que le SQL, et cette fonction suit automatiquement ;
+//   · rien à configurer à la main, donc rien à oublier de configurer.
 async function identifierAdmin(req: Request): Promise<string | null> {
   const entete = req.headers.get("Authorization") || "";
   const jeton = entete.startsWith("Bearer ") ? entete.slice(7) : "";
   if (!jeton) return null;
 
-  // On demande à Supabase À QUI appartient ce jeton. C'est Supabase qui
-  // valide la signature et l'expiration — jamais nous.
+  // 1. À qui appartient ce jeton ? C'est Supabase qui valide la signature et
+  //    l'expiration — jamais nous.
   const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
     headers: { apikey: SERVICE_KEY!, Authorization: `Bearer ${jeton}` },
   });
   if (!res.ok) return null;
-  const utilisateur = await res.json();
-  const id = utilisateur?.id;
-  if (!id || id !== ADMIN_USER_ID) return null;
-  return id;
+  const id = (await res.json())?.id;
+  if (!id) return null;
+
+  // 2. Cette personne est-elle l'admin ? On rejoue l'appel AVEC SON JETON,
+  //    surtout pas avec la clé de service : is_admin() lit auth.uid(), qui
+  //    doit donc être celui de l'appelant et non celui du serveur.
+  const verdict = await fetch(`${SUPABASE_URL}/rest/v1/rpc/is_admin`, {
+    method: "POST",
+    headers: {
+      apikey: SERVICE_KEY!,
+      Authorization: `Bearer ${jeton}`,
+      "Content-Type": "application/json",
+    },
+    body: "{}",
+  });
+  if (!verdict.ok) return null;
+  return (await verdict.json()) === true ? id : null;
 }
 
 function emailValide(email: string) {
@@ -66,8 +84,8 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return reponse({ erreur: "Méthode non autorisée." }, 405);
 
-  if (!SUPABASE_URL || !SERVICE_KEY || !ADMIN_USER_ID) {
-    return reponse({ erreur: "Fonction mal configurée : secrets manquants." }, 500);
+  if (!SUPABASE_URL || !SERVICE_KEY) {
+    return reponse({ erreur: "Fonction mal configurée." }, 500);
   }
 
   const adminId = await identifierAdmin(req);
