@@ -622,7 +622,10 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" integrity="sha384-NrKB+u6Ts6AtkIhwPixiKTzgSKNblyhlk0Sohlgar9UHUBzai/sgnNNWWd291xqt" crossorigin="anonymous"></script>
 <script>
 
-const STATUS_COLOR = { Disponible:'#3F7A49', 'Réservé':'#B8842A', Vendu:'#8B9199', 'Loué':'#8B9199' };
+// Le vert « Disponible » sert à la fois d'encre et de fond (à 13 %) dans les
+// pastilles : à #3F7A49 le rapport tombait à 4,31:1, sous le seuil AA.
+// Assombri à teinte égale, il atteint 4,89:1.
+const STATUS_COLOR = { Disponible:'#397042', 'Réservé':'#B8842A', Vendu:'#8B9199', 'Loué':'#8B9199' };
 const STATUS_OPTIONS = { Vente:['Disponible','Réservé','Vendu'], Location:['Disponible','Réservé','Loué'] };
 
 // Un type absent de ICON_SVG faisait planter l'ouverture de la fiche : le

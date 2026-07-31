@@ -25,31 +25,37 @@
      registre : chasse fixe, chiffres alignés en colonne.
    ---------------------------------------------------------------------------- */
 :root{
-    /* ---- Fonds : du papier, pas de l'écran ---- */
-    --bg:#F5F2EC;           /* papier chaud */
+    /* ---- Fonds : la clarté d'un relevé, teintée vers l'encre du logo ---- */
+    --bg:#F7F8FA;
     --surface:#FFFFFF;
-    --surface-alt:#EFEBE2;
-    --border:#E2DDD1;
+    --surface-alt:#EFF2F6;
+    --border:#E2E7EE;
     /* Filet de registre : plus net que --border, pour les séparations qui
        structurent une fiche (et non celles qui délimitent une zone). */
-    --filet:#D6CFBF;
+    --filet:#CDD6E2;
 
     /* ---- Encres ---- */
-    --ink:#14201B;
-    /* Contrastes vérifiés sur les deux fonds : 4,98:1 sur --bg et 5,56:1 sur
-       --surface, au-dessus du seuil WCAG AA (4,5:1). */
-    --ink-soft:#5F6B64;
+    --ink:#0B1520;           /* 18,4:1 sur blanc */
+    /* Neutre biaisé vers le bleu du logo : un gris pur salirait l'encre.
+       Vérifié 5,5:1 sur --surface et 5,2:1 sur --bg (seuil AA : 4,5:1). */
+    --ink-soft:#5A6B7C;
 
-    --primary:#1C4436;       /* vert cadastre, pour les actions principales */
-    --primary-dark:#122E24;
-    /* Or minéral. L'ancien #E2A22C tirait vers le jaune vif ; celui-ci a le
-       ton d'un cachet d'encre. Contraste 6,36:1 avec le texte des boutons. */
-    --accent:#C8901A;
-    --accent-dark:#A8760F;
-    /* Variante éclaircie, réservée au texte doré SUR fond nuit (8:1) : l'or
-       minéral seul y perdrait en présence. */
-    --accent-clair:#DDA83C;
-    --accent-soft:#F7EEDA;
+    --primary:#031928;       /* l'encre du logo, pour les fonds et actions */
+    --primary-dark:#010F1A;
+    /* L'or du logo, échantillonné dans assets/logo.png. Il porte l'identité :
+       9,2:1 sur l'encre, et 9,2:1 pour l'encre écrite PAR-DESSUS lui — donc
+       parfait en aplat de bouton. */
+    --accent:#F2AE05;
+    --accent-dark:#D89A04;
+    /* Or éclairci, réservé au TEXTE doré sur fond encre (11,7:1). */
+    --accent-clair:#FFC947;
+    /* Or assombri en bronze, seule déclinaison lisible en TEXTE sur fond
+       clair (5,25:1). L'or brut n'y atteint que 1,9:1 : jamais de texte or
+       sur du blanc. */
+    --accent-bronze:#8F6410;
+    --accent-soft:#FEF6E3;
+    /* Bleu franc du logo, cantonné au fonctionnel : liens, focus (6,7:1). */
+    --bleu:#1D4ED8;
 
     --success:#2F7A4E;
     --warning:#B57A12;
@@ -63,8 +69,9 @@
     --sage:#3F7A49;    /* Disponible */
     --stone:#8B9199;   /* Vendu / Loué */
 
-    --night:#0E1A16;
-    --night-2:#16271F;
+    /* Fonds sombres : l'encre du logo, et son éclaircie pour les dégradés. */
+    --night:#031928;
+    --night-2:#0A2A42;
 
     /* ---- Échelle typographique ----
        Rapport ~1,25. Une page qui pioche des tailles au hasard se lit comme un
@@ -85,9 +92,9 @@
 
     --ease:cubic-bezier(.4,0,.2,1);
     /* Ombres discrètes : elles séparent les plans, elles ne font pas flotter. */
-    --shadow:0 1px 1px rgba(20,32,27,0.03), 0 6px 16px -12px rgba(20,32,27,0.22);
-    --shadow-lg:0 20px 48px -22px rgba(14,26,22,0.32);
-    --focus-ring:0 0 0 3px rgba(200,144,26,0.45);
+    --shadow:0 1px 1px rgba(3,25,40,0.04), 0 6px 16px -12px rgba(3,25,40,0.24);
+    --shadow-lg:0 20px 48px -22px rgba(3,25,40,0.34);
+    --focus-ring:0 0 0 3px rgba(242,174,5,0.5);
   }
 
 *{box-sizing:border-box;}

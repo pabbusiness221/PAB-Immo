@@ -70,7 +70,12 @@
      il ne doit pas concurrencer WhatsApp qui reste l'appel à l'action. */
   .btn-espace{background:rgba(255,255,255,0.10);color:#fff;border:1px solid rgba(255,255,255,0.22);}
   .btn-espace:hover{background:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.34);}
-  .btn-whatsapp{background:#25D366;color:#fff;}
+  /* Le vert #25D366 est ce qui rend WhatsApp reconnaissable : on le garde.
+     En revanche le texte blanc n'y atteignait que 1,98:1. L'encre foncée
+     monte à 7,76:1 sans toucher à la couleur de marque. */
+  .btn-whatsapp{background:#25D366;color:#052B18;}
+  .btn-whatsapp svg,
+  .btn-whatsapp svg path{fill:currentColor;stroke:currentColor;}
   .btn-whatsapp:hover{filter:brightness(0.95);}
   header .btn-outline{background:rgba(255,255,255,0.08);color:#fff;border-color:rgba(255,255,255,0.22);}
   header .btn-outline:hover{background:rgba(255,255,255,0.16);border-color:rgba(255,255,255,0.34);}
@@ -369,14 +374,22 @@
   /* ---------- Avis des clients ---------- */
   .avis-band{max-width:1280px;margin:0 auto;padding:8px 24px 40px;}
   .avis-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:18px;}
-  .avis-eyebrow{margin:0 0 6px;color:var(--accent-clair);font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;}
+  /* Bronze : cette section est sur fond clair. L'or clair (--accent-clair)
+     est réservé au texte SUR fond encre, où il donne 11,7:1 ; ici il ne
+     ferait que 1,4:1. */
+  .avis-eyebrow{margin:0 0 6px;color:var(--accent-bronze);font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;}
   .avis-head h2{font-family:'Manrope',sans-serif;font-size:clamp(19px,2.4vw,25px);font-weight:800;letter-spacing:-.02em;margin:0;}
   .avis-resume{display:flex;align-items:center;gap:9px;margin-top:9px;}
   .avis-resume strong{font-family:'Manrope',sans-serif;font-size:22px;font-weight:800;}
   .avis-compte{font-size:13px;color:var(--ink-soft);}
   .avis-etoiles{display:inline-flex;gap:1px;}
-  .star{color:var(--border);font-size:15px;line-height:1;}
-  .star.on{color:var(--accent);}
+  /* L'étoile vide porte du sens : sans elle, impossible de lire « 4 sur 5 ».
+     À --border (1,24:1) elle disparaissait. Cette teinte atteint 3,35:1, le
+     seuil des éléments graphiques, sans concurrencer les étoiles pleines. */
+  .star{color:#7D8EA3;font-size:15px;line-height:1;}
+  /* Bronze et non or brut : ces étoiles vivent sur fond clair, où l'or du
+     logo ne fait que 1,9:1. Le bronze atteint 5,25:1 tout en restant doré. */
+  .star.on{color:var(--accent-bronze);}
   .avis-toggle{flex-shrink:0;}
   .avis-liste{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;}
   .avis-vide{color:var(--ink-soft);font-size:14px;padding:6px 0 4px;}
@@ -399,7 +412,7 @@
   .avis-moderation{margin:9px 0 0;font-size:12px;color:var(--ink-soft);}
   .stars-input{display:inline-flex;gap:4px;}
   .stars-input .star-btn{appearance:none;border:0;background:none;cursor:pointer;padding:2px;font-size:26px;line-height:1;color:var(--border);transition:color .12s var(--ease);}
-  .stars-input .star-btn.on{color:var(--accent);}
+  .stars-input .star-btn.on{color:var(--accent-bronze);}
   .stars-input .star-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
   @media (max-width:640px){
     .avis-band{padding:0 16px 34px;}
@@ -1160,7 +1173,9 @@
 
 
 const STATUS_LABEL = { Disponible:'Disponible', 'Réservé':'Sous offre' };
-const STATUS_COLOR = { Disponible:'#3F7A49', 'Réservé':'#B8842A' };
+// Même vert que le portefeuille : il sert d'encre ET de fond (à 13 %) dans
+// les pastilles, où #3F7A49 ne donnait que 4,31:1. Ici : 4,89:1.
+const STATUS_COLOR = { Disponible:'#397042', 'Réservé':'#B8842A' };
 
 // Repli si un type de bien n'a pas d'icône : le bandeau de la fiche appelle
 // .replace() sur l'icône, donc sur undefined si la clé manque.
