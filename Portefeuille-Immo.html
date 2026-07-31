@@ -272,6 +272,24 @@
   .agence-txt strong{display:block;font-size:14px;font-weight:800;}
   .agence-txt span{display:block;font-size:12px;color:var(--ink-soft);margin-top:3px;}
   .agence-item .btn{flex-shrink:0;padding:9px 16px;font-size:12.5px;min-height:0;}
+  /* État du compte : une agence invitée n'est pas une agence connectée. On le
+     dit avec un mot ET une couleur — jamais la couleur seule. */
+  .agence-etat{display:inline-block;font-size:11.5px;font-weight:700;margin-top:6px;padding:3px 9px;border-radius:999px;}
+  .agence-etat.ok{background:rgba(63,122,73,0.12);color:var(--success);}
+  .agence-etat.attente{background:rgba(208,138,22,0.14);color:#8A5D0C;}
+  .cand-actions{display:flex;flex-direction:column;align-items:flex-end;gap:7px;flex-shrink:0;}
+  .cand-ouvrir{padding:8px 14px;font-size:12px;min-height:0;white-space:nowrap;}
+  /* Ouverture d'un compte agence : bloc d'action isolé du reste de la liste,
+     pour qu'il ne se confonde pas avec les fiches existantes. */
+  .agence-nouvelle{padding:0 20px 18px;}
+  .agence-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;margin-top:12px;}
+  .agence-form.hidden{display:none;}
+  .agence-form .form-field{margin-bottom:11px;}
+  .agence-form-aide{font-size:11.5px;line-height:1.55;color:var(--ink-soft);background:var(--surface-alt);border-radius:9px;padding:9px 11px;margin:4px 0 13px;}
+  .agence-form-pied{display:flex;gap:9px;flex-wrap:wrap;}
+  .agence-form-pied .btn{flex:1;min-width:130px;justify-content:center;}
+  .agence-form-msg{font-size:12.5px;font-weight:600;margin:11px 0 0;line-height:1.5;}
+  .agence-form-msg:empty{margin:0;}
 
   /* ---------- Prospects ---------- */
   #prospectsDrawer{left:auto;width:560px;max-width:96vw;border-radius:var(--radius-xl) 0 0 var(--radius-xl);background:var(--bg);}
@@ -2364,14 +2382,77 @@ let CANDIDATURES = [];
 const ETATS_CANDIDATURE = ['Nouvelle', 'En discussion', 'Acceptée', 'Refusée'];
 
 async function loadAgences(){
-  const [{ data, error }, { data: cand }] = await Promise.all([
-    db.from('collaborators')
+  // On lit d'abord la vue enrichie (coordonnées + compte activé ou non). Si
+  // elle n'existe pas encore — migration pas jouée —, on retombe sur la table
+  // seule plutôt que d'afficher un écran vide : l'admin garde son outil.
+  let vue = await db.from('collaborators_etat')
+    .select('user_id, display_name, contact_name, phone, email, zone, verified_at, invited_at, created_at, compte_active')
+    .order('display_name');
+
+  if(vue.error){
+    vue = await db.from('collaborators')
       .select('user_id, display_name, verified_at, created_at')
-      .order('display_name'),
-    db.from('collaborator_requests').select('*').order('created_at', { ascending:false })
-  ]);
-  AGENCES = error ? null : (data || []);
+      .order('display_name');
+  }
+
+  const { data: cand } = await db.from('collaborator_requests')
+    .select('*').order('created_at', { ascending:false });
+
+  AGENCES = vue.error ? null : (vue.data || []);
   CANDIDATURES = cand || [];
+}
+
+// Ouvre un compte pour une agence et lui envoie son lien d'activation.
+// L'appel passe par une fonction serveur : créer un compte exige la clé de
+// service Supabase, qui ne peut pas vivre dans le code de cette page.
+async function inviterAgence(champs, bouton, messageEl){
+  messageEl.textContent = '';
+  messageEl.style.color = '';
+
+  if(!champs.display_name || !champs.email){
+    messageEl.textContent = "Le nom de l'agence et l'email sont obligatoires.";
+    messageEl.style.color = 'var(--danger)';
+    return false;
+  }
+
+  const { data: session } = await db.auth.getSession();
+  const jeton = session && session.session ? session.session.access_token : null;
+  if(!jeton){
+    messageEl.textContent = "Session expirée : reconnectez-vous avant d'inviter une agence.";
+    messageEl.style.color = 'var(--danger)';
+    return false;
+  }
+
+  const libelle = bouton.textContent;
+  bouton.disabled = true; bouton.textContent = 'Envoi…';
+  try{
+    const res = await fetch(SUPABASE_URL + '/functions/v1/inviter-agence', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + jeton,
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY
+      },
+      body: JSON.stringify(champs)
+    });
+    const corps = await res.json().catch(()=>({}));
+    if(!res.ok){
+      messageEl.textContent = corps.erreur || "L'invitation a échoué.";
+      messageEl.style.color = 'var(--danger)';
+      return false;
+    }
+    messageEl.textContent = corps.message || 'Invitation envoyée.';
+    messageEl.style.color = 'var(--success)';
+    await loadAgences();
+    renderAgences();
+    return true;
+  }catch(e){
+    messageEl.textContent = "L'invitation a échoué — vérifiez votre connexion.";
+    messageEl.style.color = 'var(--danger)';
+    return false;
+  }finally{
+    bouton.disabled = false; bouton.textContent = libelle;
+  }
 }
 
 async function setCandidatureStatus(id, statut, champ){
@@ -2432,17 +2513,51 @@ function renderAgences(){
         <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
       </button>
     </div>
+    <div class="agence-nouvelle">
+      <button type="button" class="btn btn-primary" id="agenceOuvrirForm" aria-expanded="false" aria-controls="agenceForm">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Ouvrir un compte agence
+      </button>
+      <div class="agence-form hidden" id="agenceForm">
+        <div class="form-field"><label class="form-label" for="ag_nom">Nom de l'agence *</label>
+          <input class="form-input" id="ag_nom" autocomplete="organization" /></div>
+        <div class="form-field"><label class="form-label" for="ag_email">Email de connexion *</label>
+          <input class="form-input" id="ag_email" type="email" autocomplete="email" placeholder="agence@exemple.com" /></div>
+        <div class="form-field"><label class="form-label" for="ag_contact">Personne à joindre</label>
+          <input class="form-input" id="ag_contact" autocomplete="name" /></div>
+        <div class="form-field"><label class="form-label" for="ag_tel">Téléphone</label>
+          <input class="form-input" id="ag_tel" type="tel" autocomplete="tel" placeholder="+221 …" /></div>
+        <div class="form-field"><label class="form-label" for="ag_zone">Zone d'intervention</label>
+          <input class="form-input" id="ag_zone" list="ag_zones" placeholder="ex : Dakar, Thiès" />
+          <datalist id="ag_zones"><option value="Dakar"></option><option value="Thiès"></option><option value="Dakar et Thiès"></option></datalist></div>
+        <p class="agence-form-aide">L'agence recevra un lien par email pour choisir elle-même son mot de passe. Vous n'avez aucun mot de passe à créer ni à transmettre.</p>
+        <div class="agence-form-pied">
+          <button type="button" class="btn btn-primary" id="agenceInviter">Envoyer l'invitation</button>
+          <button type="button" class="btn btn-outline" id="agenceAnnuler">Annuler</button>
+        </div>
+        <p class="agence-form-msg" id="agenceMsg" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+
     ${AGENCES.length === 0 ? `<div class="inbox-empty">Aucune agence enregistrée pour l'instant.</div>` : `
     <div class="journal-liste">
       ${AGENCES.map(a=>{
         const n = biensPar[a.user_id] || 0;
+        // « Compte activé » n'existe que si la vue enrichie a répondu. On ne
+        // devine pas : sans l'information, on n'affiche pas de pastille.
+        const etatConnu = Object.prototype.hasOwnProperty.call(a, 'compte_active');
+        const coord = [a.contact_name, a.phone, a.zone].filter(Boolean).map(esc).join(' · ');
         return `
         <div class="agence-item">
           <div class="agence-txt">
             <strong>${esc(a.display_name)}</strong>
+            ${coord ? `<span>${coord}</span>` : ''}
             <span>${n} bien${n>1?'s':''} en ligne · ${a.verified_at
               ? 'certifiée le ' + new Date(a.verified_at).toLocaleDateString('fr-FR', {day:'2-digit', month:'long', year:'numeric'})
               : 'non certifiée'}</span>
+            ${etatConnu ? `<span class="agence-etat ${a.compte_active ? 'ok' : 'attente'}">${
+              a.compte_active ? '✓ Compte activé' : '⏳ Invitation envoyée, compte pas encore activé'
+            }</span>` : ''}
           </div>
           <button type="button" class="btn ${a.verified_at ? 'btn-outline' : 'btn-primary'}"
                   data-agence="${esc(a.user_id)}" data-verifier="${a.verified_at ? '0' : '1'}">
@@ -2476,14 +2591,20 @@ function renderAgences(){
               · reçue ${freshnessLabel(c.created_at)}</span>
             ${c.message ? `<span style="margin-top:5px;color:var(--ink);">${esc(c.message)}</span>` : ''}
           </div>
-          <select class="pros-select" data-candidature="${c.id}" aria-label="Statut de ${esc(c.agency_name)}">
-            ${ETATS_CANDIDATURE.map(e=>`<option value="${e}"${e===c.status?' selected':''}>${e}</option>`).join('')}
-          </select>
+          <div class="cand-actions">
+            <select class="pros-select" data-candidature="${c.id}" aria-label="Statut de ${esc(c.agency_name)}">
+              ${ETATS_CANDIDATURE.map(e=>`<option value="${e}"${e===c.status?' selected':''}>${e}</option>`).join('')}
+            </select>
+            ${c.status === 'Acceptée'
+              ? `<button type="button" class="btn btn-outline cand-ouvrir" data-ouvrir-compte="${c.id}">Ouvrir son compte</button>`
+              : ''}
+          </div>
         </div>`).join('')}</div>
       <p class="analytics-note" style="margin:0 20px 24px;">
-        Accepter une candidature ne crée pas de compte : il reste à inviter
-        l'agence depuis Supabase, puis à l'ajouter aux collaborateurs. Ce statut
-        ne sert qu'à savoir où en est l'échange.
+        Passez une candidature à <em>Acceptée</em> pour faire apparaître le
+        bouton <em>Ouvrir son compte</em> : il reprend les coordonnées déjà
+        saisies et envoie l'invitation. Le statut, lui, ne sert qu'à savoir où
+        en est l'échange.
       </p>`}
   `;
 
@@ -2493,6 +2614,54 @@ function renderAgences(){
   });
   d.querySelectorAll('[data-agence]').forEach(b=>{
     b.onclick = () => setAgenceVerified(b.dataset.agence, b.dataset.verifier === '1');
+  });
+
+  // --- Ouverture d'un compte agence ---
+  const form = document.getElementById('agenceForm');
+  const btnOuvrir = document.getElementById('agenceOuvrirForm');
+  const msg = document.getElementById('agenceMsg');
+  const val = id => (document.getElementById(id).value || '').trim();
+
+  const basculer = (ouvrir) => {
+    form.classList.toggle('hidden', !ouvrir);
+    btnOuvrir.setAttribute('aria-expanded', ouvrir ? 'true' : 'false');
+    if(ouvrir) document.getElementById('ag_nom').focus();
+  };
+  btnOuvrir.onclick = () => basculer(form.classList.contains('hidden'));
+  document.getElementById('agenceAnnuler').onclick = () => { basculer(false); msg.textContent=''; btnOuvrir.focus(); };
+
+  document.getElementById('agenceInviter').onclick = async (e) => {
+    const ok = await inviterAgence({
+      display_name: val('ag_nom'),
+      email: val('ag_email'),
+      contact_name: val('ag_contact'),
+      phone: val('ag_tel'),
+      zone: val('ag_zone')
+    }, e.currentTarget, msg);
+    // renderAgences() a déjà tout reconstruit en cas de succès : inutile de
+    // vider les champs d'un formulaire qui n'existe plus.
+    if(!ok) return;
+  };
+
+  // Créer le compte directement depuis une candidature : les coordonnées sont
+  // déjà là, les retaper serait une source d'erreur.
+  d.querySelectorAll('[data-ouvrir-compte]').forEach(b=>{
+    b.onclick = () => {
+      const c = CANDIDATURES.find(x => String(x.id) === b.dataset.ouvrirCompte);
+      if(!c) return;
+      basculer(true);
+      document.getElementById('ag_nom').value = c.agency_name || '';
+      // Le champ « contact » de la candidature peut être un email ou un
+      // téléphone : on ne le met dans Email que si c'en est un.
+      const contact = (c.contact || '').trim();
+      const estEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(contact);
+      document.getElementById('ag_email').value = estEmail ? contact : '';
+      document.getElementById('ag_tel').value   = estEmail ? '' : contact;
+      document.getElementById('ag_contact').value = c.contact_name || '';
+      document.getElementById('ag_zone').value  = c.zone || '';
+      document.getElementById(estEmail ? 'ag_contact' : 'ag_email').focus();
+      form.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    };
   });
 }
 
