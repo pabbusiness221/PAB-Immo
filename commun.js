@@ -195,6 +195,38 @@ function getPropertyPhotos(p){
     .sort((a,b) => (a.position ?? 0) - (b.position ?? 0));
 }
 
+// ---- Rails horizontaux glissables (catégories, biens en vedette…) ---------
+// Le tactile fait déjà défiler ces rails nativement. Une souris, elle, ne le
+// peut pas sans un clic-glisser explicite — cette fonction l'ajoute à
+// n'importe quel conteneur qui défile en x, pour ne pas dupliquer la logique
+// à chaque rail. dataset.glisserActif évite un double branchement si la
+// fonction est rappelée sur un conteneur déjà équipé (un rail se réécrit
+// souvent sans que son élément hôte, lui, ne change).
+function activerGlisserPourDefiler(el){
+  if(!el || el.dataset.glisserActif) return;
+  el.dataset.glisserActif = '1';
+  let bas = false, depart = 0, defilDepart = 0, deplace = false;
+  el.addEventListener('pointerdown', (e) => {
+    if(e.pointerType === 'touch') return; // le tactile défile déjà nativement
+    bas = true; deplace = false;
+    depart = e.clientX; defilDepart = el.scrollLeft;
+    el.classList.add('grabbing');
+  });
+  el.addEventListener('pointermove', (e) => {
+    if(!bas) return;
+    const delta = e.clientX - depart;
+    if(Math.abs(delta) > 4) deplace = true;
+    el.scrollLeft = defilDepart - delta;
+  });
+  const relacher = () => { bas = false; el.classList.remove('grabbing'); };
+  el.addEventListener('pointerup', relacher);
+  el.addEventListener('pointerleave', relacher);
+  // Un glissement qui a réellement déplacé le rail ne doit pas aussi
+  // déclencher le clic de la tuile relâchée dessous, sinon on filtre ou on
+  // ouvre une fiche au hasard à chaque glissement à la souris.
+  el.addEventListener('click', (e) => { if(deplace){ e.stopPropagation(); e.preventDefault(); } }, true);
+}
+
 // ---- Galerie plein écran ---------------------------------------------------
 // updateScrollLock est défini par chaque page : la vitrine doit aussi tenir
 // compte de son tiroir de fiche, l'espace de gestion de ses trois panneaux.

@@ -47,11 +47,26 @@
   }
   @keyframes fadeInUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 
-  /* ---------- En-tête ---------- */
-  header{position:sticky;top:0;z-index:40;background:rgba(3,25,40,0.92);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,0.08);transition:box-shadow .28s var(--ease), background-color .28s var(--ease);}
-  /* Ombre discrète qui apparaît dès qu'on quitte le haut de page : l'en-tête
-     se détache alors du contenu qui défile dessous. */
-  header.scrolled{box-shadow:0 14px 34px -20px rgba(0,0,0,0.75);background:rgba(3,25,40,0.97);}
+  /* ---------- Angles de la vitrine ----------
+     La maquette validée respire davantage que le registre serré de l'espace
+     de gestion : angles plus généreux, cartes qui se posent au lieu de se
+     découper. Surcharge locale — l'admin garde ses angles resserrés. */
+  :root{
+    --radius-sm:12px;
+    --radius-md:16px;
+    --radius-lg:20px;
+    --radius-xl:26px;
+  }
+
+  /* ---------- En-tête ----------
+     Comme dans la maquette : l'en-tête flotte sur la photo tant qu'on est
+     dans le héros, puis devient une barre pleine dès qu'on le quitte. Sans
+     cette bascule, une barre opaque couperait l'image dès la première
+     seconde et l'on perdrait l'effet d'entrée. */
+  header{position:sticky;top:0;z-index:40;background:transparent;border-bottom:1px solid transparent;
+    transition:background-color .34s var(--ease), box-shadow .34s var(--ease), border-color .34s var(--ease), backdrop-filter .34s var(--ease);}
+  header.scrolled{background:rgba(3,25,40,0.92);backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);
+    border-bottom-color:rgba(255,255,255,0.08);box-shadow:0 14px 34px -20px rgba(0,0,0,0.75);}
   .header-inner{display:flex;align-items:center;gap:20px;padding:12px 22px;max-width:1400px;margin:0 auto;}
   .brand{display:flex;align-items:center;gap:11px;margin-right:auto;}
   .brand h1 span{color:var(--accent-clair);}
@@ -96,7 +111,13 @@
      n'est pas chargée. */
   .hero{background:linear-gradient(155deg, var(--night) 0%, var(--night-2) 58%, #123152 100%);
     background-color:var(--night);
-    padding:58px 22px 92px;position:relative;overflow:hidden;}
+    /* Le héros remonte sous l'en-tête, qui le survole au lieu de le précéder :
+       sans cela, un en-tête transparent laisse voir le fond blanc de la page
+       et le logo devient illisible. --entete-h est mesurée en JS, car la
+       hauteur de la barre change avec la largeur d'écran. */
+    margin-top:calc(-1 * var(--entete-h, 67px));
+    padding:calc(var(--entete-h, 67px) + clamp(48px,7vw,84px)) 22px clamp(96px,11vw,132px);
+    position:relative;overflow:hidden;}
   .hero-bg{position:absolute;inset:-3%;z-index:0;
     background:url('assets/dakar-aerienne.jpg') center 45% / cover no-repeat;
     animation:heroZoom 26s ease-in-out infinite alternate;}
@@ -105,7 +126,12 @@
      Plus dense à gauche derrière le texte, il s'éclaircit vers la droite pour
      laisser la ville respirer. */
   .hero-veil{position:absolute;inset:0;z-index:0;pointer-events:none;
-    background:linear-gradient(103deg, rgba(3,25,40,0.95) 0%, rgba(4,28,45,0.90) 34%, rgba(5,32,52,0.74) 62%, rgba(6,36,58,0.60) 100%);}
+    background:
+      /* Ombre haute : l'en-tête étant transparent sur la photo, le logo blanc
+         se retrouvait posé sur le ciel clair. Ce dégradé lui garantit un fond
+         sombre quel que soit le cadrage de l'image. */
+      linear-gradient(180deg, rgba(3,25,40,0.82) 0%, rgba(3,25,40,0.34) 14%, rgba(3,25,40,0) 26%),
+      linear-gradient(103deg, rgba(3,25,40,0.95) 0%, rgba(4,28,45,0.90) 34%, rgba(5,32,52,0.74) 62%, rgba(6,36,58,0.60) 100%);}
   @keyframes heroZoom{from{transform:scale(1);}to{transform:scale(1.09);}}
   .hero::after{content:'';position:absolute;inset:0;background:
     repeating-linear-gradient(0deg, rgba(255,255,255,0.032) 0px, rgba(255,255,255,0.032) 1px, transparent 1px, transparent 34px),
@@ -119,11 +145,33 @@
   .hero h2 em.swap-out{opacity:0;transform:translateY(-7px);}
   .hero p{color:rgba(255,255,255,0.74);font-size:15.5px;margin:0 0 26px;max-width:520px;line-height:1.6;}
   .hero p b{color:#fff;font-weight:600;}
-  .hero-search{display:flex;gap:10px;flex-wrap:wrap;max-width:640px;width:100%;}
-  .searchbar{display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:999px;padding:14px 22px;flex:1;min-width:220px;width:100%;box-shadow:var(--shadow-lg);transition:box-shadow .2s var(--ease);}
+  /* Repositionnée hors du héros (voir le HTML plus bas) : elle flotte entre
+     les deux parties, comme la carte de recherche de la maquette — la
+     moitié sur la photo, la moitié sur le fond clair, plutôt que noyée
+     dans l'une ou posée à plat après l'autre. */
+  .hero-search{max-width:1400px;margin:clamp(-34px,-3.2vw,-24px) auto 0;padding:0 22px;
+    position:relative;z-index:10;display:flex;gap:10px;flex-wrap:wrap;width:100%;}
+  .hero-search .searchbar{max-width:640px;}
+  .searchbar{display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:999px;padding:8px 8px 8px 22px;flex:1;min-width:220px;width:100%;box-shadow:var(--shadow-lg);transition:box-shadow .2s var(--ease);}
   .searchbar:focus-within{box-shadow:var(--focus-ring), var(--shadow-lg);}
   .searchbar input{border:none;outline:none;font-size:14.5px;width:100%;background:transparent;font-family:'Inter',sans-serif;color:var(--ink);}
   .searchbar input::placeholder{color:#93A1B2;}
+  /* Recherche avancée : rassemblée dans la barre de recherche plutôt que
+     laissée en puce séparée dans la barre de filtres — un seul endroit pour
+     « chercher », de la saisie libre jusqu'aux critères fins. Grand cercle
+     plein, bien visible, comme dans la maquette — dans le bleu déjà présent
+     au catalogue des jetons (--bleu), demandé pour ce bouton précis. */
+  .search-adv-btn{
+    flex-shrink:0;position:relative;display:flex;align-items:center;justify-content:center;
+    width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;
+    background:var(--bleu);color:#fff;
+    box-shadow:0 6px 16px -6px rgba(29,78,216,0.55);
+    transition:background-color .2s var(--ease), box-shadow .2s var(--ease), transform .15s var(--ease), filter .2s var(--ease);
+  }
+  .search-adv-btn:hover{filter:brightness(.92);}
+  .search-adv-btn:active{transform:scale(.94);}
+  .search-adv-btn[aria-expanded="true"]{background:var(--primary);color:#fff;box-shadow:none;filter:none;}
+  .search-adv-btn .adv-badge{position:absolute;top:-3px;right:-3px;}
   .hero-stat{color:rgba(255,255,255,0.72);font-size:12.5px;margin-top:18px;display:flex;align-items:center;gap:6px;}
   .hero-stat b{color:var(--accent);font-family:'Manrope',sans-serif;font-size:15px;font-variant-numeric:tabular-nums;}
   /* Séquence d'entrée de l'accueil : chaque élément monte en fondu, l'un
@@ -137,15 +185,23 @@
     .hero-eyebrow{animation-delay:.05s;}
     .hero-title{animation-delay:.13s;}
     .hero-inner > p:not(.hero-eyebrow){animation-delay:.22s;}
-    .hero-search{animation-delay:.31s;}
-    .hero-stat{animation-delay:.40s;}
-    .hero-trust{animation-delay:.48s;}
+    /* La recherche a rejoint la fin du héros, juste avant « Vente &
+       location » (voir plus bas dans le HTML) : elle monte donc en dernier,
+       la séquence suit toujours l'ordre visuel réel. */
+    .hero-stat{animation-delay:.31s;}
+    .hero-trust{animation-delay:.40s;}
+    .hero-search{animation-delay:.48s;}
   }
 
   /* Arguments de confiance sous le hero */
   .hero-trust{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px;}
-  .trust-item{display:flex;align-items:center;gap:11px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.10);border-radius:var(--radius-md);padding:11px 16px;}
-  .trust-item .ti{width:32px;height:32px;border-radius:10px;background:rgba(242,174,5,0.16);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--accent);}
+  /* Repères posés sur la photo : verre dépoli plutôt qu'aplat, comme dans la
+     maquette. Le flou n'est demandé qu'ici, sur quelques éléments fixes du
+     héros — pas sur la liste qui défile, où il coûterait cher. */
+  .trust-item{display:flex;align-items:center;gap:11px;background:rgba(255,255,255,0.10);
+    backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);
+    border:1px solid rgba(255,255,255,0.20);border-radius:999px;padding:11px 18px 11px 12px;}
+  .trust-item .ti{width:32px;height:32px;border-radius:50%;background:rgba(242,174,5,0.22);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--accent-clair);}
   .trust-item strong{display:block;color:#fff;font-size:12.5px;font-weight:700;font-family:'Manrope',sans-serif;}
   .trust-item span{display:block;color:rgba(255,255,255,0.55);font-size:11.5px;margin-top:1px;}
   /* Bandeau de confiance en défilement continu. Armé par JS uniquement hors
@@ -164,7 +220,15 @@
   @keyframes trustScroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
 
   /* ---------- Barre de filtres ---------- */
-  .toolbar{max-width:1400px;margin:-44px auto 0;padding:18px 20px;position:relative;z-index:10;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);box-shadow:var(--shadow-lg);}
+  /* Carte des filtres rapides. C'est désormais .hero-search qui chevauche le
+     héros (voir plus haut) : celle-ci vient normalement en dessous, sur fond
+     clair — d'où un fond presque opaque (94 %) qui suffit à s'en détacher
+     sans qu'un vrai verre ne soit nécessaire. */
+  .toolbar{max-width:1400px;margin:14px auto 0;padding:20px 22px;position:relative;z-index:10;
+    background:rgba(255,255,255,0.94);
+    backdrop-filter:blur(22px) saturate(170%);-webkit-backdrop-filter:blur(22px) saturate(170%);
+    border:1px solid rgba(255,255,255,0.85);border-radius:var(--radius-xl);
+    box-shadow:0 8px 18px -10px rgba(3,25,40,.20), 0 30px 64px -28px rgba(3,25,40,.42);}
   .chips-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between;}
   .chips{display:flex;gap:8px;overflow-x:auto;width:auto;min-width:0;-webkit-overflow-scrolling:touch;padding:2px;}
   .chip{flex-shrink:0;border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:10px 17px;font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer;white-space:nowrap;transition:all .22s var(--ease);font-family:'Inter',sans-serif;}
@@ -475,6 +539,78 @@
     100%{box-shadow:0 0 0 0 rgba(242,174,5,0),0 3px 10px rgba(0,0,0,0.28);}
   }
 
+  /* ---------- Découverte rapide (catégories / sélection du moment) ----------
+     Deux rails horizontaux entre les filtres et le catalogue complet : un
+     raccourci visuel vers le fond du portefeuille, glissable au doigt comme à
+     la souris (cf. .rail-scroll ci-dessous). Ils ne remplacent ni la
+     recherche avancée ni la liste exhaustive plus bas — seulement une autre
+     porte pour y entrer. Masqués par défaut (attribut hidden) tant que les
+     biens réels n'ont pas encore été chargés. */
+  .decouverte{max-width:1400px;margin:34px auto 0;padding:0 20px;}
+  .decouverte-tete{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:16px;}
+  .decouverte-tete h2{font-family:'Manrope',sans-serif;font-size:clamp(19px,2.4vw,25px);font-weight:800;letter-spacing:-.02em;margin:0;}
+  .decouverte-tete p{margin:4px 0 0;font-size:13px;color:var(--ink-soft);}
+  .decouverte-lien{flex-shrink:0;background:none;border:none;color:var(--accent-bronze);font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;text-decoration:underline;text-underline-offset:3px;padding:6px 2px;}
+  .decouverte-lien:hover{color:var(--ink);}
+
+  /* Rail glissable : tactile natif, souris via activerGlisserPourDefiler()
+     (commun.js) — même logique de glisser que la galerie photo. */
+  .rail-scroll{display:flex;gap:14px;overflow-x:auto;padding:2px 20px 10px;margin:0 -20px;scroll-snap-type:x proximity;scrollbar-width:none;cursor:grab;}
+  .rail-scroll::-webkit-scrollbar{display:none;}
+  .rail-scroll.grabbing{cursor:grabbing;user-select:none;}
+
+  /* Catégories : tuile photo pleine, comme un dossier qu'on feuillette. */
+  .cat-tile{flex:0 0 150px;height:162px;border:none;padding:0;border-radius:var(--radius-lg);overflow:hidden;position:relative;scroll-snap-align:start;cursor:pointer;box-shadow:var(--shadow);transition:transform .3s var(--ease), box-shadow .3s var(--ease);}
+  .cat-tile:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);}
+  .cat-tile:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .cat-tile-img{position:absolute;inset:0;background-size:cover;background-position:center;}
+  .cat-tile-voile{position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,25,40,.14) 0%,rgba(3,25,40,.60) 55%,rgba(3,25,40,.92) 100%);}
+  .cat-tile-in{position:absolute;left:0;right:0;bottom:0;padding:12px 13px 13px;color:#fff;text-align:left;}
+  .cat-tile-ico{position:absolute;top:11px;left:11px;width:28px;height:28px;border-radius:9px;background:rgba(255,255,255,.18);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;}
+  /* Deux lignes au plus (« Champs agricoles » sur une tuile étroite) : au
+     lieu de laisser le compte s'écraser contre un nom qui déborde, le nom
+     se coupe proprement et le compte garde toujours son espace propre. */
+  .cat-tile-nom{font-family:'Manrope',sans-serif;font-weight:700;font-size:13px;letter-spacing:-.2px;line-height:1.22;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .cat-tile-nb{font-size:10.5px;color:rgba(255,255,255,.72);margin-top:4px;font-weight:600;}
+  .cat-tile.active{box-shadow:0 0 0 3px var(--accent), var(--shadow-lg);}
+  .cat-tile-tous .cat-tile-ico{background:rgba(242,174,5,.28);}
+
+  /* Vedettes : même contenu que les cartes du catalogue (prix, badges,
+     favori, fiche), en format compact et glissable plutôt qu'une grille. */
+  .bien-tile{flex:0 0 264px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow);scroll-snap-align:start;transition:transform .3s var(--ease);}
+  .bien-tile:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);}
+  .bien-tile-photo{position:relative;height:168px;background:var(--surface-alt);overflow:hidden;}
+  .bien-tile-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+  .bien-tile-photo .card-photo-ico{display:flex;align-items:center;justify-content:center;height:100%;}
+  .bien-tile-etiq{position:absolute;top:11px;left:11px;display:flex;gap:5px;flex-wrap:wrap;max-width:calc(100% - 54px);}
+  .bien-tile-etiq .pill{position:static;}
+  .bien-tile-corps{padding:13px 14px 14px;}
+  .bien-tile-prix{font-family:'Manrope',sans-serif;font-weight:800;font-size:17px;color:var(--ink);letter-spacing:-.5px;}
+  .bien-tile-prix small{font-size:11px;font-weight:600;color:var(--ink-soft);letter-spacing:0;}
+  .bien-tile-titre{background:none;border:0;padding:0;margin:7px 0 4px;font:inherit;text-align:left;cursor:pointer;font-size:13px;font-weight:700;color:var(--ink);display:block;width:100%;}
+  .bien-tile-titre:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px;}
+  .bien-tile-lieu{display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--ink-soft);}
+  .bien-tile-faits{display:flex;gap:12px;margin-top:10px;padding-top:10px;border-top:1px solid var(--filet);font-size:11px;color:var(--ink-soft);}
+  .bien-tile-faits b{color:var(--ink);font-weight:700;}
+  .bien-tile-cta{display:block;width:100%;margin-top:11px;padding:10px;border:none;border-radius:var(--radius-sm);background:var(--night);color:#fff;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:700;cursor:pointer;transition:background .2s var(--ease);}
+  .bien-tile-cta:hover{background:var(--primary-dark);}
+  .bien-tile-cta:focus-visible, .bien-tile .fav-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+  /* Statistiques réelles : même carte de nuit que le bandeau d'alerte, pour
+     rester dans le même vocabulaire visuel plutôt que d'en introduire un
+     troisième. Masquée si l'un des chiffres est absent ou nul — un chiffre
+     à zéro rassurerait moins qu'il n'inquiéterait (voir plus bas le JS). */
+  .stats-band{max-width:1400px;margin:8px auto 0;padding:0 20px;}
+  .stats-inner{background:
+      radial-gradient(650px 260px at 90% -10%, rgba(242,174,5,0.16), transparent 62%),
+      linear-gradient(145deg, var(--night) 0%, var(--night-2) 100%);
+    border-radius:var(--radius-xl);padding:30px 26px;display:grid;grid-template-columns:repeat(4,1fr);gap:22px 12px;box-shadow:var(--shadow);}
+  .stat-tile{text-align:center;}
+  .stat-tile .n{font-family:'Manrope',sans-serif;font-weight:800;font-size:clamp(22px,3vw,30px);color:#fff;letter-spacing:-.03em;font-variant-numeric:tabular-nums;}
+  .stat-tile .n em{font-style:normal;color:var(--accent-clair);}
+  .stat-tile .l{font-size:11.5px;color:rgba(255,255,255,.68);margin-top:5px;font-weight:600;}
+
   /* ---------- Pied de page ---------- */
   footer{background:var(--night);color:rgba(255,255,255,0.62);margin-top:8px;}
   .footer-inner{max-width:1400px;margin:0 auto;padding:44px 20px 36px;display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:32px;}
@@ -495,15 +631,31 @@
   .footer-bottom p{margin:0 0 4px;}
   .footer-reg{font-size:11px;color:rgba(255,255,255,0.32);letter-spacing:.02em;}
 
-  /* ---------- Barre de contact mobile ---------- */
-  .mobile-contact-bar{
-    display:none;position:fixed;left:0;right:0;bottom:0;z-index:850;
-    gap:8px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));
-    background:rgba(255,255,255,0.97);backdrop-filter:blur(12px);
-    border-top:1px solid var(--border);box-shadow:0 -8px 24px -10px rgba(3,25,40,0.18);
+  /* ---------- Icônes d'en-tête (téléphone uniquement) ----------
+     Remplace l'ancienne barre de contact fixe en bas d'écran : alertes et
+     favoris rejoignent le contact (WhatsApp) directement dans l'en-tête,
+     dans le même registre que ses bulles vitrées au-dessus de la photo.
+     Masquées au-delà du point de bascule mobile : le bureau garde « Mes
+     favoris » et « Être alerté(e) », déjà bien en vue dans la barre de
+     filtres et le bandeau d'alerte. */
+  .btn-icon-header{display:none;}
+  @media (max-width:680px){
+    .btn-icon-header{
+      display:flex;align-items:center;justify-content:center;flex-shrink:0;
+      width:44px;height:44px;border-radius:50%;position:relative;
+      background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.24);
+      color:#fff;cursor:pointer;padding:0;
+      transition:background-color .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease);
+    }
+    .btn-icon-header:hover{background:rgba(255,255,255,0.26);}
+    .btn-icon-header.active{background:var(--accent);border-color:var(--accent);color:var(--primary);}
+    header.scrolled .btn-icon-header{background:rgba(255,255,255,0.10);border-color:rgba(255,255,255,0.18);}
+    header.scrolled .btn-icon-header.active{background:var(--accent);border-color:var(--accent);color:var(--primary);}
+    .btn-icon-header .pastille{
+      position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;
+      background:var(--accent);border:1.5px solid var(--night);
+    }
   }
-  .mobile-contact-bar .btn{flex:1;justify-content:center;}
-  .mobile-contact-bar .btn-icon-alert{flex:0 0 46px;padding:0;color:var(--gold);border-color:var(--border);background:var(--accent-soft);}
 
   /* ---------- Responsive ---------- */
   @media (max-width: 1180px){
@@ -531,9 +683,10 @@
       mask-image:linear-gradient(to right, black calc(100% - 22px), transparent 100%);
     }
     .chip{scroll-snap-align:start;}
-    /* Les deux boutons hors « rail » ne doivent pas s'étirer sur toute
-       la largeur quand la barre passe en colonne. */
-    #favToggleChip, #advSearchToggle{align-self:flex-start;margin-top:4px;}
+    /* Mes favoris » ne doit pas s'étirer sur toute la largeur quand la barre
+       passe en colonne (la recherche avancée a rejoint la barre de recherche
+       — voir .search-adv-btn). */
+    #favToggleChip{align-self:flex-start;margin-top:4px;}
     .adv-search-grid{grid-template-columns:1fr 1fr;}
     .footer-inner{grid-template-columns:1fr 1fr;gap:26px;}
   }
@@ -550,7 +703,10 @@
     /* Sur téléphone le bandeau est presque carré : `cover` cadre alors
        une colonne centrale de la photo. Le voile est monté d'un cran,
        le texte occupant toute la largeur au lieu du seul tiers gauche. */
-    .hero{padding:22px 16px 56px;
+    /* Le décalage sous l'en-tête (voir la règle .hero de base) doit être
+       repris ici : sinon le padding retombe à 22px net et le titre passe
+       sous la barre transparente au lieu de commencer après elle. */
+    .hero{padding:calc(var(--entete-h, 67px) + 22px) 16px 56px;
       background:
         linear-gradient(168deg, rgba(3,25,40,0.94) 0%, rgba(4,28,45,0.89) 42%, rgba(5,32,52,0.80) 100%),
         radial-gradient(600px 300px at 82% -8%, rgba(242,174,5,0.16), transparent 62%),
@@ -573,14 +729,19 @@
     .trust-item .ti{width:27px;height:27px;border-radius:9px;}
     .trust-item strong{font-size:11.5px;}
     .trust-item span{font-size:10.5px;}
-    .searchbar{padding:13px 18px;}
-    .toolbar{padding:14px 14px 12px;margin-top:-34px;border-radius:var(--radius-lg);}
-    /* Deux colonnes : « Mes favoris » et « Recherche avancée » tiennent
-       sur une seule ligne au lieu d'en occuper deux. */
+    .searchbar{padding:6px 6px 6px 18px;}
+    .hero-search{padding:0 16px;}
+    .toolbar{padding:14px 14px 12px;border-radius:var(--radius-lg);}
+    /* Il ne reste plus que « Vente & location » ici : la recherche avancée
+       vit désormais dans la barre de recherche (.search-adv-btn) et
+       « Mes favoris » dans le cœur de l'en-tête (voir juste en dessous). */
     .chips-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
     .chip-group{grid-column:1/-1;gap:4px;}
     .chip-group-label{font-size:9.5px;}
-    #favToggleChip, #advSearchToggle{align-self:auto;margin-top:0;justify-content:center;}
+    /* Doublon avec l'icône cœur de l'en-tête (voir renderCategories() /
+       toggleFavOnly() plus haut dans le fichier) : les deux pilotent le
+       même state.favOnly, mais n'ont plus besoin de coexister ici. */
+    #favToggleChip{display:none;}
     .view-toggle{width:100%;margin-top:8px !important;padding:3px;}
     .view-toggle button{flex:1;padding:9px 12px;min-height:40px;}
     .split{padding:0 16px;margin-top:16px;}
@@ -614,19 +775,19 @@
     .drawer.open{transform:translateY(0);}
     .drawer-banner{height:170px;border-radius:22px 22px 0 0;}
     .contact-actions .btn{min-width:100%;}
-    body{padding-bottom:68px;}
-    .mobile-contact-bar{display:flex;}
-    .mobile-contact-bar .btn{min-width:0;}
     .btn{min-height:44px;}
     /* Défilement plus fluide sur téléphone. Le flou d'arrière-plan
        (backdrop-filter) doit être recalculé à chaque image tant qu'un
        élément flou reste à l'écran pendant qu'on fait défiler la liste :
        c'est ce qui causait les petits à-coups. On le remplace par des
        fonds pleins — invisible à l'œil à cette taille, bien plus léger à
-       afficher. L'en-tête, les pastilles et la barre de contact fixe sont
-       les trois éléments concernés car ils restent visibles au défilement. */
-    header{background:#031928;backdrop-filter:none;-webkit-backdrop-filter:none;}
-    .mobile-contact-bar{background:#fff;backdrop-filter:none;-webkit-backdrop-filter:none;}
+       afficher. L'en-tête et les pastilles sont les deux éléments concernés
+       car ils restent visibles au défilement. */
+    /* Le flou reste supprimé sur téléphone (il était recalculé à chaque image
+       et hachait le défilement), mais l'en-tête garde sa bascule : transparent
+       sur la photo, plein ensuite — en aplat, sans flou, donc sans coût. */
+    header{background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;}
+    header.scrolled{background:#031928;backdrop-filter:none;-webkit-backdrop-filter:none;}
     .pill{backdrop-filter:none;-webkit-backdrop-filter:none;}
     /* min-height 44px (norme tactile) sans changer l'apparence : la puce
        reste visuellement identique, seule sa zone cliquable grandit. */
@@ -652,6 +813,14 @@
     .adv-search-footer{padding:14px 16px;flex-direction:column;}
     .saved-searches{padding:0 16px;}
     .footer-inner{grid-template-columns:1fr;gap:24px;padding:34px 20px 28px;}
+    .decouverte{margin-top:26px;padding:0 16px;}
+    .decouverte-tete{margin-bottom:12px;}
+    .rail-scroll{padding:2px 16px 8px;margin:0 -16px;}
+    .cat-tile{flex:0 0 128px;height:142px;}
+    .cat-tile-nom{font-size:12px;}
+    .bien-tile{flex:0 0 236px;}
+    .stats-band{padding:0 16px;}
+    .stats-inner{grid-template-columns:repeat(2,1fr);gap:20px 10px;padding:24px 20px;}
   }
 
   @media (max-width: 380px){
@@ -776,6 +945,17 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M10 21v-6h4v6"/></svg>
       <span class="btn-label">Mon espace</span>
     </a>
+    <!-- Alertes et favoris : sur téléphone, ils rejoignent le contact ici au
+         lieu d'une barre fixe séparée en bas d'écran (voir toggleAlertForm()
+         et le double branchement de favToggleChip/headerFavBtn). Masqués au
+         delà du point de bascule mobile — le bureau garde ses équivalents en
+         toutes lettres dans la barre de filtres et le bandeau d'alerte. -->
+    <button type="button" class="btn-icon-header" id="headerAlertBtn" aria-expanded="false" aria-controls="alertForm" aria-label="Être alerté(e) de nouveaux biens" title="Être alerté(e)">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+    </button>
+    <button type="button" class="btn-icon-header" id="headerFavBtn" aria-pressed="false" aria-label="Afficher uniquement mes favoris" title="Mes favoris">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>
+    </button>
     <a class="btn btn-whatsapp" href="https://wa.me/221778494111" target="_blank" rel="noopener" aria-label="Contacter par WhatsApp">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M20.5 3.5A11 11 0 003.6 17.3L2 22l4.9-1.6A11 11 0 1020.5 3.5zM12 20a8 8 0 01-4.1-1.1l-.3-.2-3 1 1-2.9-.2-.3A8 8 0 1112 20zm4.4-5.9c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.6.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1-1.3-.6-2.2-1.1-3.1-2.6-.2-.4.2-.4.6-1.2.1-.2 0-.4 0-.5-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.2-1 1-1 2.4s1 2.8 1.1 3c.1.2 2 3 4.8 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1 0-.1-.2-.2-.4-.3z"/></svg>
       <span class="btn-label">WhatsApp</span>
@@ -792,12 +972,6 @@
     <p class="hero-eyebrow">Trouvez. Investissez. Vivez.</p>
     <h2 class="hero-title">Trouvez le bien <em id="heroRotate">qui vous ressemble.</em></h2>
     <p>Terrains, maisons, appartements, studios et champs agricoles sélectionnés à <b>Dakar</b> et <b>Thiès</b> - vérifiés et prêts à visiter.</p>
-    <div class="hero-search">
-      <div class="searchbar">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input id="search" placeholder="Rechercher : type, lieu, prix, réf…" aria-label="Rechercher un bien par type, lieu, prix, référence ou mot-clé" />
-      </div>
-    </div>
     <div class="hero-stat" id="heroStat"></div>
     <div class="hero-trust">
       <div class="trust-item">
@@ -824,38 +998,31 @@
   </div>
 </div>
 
+<!-- Positionnée hors du héros : elle flotte entre les deux parties, comme
+     la carte de recherche de la maquette (moitié sur la photo, moitié sur
+     le fond clair), plutôt que noyée dans le héros ou plaquée après lui. -->
+<div class="hero-search">
+  <div class="searchbar">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="search" placeholder="Rechercher : type, lieu, prix, réf…" aria-label="Rechercher un bien par type, lieu, prix, référence ou mot-clé" />
+    <!-- Rassemblée ici plutôt que laissée en puce séparée dans la barre
+         de filtres : un seul endroit pour chercher, de la saisie libre
+         jusqu'aux critères fins. -->
+    <button type="button" class="search-adv-btn" id="advSearchToggle" aria-expanded="false" aria-controls="advSearchPanel" aria-label="Recherche avancée" title="Recherche avancée">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="7" cy="18" r="2" fill="currentColor" stroke="none"/></svg>
+      <span class="adv-badge" id="advBadge" style="display:none;">0</span>
+    </button>
+  </div>
+</div>
+
 <!-- Repère pour la navigation par titres des lecteurs d'écran : sans lui, on
      saute directement du titre du héros aux 20 titres H3 des annonces, sans
      rien pour situer la section recherche/résultats. -->
 <h2 class="sr-only" id="titreBiens">Rechercher et parcourir les biens disponibles</h2>
-<div class="toolbar">
-  <div class="chips-row">
-    <div class="chip-group" role="group" aria-label="Type de bien">
-      <span class="chip-group-label" aria-hidden="true">Type de bien</span>
-      <div class="chips" id="chipsType"></div>
-    </div>
-    <div class="divider"></div>
-    <div class="chip-group" role="group" aria-label="Vente et location">
-      <span class="chip-group-label" aria-hidden="true">Vente &amp; location</span>
-      <div class="chips" id="chipsOp"></div>
-    </div>
-    <div class="divider"></div>
-    <button class="chip fav-chip" id="favToggleChip" aria-pressed="false">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>
-      <span>Mes favoris</span>
-    </button>
-    <button class="chip" id="advSearchToggle" aria-expanded="false" aria-controls="advSearchPanel">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="7" cy="18" r="2" fill="currentColor" stroke="none"/></svg>
-      <span>Recherche avancée</span>
-      <span class="adv-badge" id="advBadge" style="display:none;">0</span>
-    </button>
-  </div>
-  <div class="view-toggle" id="viewToggle" style="margin-top:12px;">
-    <button data-view="list" class="active" aria-pressed="true">Liste</button>
-    <button data-view="map" aria-pressed="false">Carte</button>
-  </div>
-</div>
-
+<!-- Positionné juste sous la barre de recherche (qui l'ouvre désormais via
+     .search-adv-btn) et avant la bande de filtres rapides : le formulaire
+     apparaît là où on l'a demandé, pas après un bandeau qu'il n'a pas
+     déclenché. -->
 <div class="adv-search-panel hidden" id="advSearchPanel">
   <div class="adv-search-grid">
     <div class="form-field">
@@ -924,6 +1091,27 @@
   <div class="saved-searches" id="savedSearchesList"></div>
 </div>
 
+<div class="toolbar">
+  <div class="chips-row">
+    <!-- Le filtre par type vit désormais dans le rail « Explorer par type »
+         (voir renderCategories()), qui montre en plus une photo et un
+         compte réel par type : une puce ici ferait doublon. -->
+    <div class="chip-group" role="group" aria-label="Vente et location">
+      <span class="chip-group-label" aria-hidden="true">Vente &amp; location</span>
+      <div class="chips" id="chipsOp"></div>
+    </div>
+    <div class="divider"></div>
+    <button class="chip fav-chip" id="favToggleChip" aria-pressed="false">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>
+      <span>Mes favoris</span>
+    </button>
+  </div>
+  <div class="view-toggle" id="viewToggle" style="margin-top:12px;">
+    <button data-view="list" class="active" aria-pressed="true">Liste</button>
+    <button data-view="map" aria-pressed="false">Carte</button>
+  </div>
+</div>
+
 <div class="alert-banner">
   <div class="alert-card">
     <div class="ai"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg></div>
@@ -971,6 +1159,32 @@
   </div>
 </div>
 
+<!-- Découverte rapide : deux rails horizontaux entre les filtres et le
+     catalogue complet — un raccourci visuel, pas un remplacement de la
+     recherche avancée ni de la liste exhaustive plus bas. Masqués (hidden)
+     tant que les biens réels n'ont pas encore été chargés : voir
+     renderCategories()/renderFeatured(). -->
+<section class="decouverte" aria-labelledby="explorerTitre" id="explorerSection" hidden>
+  <div class="decouverte-tete">
+    <div>
+      <h2 id="explorerTitre">Explorer par type</h2>
+      <p>Ce que nous avons en portefeuille</p>
+    </div>
+  </div>
+  <div class="rail-scroll" id="categoryRail"></div>
+</section>
+
+<section class="decouverte" aria-labelledby="vedettesTitre" id="vedettesSection" hidden>
+  <div class="decouverte-tete">
+    <div>
+      <h2 id="vedettesTitre">Sélection du moment</h2>
+      <p>Annonces mises en avant par l'agence</p>
+    </div>
+    <button type="button" class="decouverte-lien" id="vedettesVoirTout">Tout voir ↓</button>
+  </div>
+  <div class="rail-scroll" id="vedettesRail"></div>
+</section>
+
 <div class="split" id="split" data-view="list">
   <div class="panel-list" id="list"></div>
   <div class="panel-map">
@@ -985,6 +1199,18 @@
   </div>
 </div>
 </main>
+
+<!-- Chiffres réels de l'agence. Masqué si l'un d'eux est absent ou nul (voir
+     tryRenderStatsBand()) : un chiffre à zéro rassurerait moins qu'il
+     n'inquiéterait. -->
+<section class="stats-band" aria-label="PAB Immo en chiffres" id="statsBand" hidden>
+  <div class="stats-inner">
+    <div class="stat-tile"><div class="n" id="statBiens"><em>0</em></div><div class="l">Biens en portefeuille</div></div>
+    <div class="stat-tile"><div class="n" id="statVerifies"><em>0</em>%</div><div class="l">Annonces vérifiées</div></div>
+    <div class="stat-tile"><div class="n" id="statAgences"><em>0</em></div><div class="l">Agences partenaires</div></div>
+    <div class="stat-tile"><div class="n" id="statClients"><em>0</em></div><div class="l">Clients accompagnés</div></div>
+  </div>
+</section>
 
 <!-- Avis des clients. Modérés : un avis déposé n'apparaît ici qu'une fois
      publié par l'agence depuis le portefeuille. -->
@@ -1159,20 +1385,6 @@
 <div class="overlay" id="overlay"></div>
 <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitre" aria-hidden="true"></div>
 <div class="gallery-modal hidden" id="galleryModal"></div>
-
-<div class="mobile-contact-bar">
-  <button class="btn btn-outline btn-icon-alert" id="alertToggleBtnMobile" aria-label="Être alerté(e) de nouveaux biens" title="Être alerté(e)">
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
-  </button>
-  <a class="btn btn-whatsapp" href="https://wa.me/221778494111" target="_blank" rel="noopener">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M20.5 3.5A11 11 0 003.6 17.3L2 22l4.9-1.6A11 11 0 1020.5 3.5zM12 20a8 8 0 01-4.1-1.1l-.3-.2-3 1 1-2.9-.2-.3A8 8 0 1112 20z"/></svg>
-    WhatsApp
-  </a>
-  <a class="btn btn-primary" href="tel:+221778494111">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.7a2 2 0 01-.5 2.1L8 9.7a16 16 0 006.3 6.3l1.2-1.2a2 2 0 012.1-.5c.9.3 1.8.5 2.7.6a2 2 0 011.7 2z"/></svg>
-    Appeler
-  </a>
-</div>
 
 <!-- Versions figées (pas juste « @2 ») et intégrité vérifiée (SRI) : sans
      cela, jsDelivr peut servir une version mineure différente d'un jour à
@@ -1400,6 +1612,9 @@ async function loadProperties(){
   });
   PROPERTIES = (props || []).map(r => mapRow({ ...r, property_photos: photosByProperty[r.id] || [] }));
   renderHeroStat();
+  renderCategories();
+  renderFeatured();
+  tryRenderStatsBand();
   initAdvancedSearch();
   render();
   openPropertyFromURL();
@@ -1598,17 +1813,135 @@ const NAV = [['Tous','Tous les biens'],['Terrain','Terrains'],['Maison','Maisons
 const OPS = [['Tous','Vente & location'],['Vente','Vente'],['Location','Location']];
 function renderChips(){
   // aria-pressed reflète l'état actif : sans lui, un lecteur d'écran annonce
-  // « Terrains, bouton » sans jamais dire si ce filtre est sélectionné.
-  document.getElementById('chipsType').innerHTML = NAV.map(([key,label])=>
-    `<button class="chip ${state.type===key?'active':''}" data-type="${key}" aria-pressed="${state.type===key}">${label}</button>`).join('');
+  // « Vente, bouton » sans jamais dire si ce filtre est sélectionné.
+  // Le filtre par type n'a plus de puces ici : voir renderCategories(). Les
+  // boutons [data-type] du header et du pied de page restent branchés
+  // ci-dessous — ce ne sont pas des puces, mais ils suivent le même filtre.
   document.getElementById('chipsOp').innerHTML = OPS.map(([key,label])=>
     `<button class="chip ${state.op===key?'active':''}" data-op="${key}" aria-pressed="${state.op===key}">${label}</button>`).join('');
-  document.querySelectorAll('[data-type]').forEach(b=>b.onclick=()=>{ state.type=b.dataset.type; render(); });
   document.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>{ state.op=b.dataset.op; majEtiquettePrix(); render(); });
+  document.querySelectorAll('[data-type]').forEach(b=>b.onclick=(e)=>{ e.preventDefault(); state.type=b.dataset.type; render(); document.getElementById('titreBiens').scrollIntoView({ behavior:'smooth', block:'start' }); });
 }
 
 function renderHeroStat(){
   document.getElementById('heroStat').innerHTML = `<b data-count="${PROPERTIES.length}">${PROPERTIES.length}</b>&nbsp;biens disponibles à Dakar et Thiès`;
+}
+
+// ---- Découverte rapide : catégories + sélection du moment ------------------
+// Deux rails de survol du catalogue, entre les filtres et la liste complète.
+// Purement dérivés de PROPERTIES : aucune donnée fictive, aucun doublon de
+// logique métier — mêmes drapeaux (sponsorisee, verified_at) et mêmes
+// fonctions (isFav, toggleFav, openDrawerById) que la liste principale.
+function renderCategories(){
+  const host = document.getElementById('categoryRail');
+  const section = document.getElementById('explorerSection');
+  if(!host || !section) return;
+  // Icône « quatre cases » : la seule tuile qui ne représente pas un type
+  // précis, elle doit se distinguer visuellement des icônes de type.
+  const ICONE_TOUS = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>`;
+  const tuileTous = PROPERTIES.length ? `<button type="button" class="cat-tile cat-tile-tous ${state.type==='Tous'?'active':''}" data-cat="Tous" aria-pressed="${state.type==='Tous'}">
+    <span class="cat-tile-img" style="background-image:url('assets/dakar-aerienne.jpg')" aria-hidden="true"></span>
+    <span class="cat-tile-voile" aria-hidden="true"></span>
+    <span class="cat-tile-ico" aria-hidden="true">${ICONE_TOUS}</span>
+    <span class="cat-tile-in"><span class="cat-tile-nom">Tous les biens</span><span class="cat-tile-nb">${PROPERTIES.length} bien${PROPERTIES.length>1?'s':''}</span></span>
+  </button>` : '';
+  const tuiles = NAV.filter(([key]) => key !== 'Tous').map(([key,label])=>{
+    const biens = PROPERTIES.filter(p => p.type === key);
+    if(!biens.length) return '';
+    const avecPhoto = biens.find(p => p.photos && p.photos.length) || biens[0];
+    const cover = coverUrl(avecPhoto, 260, 55);
+    const fond = cover ? `background-image:url('${cover}')` : `background:${TYPE_COLOR[key]}`;
+    return `<button type="button" class="cat-tile ${state.type===key?'active':''}" data-cat="${key}" aria-pressed="${state.type===key}">
+      <span class="cat-tile-img" style="${fond}" aria-hidden="true"></span>
+      <span class="cat-tile-voile" aria-hidden="true"></span>
+      <span class="cat-tile-ico" aria-hidden="true">${typeIcon(key, 14)}</span>
+      <span class="cat-tile-in"><span class="cat-tile-nom">${label}</span><span class="cat-tile-nb">${biens.length} bien${biens.length>1?'s':''}</span></span>
+    </button>`;
+  }).join('');
+  host.innerHTML = tuileTous + tuiles;
+  section.hidden = !(tuileTous || tuiles);
+  host.querySelectorAll('[data-cat]').forEach(btn=>{
+    btn.onclick = () => {
+      // Sans puces « Type de bien » à côté (voir la suppression de chipsType),
+      // cette tuile doit aussi savoir se désélectionner : cliquer la
+      // catégorie déjà active revient à « Tous les biens ».
+      state.type = state.type === btn.dataset.cat ? 'Tous' : btn.dataset.cat;
+      render();
+      document.getElementById('titreBiens').scrollIntoView({ behavior:'smooth', block:'start' });
+    };
+  });
+  activerGlisserPourDefiler(host);
+}
+
+function renderFeatured(){
+  const host = document.getElementById('vedettesRail');
+  const section = document.getElementById('vedettesSection');
+  if(!host || !section) return;
+  // Même ordre que la liste principale : les mises en avant payantes d'abord,
+  // puis les plus récentes — pas de deuxième tri inventé pour ce rail.
+  const items = ordonner(PROPERTIES).slice(0, 8);
+  section.hidden = !items.length;
+  if(!items.length) return;
+  const estRecent = p => { const j = joursDepuis(p.created_at); return j !== null && j <= 14; };
+  host.innerHTML = items.map(p=>{
+    const cover = coverUrl(p, 420, 68);
+    return `
+    <article class="bien-tile" data-id="${p.id}">
+      <div class="bien-tile-photo"${cover?'':` style="background:linear-gradient(135deg, ${TYPE_COLOR[p.type]}, #161B22);"`}>
+        ${cover ? `<img src="${cover}" alt="" loading="lazy" decoding="async" onerror="photoFallback(this)">` : `<span class="card-photo-ico">${typeIcon(p.type)}</span>`}
+        <div class="bien-tile-etiq">
+          ${p.sponsorisee ? `<span class="pill" style="background:var(--night);color:var(--accent);border:1px solid rgba(242,174,5,.45);" title="Cette annonce bénéficie d'une mise en avant payante">Sponsorisé</span>`
+            : estRecent(p) ? `<span class="pill" style="background:rgba(29,78,216,0.94);color:#fff;">Nouveau</span>` : ''}
+          ${p.verified_at ? `<span class="pill" style="background:rgba(255,255,255,0.94);color:#256540;">✓ Vérifiée</span>` : ''}
+        </div>
+        <button type="button" class="fav-btn ${isFav(p.id)?'active':''}" data-fav-id="${p.id}" aria-pressed="${isFav(p.id)}" aria-label="${isFav(p.id)?'Retirer des favoris':'Ajouter aux favoris'}">${favIconSvg(isFav(p.id))}</button>
+      </div>
+      <div class="bien-tile-corps">
+        <div class="bien-tile-prix">${fcfa(p.price)}${p.operation==='Location'?' <small>/mois</small>':''}</div>
+        <button type="button" class="bien-tile-titre" data-open-id="${p.id}">${p.type} — ${esc(p.commune)}</button>
+        <div class="bien-tile-lieu">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>${p.quartier ? esc(p.quartier)+', ' : ''}${esc(p.region)}</span>
+        </div>
+        <div class="bien-tile-faits">
+          <span><b>${p.surface}</b> ${surfaceUnit(p.type)}</span>
+          ${p.rooms && p.rooms.chambres != null ? `<span><b>${p.rooms.chambres}</b> ch.</span>` : ''}
+        </div>
+        <button type="button" class="bien-tile-cta" data-open-id="${p.id}">Voir le bien</button>
+      </div>
+    </article>`;
+  }).join('');
+  host.querySelectorAll('[data-open-id]').forEach(btn=>{
+    btn.onclick = (e) => { e.stopPropagation(); openDrawerById(btn.dataset.openId); };
+  });
+  host.querySelectorAll('[data-fav-id]').forEach(btn=>{
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      toggleFav(btn.dataset.favId);
+      renderFeatured();
+      if(state.favOnly){ render(); } else { renderList(); }
+    };
+  });
+  activerGlisserPourDefiler(host);
+}
+
+// ---- Chiffres réels de l'agence --------------------------------------------
+// Alimentée par deux sources asynchrones indépendantes (le catalogue, et
+// public_stats) : on affiche dès que les deux ont répondu, quel que soit
+// l'ordre. Masquée si l'un des chiffres est nul — un « 0 » rassurerait moins
+// qu'il n'inquiéterait (même principe que les badges de confiance du héros).
+let STATS_AGENCES = null, STATS_CLIENTS = null;
+function tryRenderStatsBand(){
+  const band = document.getElementById('statsBand');
+  if(!band || !PROPERTIES.length || !STATS_AGENCES || !STATS_CLIENTS) return;
+  const verifiees = PROPERTIES.filter(p => p.verified_at).length;
+  const pct = Math.round((verifiees / PROPERTIES.length) * 100);
+  if(!pct) return;
+  document.querySelector('#statBiens em').textContent = PROPERTIES.length;
+  document.querySelector('#statVerifies em').textContent = pct;
+  document.querySelector('#statAgences em').textContent = STATS_AGENCES;
+  document.querySelector('#statClients em').textContent = STATS_CLIENTS;
+  band.hidden = false;
 }
 
 // ============================================================
@@ -1997,6 +2330,7 @@ function renderList(){
     btn.onclick = (e) => {
       e.stopPropagation();
       toggleFav(btn.dataset.favId);
+      renderFeatured(); // même bien, peut-être aussi affiché dans « Sélection du moment »
       if(state.favOnly){ render(); } else { renderList(); }
     };
   });
@@ -2186,6 +2520,7 @@ function openDrawer(p){
     fb.setAttribute('aria-label', isFav(p.id) ? 'Retirer des favoris' : 'Ajouter aux favoris');
     fb.innerHTML = favIconSvg(isFav(p.id));
     renderList();
+    renderFeatured();
   };
   document.getElementById('shareBtn').onclick = () => shareProperty(p);
   initDrawerMap(p);
@@ -2337,6 +2672,7 @@ function render(){
   // la première page, sinon on peut se retrouver sur une page vide.
   state.page = 1;
   renderChips();
+  renderCategories(); // la tuile active doit suivre aussi un filtre choisi par les puces
   renderList();
   rebuildMarkers(filtered());
 }
@@ -2418,6 +2754,10 @@ loadProperties();
 recordSiteVisit();
 loadReviews();
 
+document.getElementById('vedettesVoirTout').onclick = () => {
+  document.getElementById('titreBiens').scrollIntoView({ behavior:'smooth', block:'start' });
+};
+
 // Chiffres des deux blocs de réassurance. Le nombre d'agences vient de la
 // base ; celui des clients de la constante ci-dessus. Chaque bloc n'affiche
 // un nombre que s'il en existe un réel : un « 0 agence vérifiée » sur une
@@ -2435,6 +2775,9 @@ loadReviews();
       poser('trustClients', data.clients_accompagnes, n => `${n} clients accompagnés`);
       poser('trustAgences', data.agences_verifiees,
             n => n > 1 ? `${n} collaborateurs de confiance` : '1 collaborateur de confiance');
+      STATS_AGENCES = data.agences_verifiees;
+      STATS_CLIENTS = data.clients_accompagnes;
+      tryRenderStatsBand();
     }
   } catch(e){ /* chiffres indisponibles : les libellés seuls restent justes */ }
   // Une fois les chiffres posés, on lance le défilement continu : les copies
@@ -2495,30 +2838,35 @@ document.getElementById('search').addEventListener('input', e=>{
   searchTimer = setTimeout(render, 180);
 });
 
-document.getElementById('favToggleChip').onclick = () => {
+// « Mes favoris » vit à deux endroits (la puce du bureau, l'icône d'en-tête
+// du téléphone) : les deux pilotent le même state.favOnly, donc les deux
+// doivent refléter tout changement, peu importe lequel a été actionné.
+function toggleFavOnly(){
   state.favOnly = !state.favOnly;
-  const chip = document.getElementById('favToggleChip');
-  chip.classList.toggle('active', state.favOnly);
-  chip.setAttribute('aria-pressed', String(state.favOnly));
+  ['favToggleChip','headerFavBtn'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.classList.toggle('active', state.favOnly);
+    el.setAttribute('aria-pressed', String(state.favOnly));
+  });
   render();
-};
+}
+document.getElementById('favToggleChip').onclick = toggleFavOnly;
+document.getElementById('headerFavBtn').onclick = toggleFavOnly;
 
-document.getElementById('alertToggleBtn').onclick = () => {
+// Même logique pour l'alerte : le bandeau du bureau et l'icône d'en-tête du
+// téléphone ouvrent et referment le même formulaire.
+function toggleAlertForm(){
   const form = document.getElementById('alertForm');
   const ouvert = form.classList.toggle('hidden') === false;
-  document.getElementById('alertToggleBtn').setAttribute('aria-expanded', String(ouvert));
+  ['alertToggleBtn','headerAlertBtn'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.setAttribute('aria-expanded', String(ouvert));
+  });
   if(ouvert){ form.scrollIntoView({ behavior:'smooth', block:'nearest' }); document.getElementById('alert_email').focus(); }
-};
-document.getElementById('alertToggleBtnMobile').onclick = () => {
-  const form = document.getElementById('alertForm');
-  const wasHidden = form.classList.contains('hidden');
-  form.classList.toggle('hidden');
-  document.getElementById('alertToggleBtn').setAttribute('aria-expanded', String(wasHidden));
-  if(wasHidden){
-    form.scrollIntoView({behavior:'smooth', block:'start'});
-    document.getElementById('alert_email').focus();
-  }
-};
+}
+document.getElementById('alertToggleBtn').onclick = toggleAlertForm;
+document.getElementById('headerAlertBtn').onclick = toggleAlertForm;
 document.getElementById('alertSubmitBtn').onclick = async () => {
   if(document.getElementById('alert_website').value.trim()){
     document.getElementById('alertForm').innerHTML = '<div class="alert-form-inner" style="display:block;text-align:center;"><p class="sf-success" style="margin:0;">Inscription confirmée ! Vous serez recontacté(e) dès qu\'un bien correspond.</p></div>';
@@ -2760,18 +3108,32 @@ document.querySelectorAll('#viewToggle button').forEach(b=>{
 (function(){
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // En-tête : ombre dès qu'on quitte le haut de page (léger, toujours actif).
+  // En-tête : transparent tant qu'il flotte sur la photo du héros, plein dès
+  // qu'il la quitte. Le seuil est calculé à partir de la hauteur réelle du
+  // héros, moins celle de l'en-tête : une valeur en dur se serait décalée à
+  // chaque changement de typographie ou de largeur d'écran.
   var header = document.querySelector('header');
+  var heros = document.querySelector('.hero');
   if(header){
-    var ticking = false;
+    var ticking = false, seuil = 0;
+    function calculerSeuil(){
+      // Publie la hauteur réelle de l'en-tête : le héros s'en sert pour
+      // remonter dessous et lui offrir la photo comme fond.
+      document.documentElement.style.setProperty('--entete-h', header.offsetHeight + 'px');
+      seuil = heros
+        ? Math.max(40, heros.offsetHeight - header.offsetHeight - 40)
+        : 6;
+    }
     function onScroll(){
       if(ticking) return; ticking = true;
       requestAnimationFrame(function(){
-        header.classList.toggle('scrolled', window.scrollY > 6);
+        header.classList.toggle('scrolled', window.scrollY > seuil);
         ticking = false;
       });
     }
+    calculerSeuil();
     addEventListener('scroll', onScroll, {passive:true});
+    addEventListener('resize', function(){ calculerSeuil(); onScroll(); }, {passive:true});
     onScroll();
   }
 
