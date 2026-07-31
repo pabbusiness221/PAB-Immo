@@ -54,7 +54,7 @@
   header.scrolled{box-shadow:0 14px 34px -20px rgba(0,0,0,0.75);background:rgba(12,22,19,0.97);}
   .header-inner{display:flex;align-items:center;gap:20px;padding:12px 22px;max-width:1400px;margin:0 auto;}
   .brand{display:flex;align-items:center;gap:11px;margin-right:auto;}
-  .brand h1 span{color:var(--accent);}
+  .brand h1 span{color:var(--accent-clair);}
   .brand p{margin:1px 0 0;font-size:10.5px;color:rgba(255,255,255,0.58);letter-spacing:.08em;text-transform:uppercase;font-weight:600;}
 
   /* Navigation par type de bien : les boutons portent data-type,
@@ -103,10 +103,10 @@
     repeating-linear-gradient(90deg, rgba(255,255,255,0.032) 0px, rgba(255,255,255,0.032) 1px, transparent 1px, transparent 34px);
     pointer-events:none;}
   .hero-inner{max-width:1400px;margin:0 auto;position:relative;width:100%;z-index:1;}
-  .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;margin:0 0 16px;}
-  .hero-eyebrow::before{content:'';width:22px;height:1.5px;background:var(--accent);opacity:.8;}
+  .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--accent-clair);font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;margin:0 0 16px;}
+  .hero-eyebrow::before{content:'';width:22px;height:1.5px;background:var(--accent-clair);opacity:.8;}
   .hero h2{color:#fff;font-size:clamp(32px,4.6vw,52px);font-weight:800;margin:0 0 14px;letter-spacing:-0.025em;line-height:1.06;max-width:15ch;}
-  .hero h2 em{font-style:normal;color:var(--accent);display:inline-block;transition:opacity .38s var(--ease), transform .38s var(--ease);}
+  .hero h2 em{font-style:normal;color:var(--accent-clair);display:inline-block;transition:opacity .38s var(--ease), transform .38s var(--ease);}
   .hero h2 em.swap-out{opacity:0;transform:translateY(-7px);}
   .hero p{color:rgba(255,255,255,0.74);font-size:15.5px;margin:0 0 26px;max-width:520px;line-height:1.6;}
   .hero p b{color:#fff;font-weight:600;}
@@ -202,19 +202,45 @@
   @media (hover:hover) and (pointer:fine){
     .card:hover .card-photo-img{transform:scale(1.06);}
   }
-  .pill{font-size:10.5px;font-weight:800;padding:5px 11px;border-radius:999px;white-space:nowrap;letter-spacing:.01em;z-index:2;backdrop-filter:blur(4px);}
+  /* Mentions posées sur la photo : angles resserrés plutôt que gélules, pour
+     rester dans le registre du document plutôt que de l'application. */
+  .pill{font-size:10.5px;font-weight:800;padding:5px 10px;border-radius:5px;white-space:nowrap;letter-spacing:.015em;z-index:2;backdrop-filter:blur(4px);}
   .card-body{padding:15px 16px 16px;}
-  .card-top h3{font-size:15.5px;font-weight:800;margin:0;letter-spacing:-0.012em;}
-  .card-meta{display:flex;align-items:center;gap:6px;color:var(--ink-soft);font-size:12.5px;margin-top:6px;flex-wrap:wrap;}
-  .card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
-  .price{font-size:16px;font-weight:800;color:var(--ink);font-family:'Manrope',sans-serif;letter-spacing:-0.01em;}
+  .card-top h3{font-size:var(--t-md);font-weight:800;margin:0;letter-spacing:-0.012em;line-height:1.3;}
+  .card-meta{display:flex;align-items:center;gap:6px;color:var(--ink-soft);font-size:var(--t-sm);margin-top:6px;flex-wrap:wrap;}
 
-  /* ---------- Badges de confiance ---------- */
+  /* Pied de carte : la ligne de registre.
+     Surface à gauche, prix à droite, reliés par une ligne de conduite pointillée
+     — la convention d'un relevé ou d'un bordereau, où l'œil suit la mesure
+     jusqu'à sa valeur. Les deux textes reposent sur le fond de la carte, qui
+     masque les points : c'est ce qui donne le raccord net. */
+  .card-foot{position:relative;display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--filet);}
+  .card-foot::before{content:'';position:absolute;left:0;right:0;bottom:.34em;height:1px;
+    background-image:radial-gradient(circle, var(--filet) .5px, transparent .5px);
+    background-size:5px 1px;background-repeat:repeat-x;}
+  .card-foot > *{position:relative;background:var(--surface);}
+  .surface-txt{padding-right:7px;}
+  /* Chiffres alignés en colonne d'une carte à l'autre : on compare des prix,
+     pas des mots. */
+  .price{font-size:var(--t-lg);font-weight:800;color:var(--ink);font-family:'Manrope',sans-serif;letter-spacing:-0.015em;font-variant-numeric:tabular-nums;padding-left:7px;}
+
+  /* ---------- Marques de confiance ----------
+     « Vérifiée » n'est pas une étiquette parmi d'autres : c'est la promesse
+     même de PAB Immo dans un marché où la fausse annonce est la norme. Elle
+     est donc traitée en CACHET — filet net, angles droits, capitales espacées
+     — quand les autres restent des mentions discrètes. Toute l'audace de la
+     carte tient dans cette seule marque ; le reste se tait pour la laisser
+     parler. */
   .trust-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
-  .trust-badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:800;padding:4px 9px;border-radius:999px;white-space:nowrap;}
-  .trust-badge.verifiee{background:rgba(47,122,78,0.12);color:var(--success);}
-  .trust-badge.dispo{background:var(--accent-soft);color:var(--gold);}
-  .trust-badge.agence{background:rgba(18,48,39,0.10);color:var(--primary);}
+  .trust-badge{display:inline-flex;align-items:center;gap:4px;font-size:var(--t-xs);font-weight:700;padding:4px 9px;border-radius:5px;white-space:nowrap;}
+  .trust-badge.verifiee{background:rgba(47,122,78,0.09);color:#256540;border:1px solid rgba(47,122,78,0.55);
+    font-weight:800;text-transform:uppercase;letter-spacing:.07em;font-size:9.5px;padding:4px 8px;border-radius:3px;}
+  /* Mentions secondaires : volontairement plus légères que le cachet. Elles
+     portaient auparavant un fond plein qui les rendait plus lourdes que lui —
+     la hiérarchie était inversée, l'œil tombait sur l'accessoire avant
+     l'essentiel. Elles se contentent désormais d'un filet. */
+  .trust-badge.dispo{background:transparent;color:#8A5D0C;border:1px solid rgba(200,144,26,0.35);font-weight:600;}
+  .trust-badge.agence{background:transparent;color:var(--ink-soft);border:1px solid var(--border);font-weight:600;}
   .trust-panel{margin-top:16px;display:flex;flex-direction:column;gap:9px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 15px;}
   .trust-line{display:flex;align-items:flex-start;gap:11px;}
   .trust-line strong{display:block;font-size:13px;font-weight:800;}
@@ -343,7 +369,7 @@
   /* ---------- Avis des clients ---------- */
   .avis-band{max-width:1280px;margin:0 auto;padding:8px 24px 40px;}
   .avis-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-bottom:18px;}
-  .avis-eyebrow{margin:0 0 6px;color:var(--accent);font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;}
+  .avis-eyebrow{margin:0 0 6px;color:var(--accent-clair);font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;}
   .avis-head h2{font-family:'Manrope',sans-serif;font-size:clamp(19px,2.4vw,25px);font-weight:800;letter-spacing:-.02em;margin:0;}
   .avis-resume{display:flex;align-items:center;gap:9px;margin-top:9px;}
   .avis-resume strong{font-family:'Manrope',sans-serif;font-size:22px;font-weight:800;}
@@ -426,20 +452,20 @@
   /* ---------- Pied de page ---------- */
   footer{background:var(--night);color:rgba(255,255,255,0.62);margin-top:8px;}
   .footer-inner{max-width:1400px;margin:0 auto;padding:44px 20px 36px;display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:32px;}
-  .footer-inner h4{font-family:'Manrope',sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin:0 0 14px;font-weight:800;}
+  .footer-inner h4{font-family:'Manrope',sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-clair);margin:0 0 14px;font-weight:800;}
   .footer-inner p{margin:0 0 8px;font-size:13px;line-height:1.6;}
   .footer-brand strong{color:#fff;font-family:'Manrope',sans-serif;font-size:16px;display:block;margin-bottom:8px;}
   .footer-links{display:flex;flex-direction:column;gap:9px;align-items:flex-start;}
   .footer-links a{font-size:13px;text-decoration:none;transition:color .2s var(--ease);}
-  .footer-links a:hover{color:var(--accent);}
+  .footer-links a:hover{color:var(--accent-clair);}
   .footer-social{display:flex;gap:10px;margin-top:18px;}
   .footer-social a{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;color:rgba(255,255,255,0.72);background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.11);transition:all .2s var(--ease);}
-  .footer-social a:hover{color:var(--accent);border-color:rgba(226,162,44,0.55);background:rgba(226,162,44,0.12);transform:translateY(-2px);}
+  .footer-social a:hover{color:var(--accent-clair);border-color:rgba(221,168,60,0.55);background:rgba(221,168,60,0.12);transform:translateY(-2px);}
   .footer-social svg{width:18px;height:18px;}
   .footer-bottom{border-top:1px solid rgba(255,255,255,0.09);max-width:1400px;margin:0 auto;padding:20px 20px 28px;font-size:12px;text-align:center;color:rgba(255,255,255,0.42);}
   .footer-legal{display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:center;margin-bottom:11px;}
   .footer-legal a{color:rgba(255,255,255,0.6);text-decoration:none;font-weight:600;transition:color .2s var(--ease);}
-  .footer-legal a:hover{color:var(--accent);}
+  .footer-legal a:hover{color:var(--accent-clair);}
   .footer-bottom p{margin:0 0 4px;}
   .footer-reg{font-size:11px;color:rgba(255,255,255,0.32);letter-spacing:.02em;}
 
@@ -541,6 +567,10 @@
     .card-top h3{font-size:13px;line-height:1.25;}
     .card-meta{font-size:11px;margin-top:5px;gap:4px;}
     .card-foot{flex-direction:column;align-items:flex-start;gap:3px;margin-top:9px;padding-top:9px;}
+    /* Empilés, surface et prix n'ont plus rien à relier : la ligne de
+       conduite disparaît au lieu de traverser le vide. */
+    .card-foot::before{display:none;}
+    .surface-txt, .price{padding-left:0;padding-right:0;}
     .price{font-size:13.5px;}
     .surface-txt{font-size:11px;}
     /* 44x44 minimum (WCAG 2.5.5 / norme tactile usuelle) : à 36px, un doigt

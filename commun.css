@@ -8,26 +8,52 @@
    se charge AVANT le <style> de chaque page, qui peut donc surcharger au besoin.
    ============================================================================ */
 
-:root{
-    --bg:#F6F5F2;
-    --surface:#FFFFFF;
-    --surface-alt:#F2F0EA;
-    --ink:#131A17;
-    /* #6B7772 (l'original) ne passait pas le seuil WCAG AA sur --bg
-       (4,27:1, il faut 4,5:1). Assombri à teinte égale : 4,93:1 sur --bg,
-       5,38:1 sur --surface — le changement n'est quasiment pas perceptible. */
-    --ink-soft:#626D68;
-    --border:#E6E3DB;
+/* ----------------------------------------------------------------------------
+   Langage visuel : le registre foncier
+   ----------------------------------------------------------------------------
+   PAB Immo ne vend pas des annonces, il vend une CERTITUDE dans un marché où la
+   fausse annonce est la norme. Le visuel doit dire cela, pas seulement décorer.
+   D'où un vocabulaire emprunté au monde réel du foncier sénégalais : titre,
+   parcelle, relevé, cachet d'enregistrement.
 
-    --primary:#123027;
-    --primary-dark:#0B1F19;
-    --accent:#E2A22C;
-    --accent-dark:#C8871A;
-    --accent-soft:#FBF2DF;
+   Ce que ça implique concrètement, et qui distingue ce site d'un gabarit :
+   · du papier, pas du blanc d'écran (fonds chauds, jamais gris bleutés) ;
+   · un or minéral d'encre officielle, pas un jaune vif de bouton ;
+   · des angles resserrés et des filets nets plutôt que des ombres flottantes —
+     un document se mesure, il ne lévite pas ;
+   · les chiffres (prix, surfaces, références) traités comme des données de
+     registre : chasse fixe, chiffres alignés en colonne.
+   ---------------------------------------------------------------------------- */
+:root{
+    /* ---- Fonds : du papier, pas de l'écran ---- */
+    --bg:#F5F2EC;           /* papier chaud */
+    --surface:#FFFFFF;
+    --surface-alt:#EFEBE2;
+    --border:#E2DDD1;
+    /* Filet de registre : plus net que --border, pour les séparations qui
+       structurent une fiche (et non celles qui délimitent une zone). */
+    --filet:#D6CFBF;
+
+    /* ---- Encres ---- */
+    --ink:#14201B;
+    /* Contrastes vérifiés sur les deux fonds : 4,98:1 sur --bg et 5,56:1 sur
+       --surface, au-dessus du seuil WCAG AA (4,5:1). */
+    --ink-soft:#5F6B64;
+
+    --primary:#1C4436;       /* vert cadastre, pour les actions principales */
+    --primary-dark:#122E24;
+    /* Or minéral. L'ancien #E2A22C tirait vers le jaune vif ; celui-ci a le
+       ton d'un cachet d'encre. Contraste 6,36:1 avec le texte des boutons. */
+    --accent:#C8901A;
+    --accent-dark:#A8760F;
+    /* Variante éclaircie, réservée au texte doré SUR fond nuit (8:1) : l'or
+       minéral seul y perdrait en présence. */
+    --accent-clair:#DDA83C;
+    --accent-soft:#F7EEDA;
 
     --success:#2F7A4E;
-    --warning:#D08A16;
-    --danger:#C4432F;
+    --warning:#B57A12;
+    --danger:#B03E2B;
 
     /* Couleurs métier (cohérentes avec TYPE_COLOR / STATUS_COLOR en JS) */
     --brick:#B24A2C;   /* Terrain */
@@ -37,17 +63,31 @@
     --sage:#3F7A49;    /* Disponible */
     --stone:#8B9199;   /* Vendu / Loué */
 
-    --night:#0C1613;
-    --night-2:#14261F;
+    --night:#0E1A16;
+    --night-2:#16271F;
 
-    --radius-sm:12px;
-    --radius-md:16px;
-    --radius-lg:20px;
-    --radius-xl:28px;
+    /* ---- Échelle typographique ----
+       Rapport ~1,25. Une page qui pioche des tailles au hasard se lit comme un
+       brouillon ; une échelle donne le rythme et rend la hiérarchie évidente. */
+    --t-xs:11px; --t-sm:12.5px; --t-base:14px; --t-md:15.5px;
+    --t-lg:18px; --t-xl:22px; --t-2xl:28px; --t-3xl:clamp(30px,4.4vw,46px);
+
+    /* ---- Échelle d'espacement (base 4) ---- */
+    --e-1:4px; --e-2:8px; --e-3:12px; --e-4:16px;
+    --e-5:22px; --e-6:30px; --e-7:42px; --e-8:60px;
+
+    /* ---- Angles resserrés : la précision d'un relevé, pas la rondeur d'une
+       application grand public. ---- */
+    --radius-sm:8px;
+    --radius-md:11px;
+    --radius-lg:14px;
+    --radius-xl:20px;
+
     --ease:cubic-bezier(.4,0,.2,1);
-    --shadow:0 1px 2px rgba(18,48,39,0.04), 0 10px 24px -14px rgba(18,48,39,0.20);
-    --shadow-lg:0 28px 60px -24px rgba(12,22,19,0.34);
-    --focus-ring:0 0 0 3px rgba(226,162,44,0.45);
+    /* Ombres discrètes : elles séparent les plans, elles ne font pas flotter. */
+    --shadow:0 1px 1px rgba(20,32,27,0.03), 0 6px 16px -12px rgba(20,32,27,0.22);
+    --shadow-lg:0 20px 48px -22px rgba(14,26,22,0.32);
+    --focus-ring:0 0 0 3px rgba(200,144,26,0.45);
   }
 
 *{box-sizing:border-box;}
