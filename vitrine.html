@@ -181,9 +181,18 @@
   /* Deux annonces par ligne, comme sur téléphone : dans les ~605 px de la
      colonne de gauche, ça donne des cartes de ~295 px et deux fois plus
      de biens visibles sans faire défiler. */
-  .panel-list{flex:0 0 45%;display:grid;grid-template-columns:repeat(2,1fr);gap:14px;align-content:start;}
+  /* Répartition liste / carte.
+     Auparavant la liste était figée à 45 % et la carte prenait le reste : sur
+     un écran de 1440 px, la carte occupait 728 px contre 612 px pour les
+     annonces — l'outil d'appoint plus large que le produit, et des annonces
+     serrées à deux colonnes de 299 px.
+     Désormais la carte est bornée et la liste prend ce qui reste, en autant de
+     colonnes que la largeur permet : un grand écran affiche plus de biens au
+     lieu d'agrandir la carte. */
+  .panel-list{flex:1 1 auto;min-width:0;display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:16px;align-content:start;}
   .panel-list .empty{grid-column:1/-1;}
-  .panel-map{flex:1;position:-webkit-sticky;position:sticky;top:86px;align-self:flex-start;height:calc(100vh - 108px);min-height:440px;border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--border);z-index:1;}
+  .panel-map{flex:0 0 clamp(340px,32%,500px);position:-webkit-sticky;position:sticky;top:86px;align-self:flex-start;height:calc(100vh - 108px);min-height:440px;border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--border);z-index:1;}
 
   /* ---------- Carte d'annonce ---------- */
   .card{position:relative;background:var(--surface);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow);cursor:pointer;transition:transform .28s var(--ease), box-shadow .28s var(--ease), border-color .28s var(--ease);border:1px solid var(--border);}
