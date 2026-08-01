@@ -1664,9 +1664,14 @@ async function loadProperties(){
   document.getElementById('list').innerHTML = skeletonCardsHtml(6);
   // "public_properties" et "public_property_photos" sont des vues : elles ne renvoient
   // que les biens publiés et Disponible/Réservé, sans jamais exposer vos données privées.
+  // La liste n'affiche qu'une photo de couverture par bien : inutile de charger
+  // les autres ici, elles ne servent qu'à l'ouverture d'une fiche (voir
+  // chargerPhotosCompletes) — sur un grand portefeuille, la différence est
+  // réelle. "public_property_cover_photos" ne renvoie qu'une ligne par bien
+  // (la couverture, ou à défaut la première photo par position).
   const [{ data: props, error: e1 }, { data: photos, error: e2 }] = await Promise.all([
     db.from('public_properties').select('*'),
-    db.from('public_property_photos').select('*').order('position', { ascending:true }),
+    db.from('public_property_cover_photos').select('*'),
     chargerFiches()   // en parallèle : son absence ne doit jamais retarder la liste
   ]);
   if(e1 || e2){
@@ -2448,9 +2453,44 @@ function updateScrollLock(){
 
 
 
+// Charge les photos restantes d'un bien à l'ouverture de sa fiche : la liste
+// n'a chargé que sa couverture (voir loadProperties). Mise en cache sur le
+// bien lui-même — rouvrir la même fiche dans la session ne relance pas l'appel.
+// Ne fait rien pour un bien sans aucune photo : pas d'appel inutile.
+async function chargerPhotosCompletes(p){
+  if(p._photosCompletes || !p.photos || !p.photos.length) return;
+  const avant = p.photos.length;
+  const { data, error } = await db.from('public_property_photos')
+    .select('*').eq('property_id', p.id).order('position', { ascending:true });
+  if(error || !data || !data.length) return;   // la couverture déjà affichée reste visible
+  p.photos = data;
+  p._photosCompletes = true;
+  if(data.length > avant) rafraichirPhotosTiroir(p);
+}
+
+// Remplace la bande de vignettes du tiroir une fois les photos complètes
+// arrivées. Ne reconstruit pas tout le tiroir : un rebuild complet relancerait
+// le comptage de vue, redonnerait le focus et réinitialiserait la carte.
+function rafraichirPhotosTiroir(p){
+  if(state.selected !== p.id) return;   // le tiroir a changé entre-temps
+  const bande = document.querySelector('#drawer .photo-strip');
+  if(!bande) return;
+  const photos = getPropertyPhotos(p);
+  bande.innerHTML = photos.map((ph, idx) => `
+    <button type="button" class="thumb-btn" data-open-gallery="${idx}" aria-label="Agrandir la photo ${idx + 1} sur ${photos.length}">
+      <img src="${ph.thumb}" alt="Photo ${idx + 1}" loading="lazy" decoding="async" onerror="photoFallback(this)" />
+      ${idx === 0 && photos.length > 1 ? `<span class="thumb-count">+${photos.length - 1}</span>` : ''}
+    </button>`).join('');
+  bande.querySelectorAll('[data-open-gallery]').forEach(btn=>{
+    btn.onclick = () => openPhotoGallery(p, Number(btn.dataset.openGallery));
+  });
+}
+
 function openDrawer(p){
   state.selected = p.id;
   recordPropertyView(p.id);
+  chargerPhotosCompletes(p);   // en tâche de fond : le tiroir s'ouvre avec la
+  // couverture déjà chargée, la bande de photos se complète sans bloquer.
   const cover = coverUrl(p, 1000, 72);
   const photos = getPropertyPhotos(p);
   const d = document.getElementById('drawer');
