@@ -158,11 +158,13 @@
   .hero-inner{max-width:1400px;margin:0 auto;position:relative;width:100%;z-index:1;}
   .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--accent-clair);font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;margin:0 0 16px;}
   .hero-eyebrow::before{content:'';width:22px;height:1.5px;background:var(--accent-clair);opacity:.8;}
-  .hero h2{color:#fff;font-size:clamp(32px,4.6vw,52px);font-weight:800;margin:0 0 14px;letter-spacing:-0.025em;line-height:1.06;max-width:15ch;}
+  /* La marge basse porte à elle seule la respiration entre le titre et le
+     compteur de biens : le paragraphe descriptif qui l'assurait avant a été
+     retiré (redondant avec le rail « Explorer par type » et les repères de
+     confiance juste en dessous — un héros plus court, plus sûr de lui). */
+  .hero h2{color:#fff;font-size:clamp(32px,4.6vw,52px);font-weight:800;margin:0 0 26px;letter-spacing:-0.025em;line-height:1.06;max-width:15ch;}
   .hero h2 em{font-style:normal;color:var(--accent-clair);display:inline-block;transition:opacity .38s var(--ease), transform .38s var(--ease);}
   .hero h2 em.swap-out{opacity:0;transform:translateY(-7px);}
-  .hero p{color:rgba(255,255,255,0.74);font-size:15.5px;margin:0 0 26px;max-width:520px;line-height:1.6;}
-  .hero p b{color:#fff;font-weight:600;}
   /* Repositionnée hors du héros (voir le HTML plus bas) : elle flotte entre
      les deux parties, comme la carte de recherche de la maquette — la
      moitié sur la photo, la moitié sur le fond clair, plutôt que noyée
@@ -197,12 +199,11 @@
      les animations ; sinon tout s'affiche normalement, sans mouvement. */
   @keyframes heroRise{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
   @media (prefers-reduced-motion: no-preference){
-    .hero-eyebrow, .hero-title, .hero-inner > p:not(.hero-eyebrow), .hero-search, .hero-stat, .hero-trust{
+    .hero-eyebrow, .hero-title, .hero-search, .hero-stat, .hero-trust{
       animation:heroRise .6s var(--ease) backwards;
     }
     .hero-eyebrow{animation-delay:.05s;}
     .hero-title{animation-delay:.13s;}
-    .hero-inner > p:not(.hero-eyebrow){animation-delay:.22s;}
     /* La recherche a rejoint la fin du héros, juste avant « Vente &
        location » (voir plus bas dans le HTML) : elle monte donc en dernier,
        la séquence suit toujours l'ordre visuel réel. */
@@ -761,8 +762,7 @@
         linear-gradient(155deg, var(--night) 0%, var(--night-2) 58%, #123152 100%);
       background-color:var(--night);}
     .hero-eyebrow{font-size:10px;letter-spacing:.12em;margin-bottom:8px;}
-    .hero h2{max-width:100%;font-size:clamp(27px,7.8vw,34px);margin-bottom:8px;}
-    .hero p{font-size:13.5px;margin-bottom:16px;line-height:1.5;}
+    .hero h2{max-width:100%;font-size:clamp(27px,7.8vw,34px);margin-bottom:18px;}
     .hero-stat{margin-top:11px;}
     /* Les trois arguments empilés mangeaient un demi-écran : ils
        deviennent un rail qui se fait glisser au doigt. */
@@ -1018,7 +1018,6 @@
   <div class="hero-inner">
     <p class="hero-eyebrow">Trouvez. Investissez. Vivez.</p>
     <h2 class="hero-title">Trouvez le bien <em id="heroRotate">qui vous ressemble.</em></h2>
-    <p>Terrains, maisons, appartements, studios et champs agricoles sélectionnés à <b>Dakar</b> et <b>Thiès</b> - vérifiés et prêts à visiter.</p>
     <div class="hero-stat" id="heroStat"></div>
     <div class="hero-trust">
       <div class="trust-item">
