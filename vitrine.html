@@ -150,7 +150,7 @@
      moitié sur la photo, la moitié sur le fond clair, plutôt que noyée
      dans l'une ou posée à plat après l'autre. */
   .hero-search{max-width:1400px;margin:clamp(-34px,-3.2vw,-24px) auto 0;padding:0 22px;
-    position:relative;z-index:10;display:flex;gap:10px;flex-wrap:wrap;width:100%;}
+    position:relative;z-index:10;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;width:100%;}
   .hero-search .searchbar{max-width:640px;}
   .searchbar{display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:999px;padding:8px 8px 8px 22px;flex:1;min-width:220px;width:100%;box-shadow:var(--shadow-lg);transition:box-shadow .2s var(--ease);}
   .searchbar:focus-within{box-shadow:var(--focus-ring), var(--shadow-lg);}
@@ -561,6 +561,13 @@
 
   /* Catégories : tuile photo pleine, comme un dossier qu'on feuillette. */
   .cat-tile{flex:0 0 150px;height:162px;border:none;padding:0;border-radius:var(--radius-lg);overflow:hidden;position:relative;scroll-snap-align:start;cursor:pointer;box-shadow:var(--shadow);transition:transform .3s var(--ease), box-shadow .3s var(--ease);}
+  /* Sur bureau, les six tuiles tiennent déjà sans glisser : elles se
+     partagent alors toute la largeur de la ligne au lieu de laisser un
+     vide à droite. Le rail des vedettes, lui, garde sa largeur fixe — il
+     peut compter plus de biens que ce qui tient sur une ligne. */
+  @media (min-width:1024px){
+    #categoryRail .cat-tile{flex:1 1 0;min-width:150px;}
+  }
   .cat-tile:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);}
   .cat-tile:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
   .cat-tile-img{position:absolute;inset:0;background-size:cover;background-position:center;}
@@ -631,30 +638,27 @@
   .footer-bottom p{margin:0 0 4px;}
   .footer-reg{font-size:11px;color:rgba(255,255,255,0.32);letter-spacing:.02em;}
 
-  /* ---------- Icônes d'en-tête (téléphone uniquement) ----------
-     Remplace l'ancienne barre de contact fixe en bas d'écran : alertes et
-     favoris rejoignent le contact (WhatsApp) directement dans l'en-tête,
-     dans le même registre que ses bulles vitrées au-dessus de la photo.
-     Masquées au-delà du point de bascule mobile : le bureau garde « Mes
-     favoris » et « Être alerté(e) », déjà bien en vue dans la barre de
-     filtres et le bandeau d'alerte. */
-  .btn-icon-header{display:none;}
-  @media (max-width:680px){
-    .btn-icon-header{
-      display:flex;align-items:center;justify-content:center;flex-shrink:0;
-      width:44px;height:44px;border-radius:50%;position:relative;
-      background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.24);
-      color:#fff;cursor:pointer;padding:0;
-      transition:background-color .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease);
-    }
-    .btn-icon-header:hover{background:rgba(255,255,255,0.26);}
-    .btn-icon-header.active{background:var(--accent);border-color:var(--accent);color:var(--primary);}
-    header.scrolled .btn-icon-header{background:rgba(255,255,255,0.10);border-color:rgba(255,255,255,0.18);}
-    header.scrolled .btn-icon-header.active{background:var(--accent);border-color:var(--accent);color:var(--primary);}
-    .btn-icon-header .pastille{
-      position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;
-      background:var(--accent);border:1.5px solid var(--night);
-    }
+  /* ---------- Icônes d'en-tête ----------
+     Remplace l'ancienne barre de contact fixe en bas d'écran (téléphone) et
+     la puce « Mes favoris » de la barre de filtres (tous écrans) : alertes
+     et favoris rejoignent le contact (WhatsApp) directement dans l'en-tête,
+     dans le même registre que ses bulles vitrées au-dessus de la photo —
+     sur bureau comme sur téléphone, plutôt que deux façons différentes de
+     faire la même chose selon la largeur d'écran. */
+  .btn-icon-header{
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    width:44px;height:44px;border-radius:50%;position:relative;
+    background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.24);
+    color:#fff;cursor:pointer;padding:0;
+    transition:background-color .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease);
+  }
+  .btn-icon-header:hover{background:rgba(255,255,255,0.26);}
+  .btn-icon-header.active{background:var(--accent);border-color:var(--accent);color:var(--primary);}
+  header.scrolled .btn-icon-header{background:rgba(255,255,255,0.10);border-color:rgba(255,255,255,0.18);}
+  header.scrolled .btn-icon-header.active{background:var(--accent);border-color:var(--accent);color:var(--primary);}
+  .btn-icon-header .pastille{
+    position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;
+    background:var(--accent);border:1.5px solid var(--night);
   }
 
   /* ---------- Responsive ---------- */
@@ -683,10 +687,6 @@
       mask-image:linear-gradient(to right, black calc(100% - 22px), transparent 100%);
     }
     .chip{scroll-snap-align:start;}
-    /* Mes favoris » ne doit pas s'étirer sur toute la largeur quand la barre
-       passe en colonne (la recherche avancée a rejoint la barre de recherche
-       — voir .search-adv-btn). */
-    #favToggleChip{align-self:flex-start;margin-top:4px;}
     .adv-search-grid{grid-template-columns:1fr 1fr;}
     .footer-inner{grid-template-columns:1fr 1fr;gap:26px;}
   }
@@ -733,15 +733,11 @@
     .hero-search{padding:0 16px;}
     .toolbar{padding:14px 14px 12px;border-radius:var(--radius-lg);}
     /* Il ne reste plus que « Vente & location » ici : la recherche avancée
-       vit désormais dans la barre de recherche (.search-adv-btn) et
-       « Mes favoris » dans le cœur de l'en-tête (voir juste en dessous). */
+       vit dans la barre de recherche (.search-adv-btn) et « Mes favoris »
+       dans le cœur de l'en-tête (.btn-icon-header), sur tous les écrans. */
     .chips-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
     .chip-group{grid-column:1/-1;gap:4px;}
     .chip-group-label{font-size:9.5px;}
-    /* Doublon avec l'icône cœur de l'en-tête (voir renderCategories() /
-       toggleFavOnly() plus haut dans le fichier) : les deux pilotent le
-       même state.favOnly, mais n'ont plus besoin de coexister ici. */
-    #favToggleChip{display:none;}
     .view-toggle{width:100%;margin-top:8px !important;padding:3px;}
     .view-toggle button{flex:1;padding:9px 12px;min-height:40px;}
     .split{padding:0 16px;margin-top:16px;}
@@ -945,11 +941,9 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M10 21v-6h4v6"/></svg>
       <span class="btn-label">Mon espace</span>
     </a>
-    <!-- Alertes et favoris : sur téléphone, ils rejoignent le contact ici au
-         lieu d'une barre fixe séparée en bas d'écran (voir toggleAlertForm()
-         et le double branchement de favToggleChip/headerFavBtn). Masqués au
-         delà du point de bascule mobile — le bureau garde ses équivalents en
-         toutes lettres dans la barre de filtres et le bandeau d'alerte. -->
+    <!-- Alertes et favoris : ici, sur tous les écrans, plutôt que dupliqués
+         dans la barre de filtres ou une barre fixe séparée (voir
+         toggleAlertForm() et toggleFavOnly()). -->
     <button type="button" class="btn-icon-header" id="headerAlertBtn" aria-expanded="false" aria-controls="alertForm" aria-label="Être alerté(e) de nouveaux biens" title="Être alerté(e)">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
     </button>
@@ -1100,11 +1094,6 @@
       <span class="chip-group-label" aria-hidden="true">Vente &amp; location</span>
       <div class="chips" id="chipsOp"></div>
     </div>
-    <div class="divider"></div>
-    <button class="chip fav-chip" id="favToggleChip" aria-pressed="false">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>
-      <span>Mes favoris</span>
-    </button>
   </div>
   <div class="view-toggle" id="viewToggle" style="margin-top:12px;">
     <button data-view="list" class="active" aria-pressed="true">Liste</button>
@@ -2838,24 +2827,17 @@ document.getElementById('search').addEventListener('input', e=>{
   searchTimer = setTimeout(render, 180);
 });
 
-// « Mes favoris » vit à deux endroits (la puce du bureau, l'icône d'en-tête
-// du téléphone) : les deux pilotent le même state.favOnly, donc les deux
-// doivent refléter tout changement, peu importe lequel a été actionné.
 function toggleFavOnly(){
   state.favOnly = !state.favOnly;
-  ['favToggleChip','headerFavBtn'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(!el) return;
-    el.classList.toggle('active', state.favOnly);
-    el.setAttribute('aria-pressed', String(state.favOnly));
-  });
+  const btn = document.getElementById('headerFavBtn');
+  btn.classList.toggle('active', state.favOnly);
+  btn.setAttribute('aria-pressed', String(state.favOnly));
   render();
 }
-document.getElementById('favToggleChip').onclick = toggleFavOnly;
 document.getElementById('headerFavBtn').onclick = toggleFavOnly;
 
-// Même logique pour l'alerte : le bandeau du bureau et l'icône d'en-tête du
-// téléphone ouvrent et referment le même formulaire.
+// Même logique pour l'alerte : le bandeau et l'icône d'en-tête ouvrent et
+// referment le même formulaire, quel que soit celui qui a été actionné.
 function toggleAlertForm(){
   const form = document.getElementById('alertForm');
   const ouvert = form.classList.toggle('hidden') === false;
