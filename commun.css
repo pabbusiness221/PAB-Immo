@@ -16,13 +16,16 @@
    D'où un vocabulaire emprunté au monde réel du foncier sénégalais : titre,
    parcelle, relevé, cachet d'enregistrement.
 
-   Les couleurs, elles, ne sont pas choisies : elles sont ÉCHANTILLONNÉES dans
-   assets/logo.png — l'or #F2AE05 et l'encre #031928. Le site porte donc
-   littéralement l'identité de la marque, et non une interprétation.
+   Le bleu reprend celui de la maquette validée : bleu nuit #0F2747, bleu
+   royal #2563EB. L'or, lui, est ÉCHANTILLONNÉ dans assets/logo.png plutôt
+   que repris de la maquette — #F2AE05, la couleur réelle de la marque.
+   Une palette à deux accents plutôt qu'un seul : le royal porte l'action
+   (boutons, liens), l'or la distinction (badges, mise en avant), sans se
+   marcher dessus.
 
    Ce que ça implique concrètement, et qui distingue ce site d'un gabarit :
    · l'or est une MATIÈRE, pas une encre : il rayonne sur les fonds sombres
-     (9,2:1) et cède au bronze dès que le fond s'éclaircit, où il ne vaudrait
+     (7,7:1) et cède au bronze dès que le fond s'éclaircit, où il ne vaudrait
      que 1,9:1 — voir les trois jetons --accent* ci-dessous ;
    · des angles resserrés et des filets nets plutôt que des ombres flottantes —
      un document se mesure, il ne lévite pas ;
@@ -30,37 +33,38 @@
      registre : chasse fixe, chiffres alignés en colonne.
    ---------------------------------------------------------------------------- */
 :root{
-    /* ---- Fonds : la clarté d'un relevé, teintée vers l'encre du logo ---- */
-    --bg:#F7F8FA;
+    /* ---- Fonds : la clarté d'un relevé, teintée vers le bleu nuit ---- */
+    --bg:#F8FAFC;
     --surface:#FFFFFF;
-    --surface-alt:#EFF2F6;
-    --border:#E2E7EE;
+    --surface-alt:#EEF2F8;
+    --border:#E4E9F2;
     /* Filet de registre : plus net que --border, pour les séparations qui
        structurent une fiche (et non celles qui délimitent une zone). */
-    --filet:#CDD6E2;
+    --filet:#D7DEEA;
 
     /* ---- Encres ---- */
-    --ink:#0B1520;           /* 18,4:1 sur blanc */
-    /* Neutre biaisé vers le bleu du logo : un gris pur salirait l'encre.
-       Vérifié 5,5:1 sur --surface et 5,2:1 sur --bg (seuil AA : 4,5:1). */
-    --ink-soft:#5A6B7C;
+    --ink:#111827;           /* 17,7:1 sur blanc */
+    /* Neutre biaisé vers le bleu nuit : un gris pur salirait l'encre.
+       Vérifié sur --surface et --bg (seuil AA : 4,5:1). */
+    --ink-soft:#5A6B84;
 
-    --primary:#031928;       /* l'encre du logo, pour les fonds et actions */
-    --primary-dark:#010F1A;
-    /* L'or du logo, échantillonné dans assets/logo.png. Il porte l'identité :
-       9,2:1 sur l'encre, et 9,2:1 pour l'encre écrite PAR-DESSUS lui — donc
-       parfait en aplat de bouton. */
+    --primary:#0F2747;       /* bleu nuit de la maquette, pour les fonds et actions */
+    --primary-dark:#0A192E;
+    /* L'or du logo, échantillonné dans assets/logo.png. Il porte la
+       distinction : 7,7:1 sur le bleu nuit — parfait en aplat de badge ou
+       de bouton secondaire. */
     --accent:#F2AE05;
     --accent-dark:#D89A04;
-    /* Or éclairci, réservé au TEXTE doré sur fond encre (11,7:1). */
+    /* Or éclairci, réservé au TEXTE doré sur fond nuit (9,8:1). */
     --accent-clair:#FFC947;
     /* Or assombri en bronze, seule déclinaison lisible en TEXTE sur fond
-       clair (5,25:1). L'or brut n'y atteint que 1,9:1 : jamais de texte or
-       sur du blanc. */
+       clair (5,0:1 sur --bg). L'or brut n'y atteint que 1,9:1 : jamais de
+       texte or sur du blanc. */
     --accent-bronze:#8F6410;
     --accent-soft:#FEF6E3;
-    /* Bleu franc du logo, cantonné au fonctionnel : liens, focus (6,7:1). */
-    --bleu:#1D4ED8;
+    /* Bleu royal de la maquette : le bleu franc porte l'action — boutons,
+       liens, focus (5,2:1 sur blanc). */
+    --bleu:#2563EB;
 
     --success:#2F7A4E;
     --warning:#B57A12;
@@ -74,9 +78,10 @@
     --sage:#3F7A49;    /* Disponible */
     --stone:#8B9199;   /* Vendu / Loué */
 
-    /* Fonds sombres : l'encre du logo, et son éclaircie pour les dégradés. */
-    --night:#031928;
-    --night-2:#0A2A42;
+    /* Fonds sombres : le bleu nuit de la maquette, et son éclaircie pour les
+       dégradés (même valeur que celle utilisée dans la maquette elle-même). */
+    --night:#0F2747;
+    --night-2:#1A3A63;
 
     /* ---- Échelle typographique ----
        Rapport ~1,25. Une page qui pioche des tailles au hasard se lit comme un
@@ -97,8 +102,8 @@
 
     --ease:cubic-bezier(.4,0,.2,1);
     /* Ombres discrètes : elles séparent les plans, elles ne font pas flotter. */
-    --shadow:0 1px 1px rgba(3,25,40,0.04), 0 6px 16px -12px rgba(3,25,40,0.24);
-    --shadow-lg:0 20px 48px -22px rgba(3,25,40,0.34);
+    --shadow:0 1px 1px rgba(15,39,71,0.04), 0 6px 16px -12px rgba(15,39,71,0.24);
+    --shadow-lg:0 20px 48px -22px rgba(15,39,71,0.34);
     --focus-ring:0 0 0 3px rgba(242,174,5,0.5);
   }
 
@@ -117,7 +122,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .btn-success{background:var(--success);color:#fff;}
 .btn-success:hover{filter:brightness(0.94);}
 .chip:hover{border-color:#C9D3E0;background:var(--surface-alt);color:var(--ink);}
-.chip.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 12px 26px -18px rgba(3,25,40,0.9);}
+.chip.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 12px 26px -18px rgba(15,39,71,0.9);}
 #map{height:100%;width:100%;}
 .legend{position:absolute;bottom:16px;left:16px;z-index:400;background:rgba(255,255,255,0.95);backdrop-filter:blur(8px);border-radius:14px;padding:11px 15px;box-shadow:var(--shadow);font-size:11.5px;border:1px solid var(--border);}
 .legend-row{display:flex;align-items:center;gap:8px;margin:4px 0;font-weight:600;}
@@ -131,11 +136,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .pager-btn:disabled{opacity:.4;cursor:not-allowed;}
 .pager-status{text-align:center;font-size:12.5px;font-weight:800;line-height:1.3;font-family:'Manrope',sans-serif;}
 .pager-status small{display:block;font-size:11px;font-weight:600;color:var(--ink-soft);margin-top:2px;font-family:'Inter',sans-serif;}
-.overlay{position:fixed;inset:0;background:rgba(3,25,40,0.5);backdrop-filter:blur(2px);z-index:900;opacity:0;pointer-events:none;transition:opacity .22s ease;}
+.overlay{position:fixed;inset:0;background:rgba(15,39,71,0.5);backdrop-filter:blur(2px);z-index:900;opacity:0;pointer-events:none;transition:opacity .22s ease;}
 .overlay.open{opacity:1;pointer-events:auto;}
 .drawer{position:fixed;top:0;right:0;left:0;height:100%;width:100%;max-width:100%;background:var(--bg);z-index:901;transform:translateX(100%);transition:transform .32s var(--ease);overflow-y:auto;box-shadow:var(--shadow-lg);border-radius:0;}
 .drawer.open{transform:translateX(0);}
-.drawer-close{position:absolute;top:14px;right:14px;background:rgba(3,25,40,0.72);border:none;border-radius:50%;width:42px;height:42px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(0,0,0,0.28);backdrop-filter:blur(6px);transition:transform .15s ease, background-color .15s ease;z-index:3;color:#fff;}
+.drawer-close{position:absolute;top:14px;right:14px;background:rgba(15,39,71,0.72);border:none;border-radius:50%;width:42px;height:42px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(0,0,0,0.28);backdrop-filter:blur(6px);transition:transform .15s ease, background-color .15s ease;z-index:3;color:#fff;}
 .drawer-close svg{width:18px;height:18px;}
 .drawer-close svg, .drawer-close svg *{stroke:#fff;fill:#fff;}
 .drawer-close:hover{transform:translateY(-2px);background:var(--danger);}
@@ -155,7 +160,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .photo-strip .thumb-btn{position:relative;width:100%;max-width:80px;aspect-ratio:4/3;border:none;padding:0;border-radius:12px;overflow:hidden;cursor:pointer;background:var(--surface-alt);box-shadow:inset 0 0 0 1px var(--border);transition:transform .2s var(--ease);}
 .photo-strip .thumb-btn:hover{transform:translateY(-2px);}
 .photo-strip .thumb-btn img{width:100%;height:100%;object-fit:cover;display:block;}
-.photo-strip .thumb-btn .thumb-count{position:absolute;inset:0;background:rgba(3,25,40,0.55);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11.5px;font-weight:800;}
+.photo-strip .thumb-btn .thumb-count{position:absolute;inset:0;background:rgba(15,39,71,0.55);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11.5px;font-weight:800;}
 .gallery-modal{position:fixed;inset:0;background:rgba(8,14,12,0.88);backdrop-filter:blur(4px);z-index:1100;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;}
 .gallery-modal.hidden{display:none;}
 .gallery-shell{width:min(980px,100%);background:#fff;border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow-lg);}
@@ -174,7 +179,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .gallery-nav.next{right:16px;}
 .gallery-nav:hover{transform:translateY(-50%) scale(1.06);}
 .gallery-close{top:16px;right:16px;}
-.gallery-counter{position:absolute;left:16px;bottom:16px;background:rgba(3,25,40,0.78);color:#fff;padding:7px 12px;border-radius:999px;font-size:11.5px;font-weight:700;}
+.gallery-counter{position:absolute;left:16px;bottom:16px;background:rgba(15,39,71,0.78);color:#fff;padding:7px 12px;border-radius:999px;font-size:11.5px;font-weight:700;}
 .gallery-thumbs{display:flex;gap:8px;padding:12px;overflow-x:auto;background:var(--surface-alt);}
 .gallery-thumbs button{border:2px solid transparent;border-radius:10px;padding:0;width:78px;height:58px;overflow:hidden;cursor:pointer;background:#fff;flex-shrink:0;}
 .gallery-thumbs button.active{border-color:var(--accent);}

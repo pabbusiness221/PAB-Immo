@@ -65,8 +65,22 @@
      seconde et l'on perdrait l'effet d'entrée. */
   header{position:sticky;top:0;z-index:40;background:transparent;border-bottom:1px solid transparent;
     transition:background-color .34s var(--ease), box-shadow .34s var(--ease), border-color .34s var(--ease), backdrop-filter .34s var(--ease);}
-  header.scrolled{background:rgba(3,25,40,0.92);backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);
-    border-bottom-color:rgba(255,255,255,0.08);box-shadow:0 14px 34px -20px rgba(0,0,0,0.75);}
+  /* Bandeau plein une fois qu'on quitte le héros : blanc plutôt que nuit,
+     à la manière d'une barre d'app plutôt que d'un bandeau publicitaire.
+     Chaque élément de l'en-tête (marque, navigation, icônes) porte donc
+     aussi sa variante encre-sur-blanc juste en dessous, pour la remplacer
+     seulement dans cet état — transparent sur la photo, elle reste blanche. */
+  header.scrolled{background:rgba(255,255,255,0.94);backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);
+    border-bottom-color:var(--border);box-shadow:0 8px 24px -18px rgba(15,39,71,0.28);}
+  header.scrolled .brand h1{color:var(--ink);}
+  header.scrolled .brand h1 span{color:var(--accent-bronze);}
+  header.scrolled .brand p{color:var(--ink-soft);}
+  header.scrolled .nav-link{color:var(--ink-soft);}
+  header.scrolled .nav-link:hover{background:var(--surface-alt);color:var(--ink);}
+  header.scrolled .btn-espace{background:var(--surface-alt);color:var(--ink);border-color:var(--border);}
+  header.scrolled .btn-espace:hover{background:var(--border);}
+  header.scrolled .btn-outline{background:var(--surface-alt);color:var(--ink);border-color:var(--border);}
+  header.scrolled .btn-outline:hover{background:var(--border);}
   .header-inner{display:flex;align-items:center;gap:20px;padding:12px 22px;max-width:1400px;margin:0 auto;}
   .brand{display:flex;align-items:center;gap:11px;margin-right:auto;}
   .brand h1 span{color:var(--accent-clair);}
@@ -80,7 +94,7 @@
 
   /* ---------- Boutons ---------- */
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:999px;font-weight:700;font-size:13px;cursor:pointer;padding:11px 20px;font-family:'Inter',sans-serif;transition:transform .2s var(--ease), box-shadow .2s var(--ease), background-color .2s var(--ease), filter .2s var(--ease);text-decoration:none;line-height:1.2;}
-  .btn:hover{transform:translateY(-1px);box-shadow:0 10px 22px -12px rgba(3,25,40,0.55);}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 10px 22px -12px rgba(15,39,71,0.55);}
   /* Retour vers l'espace de gestion : posé sur le bandeau nuit, discret,
      il ne doit pas concurrencer WhatsApp qui reste l'appel à l'action. */
   .btn-espace{background:rgba(255,255,255,0.10);color:#fff;border:1px solid rgba(255,255,255,0.22);}
@@ -119,11 +133,11 @@
     padding:calc(var(--entete-h, 67px) + clamp(48px,7vw,84px)) 22px clamp(96px,11vw,132px);
     position:relative;overflow:hidden;}
   .hero-bg{position:absolute;inset:-3%;z-index:0;
-    background:url('assets/dakar-aerienne.jpg') center 45% / cover no-repeat;
+    background:url('assets/dakar-panorama.jpg') center 45% / cover no-repeat;
     /* Deuxième déclaration plutôt que @supports : un navigateur qui ne sait
        pas lire image-set() ignore toute la ligne (valeur invalide), et
        retombe proprement sur le JPEG déclaré juste au-dessus. 310 Ko -> 145 Ko. */
-    background:image-set(url('assets/dakar-aerienne.webp') type('image/webp'), url('assets/dakar-aerienne.jpg') type('image/jpeg')) center 45% / cover no-repeat;
+    background:image-set(url('assets/dakar-panorama.webp') type('image/webp'), url('assets/dakar-panorama.jpg') type('image/jpeg')) center 45% / cover no-repeat;
     animation:heroZoom 26s ease-in-out infinite alternate;}
   /* Voile teinté à l'encre du logo (3,25,40) et non plus au vert d'origine :
      sur la photo aérienne, un voile vert et un site bleu juraient ensemble.
@@ -134,8 +148,8 @@
       /* Ombre haute : l'en-tête étant transparent sur la photo, le logo blanc
          se retrouvait posé sur le ciel clair. Ce dégradé lui garantit un fond
          sombre quel que soit le cadrage de l'image. */
-      linear-gradient(180deg, rgba(3,25,40,0.82) 0%, rgba(3,25,40,0.34) 14%, rgba(3,25,40,0) 26%),
-      linear-gradient(103deg, rgba(3,25,40,0.95) 0%, rgba(4,28,45,0.90) 34%, rgba(5,32,52,0.74) 62%, rgba(6,36,58,0.60) 100%);}
+      linear-gradient(180deg, rgba(15,39,71,0.82) 0%, rgba(15,39,71,0.34) 14%, rgba(15,39,71,0) 26%),
+      linear-gradient(103deg, rgba(15,39,71,0.95) 0%, rgba(4,28,45,0.90) 34%, rgba(5,32,52,0.74) 62%, rgba(6,36,58,0.60) 100%);}
   @keyframes heroZoom{from{transform:scale(1);}to{transform:scale(1.09);}}
   .hero::after{content:'';position:absolute;inset:0;background:
     repeating-linear-gradient(0deg, rgba(255,255,255,0.032) 0px, rgba(255,255,255,0.032) 1px, transparent 1px, transparent 34px),
@@ -169,7 +183,7 @@
     flex-shrink:0;position:relative;display:flex;align-items:center;justify-content:center;
     width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;
     background:var(--bleu);color:#fff;
-    box-shadow:0 6px 16px -6px rgba(29,78,216,0.55);
+    box-shadow:0 6px 16px -6px rgba(37,99,235,0.55);
     transition:background-color .2s var(--ease), box-shadow .2s var(--ease), transform .15s var(--ease), filter .2s var(--ease);
   }
   .search-adv-btn:hover{filter:brightness(.92);}
@@ -232,7 +246,7 @@
     background:rgba(255,255,255,0.94);
     backdrop-filter:blur(22px) saturate(170%);-webkit-backdrop-filter:blur(22px) saturate(170%);
     border:1px solid rgba(255,255,255,0.85);border-radius:var(--radius-xl);
-    box-shadow:0 8px 18px -10px rgba(3,25,40,.20), 0 30px 64px -28px rgba(3,25,40,.42);}
+    box-shadow:0 8px 18px -10px rgba(15,39,71,.20), 0 30px 64px -28px rgba(15,39,71,.42);}
   .chips-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between;}
   .chips{display:flex;gap:8px;overflow-x:auto;width:auto;min-width:0;-webkit-overflow-scrolling:touch;padding:2px;}
   .chip{flex-shrink:0;border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:10px 17px;font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer;white-space:nowrap;transition:all .22s var(--ease);font-family:'Inter',sans-serif;}
@@ -246,7 +260,7 @@
 
   .view-toggle{display:none;gap:6px;background:var(--surface-alt);border-radius:999px;padding:4px;width:fit-content;}
   .view-toggle button{border:none;background:transparent;border-radius:999px;padding:9px 20px;font-size:12.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s var(--ease);}
-  .view-toggle button.active{background:var(--primary);color:#fff;box-shadow:0 6px 14px -8px rgba(3,25,40,0.8);}
+  .view-toggle button.active{background:var(--primary);color:#fff;box-shadow:0 6px 14px -8px rgba(15,39,71,0.8);}
 
   /* ---------- Liste + carte ---------- */
   .split{max-width:1400px;margin:22px auto 48px;padding:0 20px;display:flex;gap:20px;align-items:flex-start;}
@@ -280,7 +294,7 @@
      voir .card-photo-img plus bas — pour que le navigateur ne télécharge que
      les couvertures réellement visibles à l'écran. */
   .card-photo::before{content:'';position:absolute;inset:0;z-index:0;background:var(--cover, var(--surface-alt)) center/cover no-repeat;}
-  .card-photo::after{content:'';position:absolute;inset:auto 0 0 0;height:56%;z-index:1;background:linear-gradient(to top, rgba(3,25,40,0.55), transparent);pointer-events:none;}
+  .card-photo::after{content:'';position:absolute;inset:auto 0 0 0;height:56%;z-index:1;background:linear-gradient(to top, rgba(15,39,71,0.55), transparent);pointer-events:none;}
   .card-photo-ico{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;width:100%;height:100%;}
   .card-photo-img{position:absolute;inset:0;z-index:0;width:100%;height:100%;object-fit:cover;display:block;transition:transform .55s var(--ease);}
   .card-photo .fav-btn{z-index:3;}
@@ -366,7 +380,7 @@
   .contact-actions .btn{flex:1;justify-content:center;min-width:130px;}
 
   /* ---------- Favoris ---------- */
-  .fav-btn{position:absolute;border:none;cursor:pointer;background:rgba(255,255,255,0.94);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px -8px rgba(3,25,40,0.6);z-index:3;transition:transform .2s var(--ease);}
+  .fav-btn{position:absolute;border:none;cursor:pointer;background:rgba(255,255,255,0.94);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px -8px rgba(15,39,71,0.6);z-index:3;transition:transform .2s var(--ease);}
   .fav-btn:hover{transform:scale(1.1);}
   .fav-btn svg{transition:none;}
   .fav-btn.active svg{fill:var(--brick);stroke:var(--brick);}
@@ -575,7 +589,7 @@
   .cat-tile:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);}
   .cat-tile:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
   .cat-tile-img{position:absolute;inset:0;background-size:cover;background-position:center;}
-  .cat-tile-voile{position:absolute;inset:0;background:linear-gradient(180deg,rgba(3,25,40,.14) 0%,rgba(3,25,40,.60) 55%,rgba(3,25,40,.92) 100%);}
+  .cat-tile-voile{position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,39,71,.14) 0%,rgba(15,39,71,.60) 55%,rgba(15,39,71,.92) 100%);}
   .cat-tile-in{position:absolute;left:0;right:0;bottom:0;padding:12px 13px 13px;color:#fff;text-align:left;}
   .cat-tile-ico{position:absolute;top:11px;left:11px;width:28px;height:28px;border-radius:9px;background:rgba(255,255,255,.18);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;}
   /* Deux lignes au plus (« Champs agricoles » sur une tuile étroite) : au
@@ -658,7 +672,8 @@
   }
   .btn-icon-header:hover{background:rgba(255,255,255,0.26);}
   .btn-icon-header.active{background:var(--accent);border-color:var(--accent);color:var(--primary);}
-  header.scrolled .btn-icon-header{background:rgba(255,255,255,0.10);border-color:rgba(255,255,255,0.18);}
+  header.scrolled .btn-icon-header{background:var(--surface-alt);border-color:var(--border);color:var(--ink-soft);}
+  header.scrolled .btn-icon-header:hover{background:var(--border);}
   header.scrolled .btn-icon-header.active{background:var(--accent);border-color:var(--accent);color:var(--primary);}
   .btn-icon-header .pastille{
     position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;
@@ -712,16 +727,16 @@
        sous la barre transparente au lieu de commencer après elle. */
     .hero{padding:calc(var(--entete-h, 67px) + 22px) 16px 56px;
       background:
-        linear-gradient(168deg, rgba(3,25,40,0.94) 0%, rgba(4,28,45,0.89) 42%, rgba(5,32,52,0.80) 100%),
+        linear-gradient(168deg, rgba(15,39,71,0.94) 0%, rgba(4,28,45,0.89) 42%, rgba(5,32,52,0.80) 100%),
         radial-gradient(600px 300px at 82% -8%, rgba(242,174,5,0.16), transparent 62%),
-        url('assets/dakar-aerienne.jpg') center center / cover no-repeat,
+        url('assets/dakar-panorama.jpg') center center / cover no-repeat,
         linear-gradient(155deg, var(--night) 0%, var(--night-2) 58%, #123152 100%);
       /* Repli automatique sur le JPEG ci-dessus si image-set() n'est pas
          compris (voir .hero-bg) : 310 Ko -> 145 Ko sur mobile aussi. */
       background:
-        linear-gradient(168deg, rgba(3,25,40,0.94) 0%, rgba(4,28,45,0.89) 42%, rgba(5,32,52,0.80) 100%),
+        linear-gradient(168deg, rgba(15,39,71,0.94) 0%, rgba(4,28,45,0.89) 42%, rgba(5,32,52,0.80) 100%),
         radial-gradient(600px 300px at 82% -8%, rgba(242,174,5,0.16), transparent 62%),
-        image-set(url('assets/dakar-aerienne.webp') type('image/webp'), url('assets/dakar-aerienne.jpg') type('image/jpeg')) center center / cover no-repeat,
+        image-set(url('assets/dakar-panorama.webp') type('image/webp'), url('assets/dakar-panorama.jpg') type('image/jpeg')) center center / cover no-repeat,
         linear-gradient(155deg, var(--night) 0%, var(--night-2) 58%, #123152 100%);
       background-color:var(--night);}
     .hero-eyebrow{font-size:10px;letter-spacing:.12em;margin-bottom:8px;}
@@ -794,7 +809,7 @@
        et hachait le défilement), mais l'en-tête garde sa bascule : transparent
        sur la photo, plein ensuite — en aplat, sans flou, donc sans coût. */
     header{background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;}
-    header.scrolled{background:#031928;backdrop-filter:none;-webkit-backdrop-filter:none;}
+    header.scrolled{background:#FFFFFF;backdrop-filter:none;-webkit-backdrop-filter:none;}
     .pill{backdrop-filter:none;-webkit-backdrop-filter:none;}
     /* min-height 44px (norme tactile) sans changer l'apparence : la puce
        reste visuellement identique, seule sa zone cliquable grandit. */
@@ -1726,7 +1741,7 @@ function mapPreview(p, tappable){
   const rooms = p.rooms && p.rooms.chambres != null ? ' · ' + p.rooms.chambres + ' ch.' : '';
   const fond = cover
     ? `background-image:url('${cover}')`
-    : `background:linear-gradient(135deg, ${TYPE_COLOR[p.type] || '#031928'}, #161B22)`;
+    : `background:linear-gradient(135deg, ${TYPE_COLOR[p.type] || '#0F2747'}, #161B22)`;
   const cta = tappable ? '<div class="mpv-cta">Voir la fiche →</div>' : '';
   const geste = tappable ? ` role="button" tabindex="0" onclick="openDrawerById('${p.id}')"` : '';
   return `<div class="map-prev"${geste}>
@@ -1840,7 +1855,7 @@ function renderCategories(){
   // précis, elle doit se distinguer visuellement des icônes de type.
   const ICONE_TOUS = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>`;
   const tuileTous = PROPERTIES.length ? `<button type="button" class="cat-tile cat-tile-tous ${state.type==='Tous'?'active':''}" data-cat="Tous" aria-pressed="${state.type==='Tous'}">
-    <span class="cat-tile-img" style="background-image:url('assets/dakar-aerienne.jpg');background-image:image-set(url('assets/dakar-aerienne.webp') type('image/webp'), url('assets/dakar-aerienne.jpg') type('image/jpeg'))" aria-hidden="true"></span>
+    <span class="cat-tile-img" style="background-image:url('assets/dakar-panorama.jpg');background-image:image-set(url('assets/dakar-panorama.webp') type('image/webp'), url('assets/dakar-panorama.jpg') type('image/jpeg'))" aria-hidden="true"></span>
     <span class="cat-tile-voile" aria-hidden="true"></span>
     <span class="cat-tile-ico" aria-hidden="true">${ICONE_TOUS}</span>
     <span class="cat-tile-in"><span class="cat-tile-nom">Tous les biens</span><span class="cat-tile-nb">${PROPERTIES.length} bien${PROPERTIES.length>1?'s':''}</span></span>
@@ -1891,7 +1906,7 @@ function renderFeatured(){
         ${cover ? `<img src="${cover}" alt="" loading="lazy" decoding="async" onerror="photoFallback(this)">` : `<span class="card-photo-ico">${typeIcon(p.type)}</span>`}
         <div class="bien-tile-etiq">
           ${p.sponsorisee ? `<span class="pill" style="background:var(--night);color:var(--accent);border:1px solid rgba(242,174,5,.45);" title="Cette annonce bénéficie d'une mise en avant payante">Sponsorisé</span>`
-            : estRecent(p) ? `<span class="pill" style="background:rgba(29,78,216,0.94);color:#fff;">Nouveau</span>` : ''}
+            : estRecent(p) ? `<span class="pill" style="background:rgba(37,99,235,0.94);color:#fff;">Nouveau</span>` : ''}
           ${p.verified_at ? `<span class="pill" style="background:rgba(255,255,255,0.94);color:#256540;">✓ Vérifiée</span>` : ''}
         </div>
         <button type="button" class="fav-btn ${isFav(p.id)?'active':''}" data-fav-id="${p.id}" aria-pressed="${isFav(p.id)}" aria-label="${isFav(p.id)?'Retirer des favoris':'Ajouter aux favoris'}">${favIconSvg(isFav(p.id))}</button>
@@ -2007,7 +2022,7 @@ function updateSearchCircle(){
   if(searchCircle){ map.removeLayer(searchCircle); searchCircle = null; }
   if(state.centerLat != null && state.radiusKm){
     searchCircle = L.circle([state.centerLat, state.centerLng], {
-      radius: state.radiusKm*1000, color:'#031928', fillColor:'#031928', fillOpacity:0.08, weight:2
+      radius: state.radiusKm*1000, color:'#0F2747', fillColor:'#0F2747', fillOpacity:0.08, weight:2
     }).addTo(map);
   }
 }
@@ -2754,8 +2769,12 @@ loadProperties();
 recordSiteVisit();
 loadReviews();
 
+// « Tout voir » vit dans le rail des vedettes, lui-même après le repère
+// #titreBiens dans le document — y faire défiler remontait donc vers la
+// barre de filtres au lieu d'avancer vers le catalogue complet. #split
+// (liste + carte) est la vraie destination, plus bas.
 document.getElementById('vedettesVoirTout').onclick = () => {
-  document.getElementById('titreBiens').scrollIntoView({ behavior:'smooth', block:'start' });
+  document.getElementById('split').scrollIntoView({ behavior:'smooth', block:'start' });
 };
 
 // Chiffres des deux blocs de réassurance. Le nombre d'agences vient de la
