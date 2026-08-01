@@ -5,6 +5,16 @@
 -- Ce fichier permet de reconstruire une base vide à l'identique : structure,
 -- vues, fonctions, déclencheurs, index et règles de sécurité.
 --
+-- ⚠ CE FICHIER SEUL NE SUFFIT PLUS.
+-- Il reflète la base au 21/07/2026. Les changements postérieurs vivent dans
+-- supabase/migrations/, à rejouer par ordre de date JUSTE APRÈS ce fichier.
+-- En particulier, la définition de is_admin() ci-dessous (§ Fonctions) est
+-- OBSOLÈTE : elle compare à un UUID codé en dur, alors que la production lit
+-- désormais la table public.admins. Sauter les migrations restaure une base
+-- à un seul administrateur, avec auth.users exposée et le plafond d'envoi
+-- contournable — et casse la vitrine, qui interroge une vue créée par la
+-- migration du 01/08/2026.
+--
 -- CE FICHIER NE CONTIENT AUCUNE DONNÉE, ET NE DOIT JAMAIS EN CONTENIR.
 -- Le dépôt est public ; les tables contact_messages et appointments
 -- contiennent des noms, téléphones et emails de prospects.
@@ -40,6 +50,11 @@ create type public.property_status as enum ('Disponible', 'Réservé', 'Vendu', 
 -- ATTENTION : l'identifiant est écrit en dur. Sur une restauration dans un
 -- nouveau projet, il faut le remplacer par l'identifiant du compte admin
 -- recréé, sinon plus personne n'a accès à rien.
+-- ⚠ VERSION DU 21/07/2026, REMPLACÉE EN PRODUCTION.
+-- La migration 2026-08-01-durcissement-securite-et-perf.sql la redéfinit pour
+-- lire la table public.admins (plusieurs administrateurs possibles). Elle est
+-- conservée ici pour que ce fichier reste rejouable seul sur une base vide :
+-- la migration, jouée juste après, l'écrase.
 create or replace function public.is_admin()
 returns boolean
 language sql

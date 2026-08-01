@@ -81,17 +81,28 @@ Ces valeurs ne sont **nulle part** dans le dépôt et ne doivent pas y être. À
 L'ordre n'est pas négociable : chaque étape dépend de la précédente.
 
 1. **Créer les comptes utilisateurs d'abord.** La table `properties` a une clé étrangère vers `auth.users(id)`. Si les comptes n'existent pas, l'import des biens échoue intégralement.
-2. **Corriger `is_admin()` dans `schema.sql`.** Elle contient l'identifiant admin **écrit en dur** :
+2. **Jouer `supabase/schema.sql`** dans le SQL Editor.
+3. **Jouer les migrations de `supabase/migrations/`, par ordre de date.**
+   `schema.sql` a été extrait le 21/07/2026 : il ne contient donc **pas** les
+   changements postérieurs. Sauter cette étape restaure silencieusement
+   l'ancienne posture de sécurité (un seul admin codé en dur, `auth.users`
+   exposée par `collaborators_etat`, plafond d'envoi contournable) **et casse
+   la vitrine**, qui interroge la vue `public_property_cover_photos` créée par
+   `2026-08-01-durcissement-securite-et-perf.sql`.
+4. **Renseigner la table `admins`.** Les droits d'administration ne sont plus
+   écrits en dur dans `is_admin()` : ils se lisent dans `public.admins`. Sur un
+   nouveau projet, les UUID des comptes ont changé — sans cette étape,
+   **plus personne n'a accès à rien** : ni aux prospects, ni aux
+   collaborateurs, ni au journal.
    ```sql
-   select auth.uid() = '514ff065-fa33-454b-9701-c9aec9053862'::uuid;
+   insert into public.admins (user_id, note)
+   select id, email from auth.users where email in ('pab.business221@gmail.com', 'papeabibouba@gmail.com');
    ```
-   Sur un nouveau projet, cet identifiant n'existe plus. Sans correction, **plus personne n'a accès à rien** : ni aux prospects, ni aux collaborateurs, ni au journal.
-3. **Jouer `supabase/schema.sql`** dans le SQL Editor.
-4. **Réimporter les données** dans l'ordre des dépendances : `properties` → puis toutes les autres.
-5. **Recréer le bucket** `property-photos` en accès public et y reverser les fichiers.
-6. **Redéployer les 3 fonctions Edge** depuis `supabase/functions/`, puis reconfigurer leurs secrets (§2.4).
-7. **Mettre à jour `SUPABASE_URL` et la clé publique** dans les deux fichiers HTML si le projet a changé d'identifiant.
-8. **Corriger les URL codées en dur dans les fonctions SQL.** `notify_lead_webhook()` et `notify_alert_matches()` appellent `https://avanktgaxepzpqmsiauz.supabase.co/functions/v1/...`. Sur un nouveau projet, ces adresses ne répondent plus.
+5. **Réimporter les données** dans l'ordre des dépendances : `properties` → puis toutes les autres.
+6. **Recréer le bucket** `property-photos` en accès public et y reverser les fichiers.
+7. **Redéployer les 3 fonctions Edge** depuis `supabase/functions/`, puis reconfigurer leurs secrets (§2.4).
+8. **Mettre à jour `SUPABASE_URL` et la clé publique** dans les deux fichiers HTML si le projet a changé d'identifiant.
+9. **Corriger les URL codées en dur dans les fonctions SQL.** `notify_lead_webhook()` et `notify_alert_matches()` appellent `https://avanktgaxepzpqmsiauz.supabase.co/functions/v1/...`. Sur un nouveau projet, ces adresses ne répondent plus.
 
 ### 3.2 Pièges connus
 
