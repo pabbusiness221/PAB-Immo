@@ -2968,9 +2968,22 @@ async function majEtapeProspect(id, etape, champ){
     alert("L'étape n'a pas pu être enregistrée : " + error.message);
     return;
   }
+  // Le chiffre « clients accompagnés » de la vitrine avance tout seul dès
+  // qu'un dossier passe à Conclu (et recule si l'étape est corrigée par
+  // erreur), pour ne plus dépendre d'y penser à la main à chaque fois.
+  if(etape === 'Conclu' && avant !== 'Conclu') await ajusterClientsAccompagnes(1);
+  else if(avant === 'Conclu' && etape !== 'Conclu') await ajusterClientsAccompagnes(-1);
   await loadProspects();
   renderProspects();
   majBadgeProspects();
+}
+
+async function ajusterClientsAccompagnes(delta){
+  const { data: reglage } = await db.from('site_settings')
+    .select('value').eq('key','clients_accompagnes').maybeSingle();
+  const actuel = reglage && reglage.value != null ? Number(reglage.value) : 0;
+  const suivant = Math.max(0, actuel + delta);
+  await db.from('site_settings').upsert({ key:'clients_accompagnes', value: suivant }, { onConflict:'key' });
 }
 
 async function majNotesProspect(id, notes, champ){
@@ -3116,8 +3129,10 @@ async function loadAnalyticsData(){
     ? new Set(PROPERTIES.filter(p=>!p.archived_at).map(p=>p.owner_id)).size
     : null;
 
-  // Chiffre déclaratif affiché sur la vitrine. Réservé à l'admin : la table
-  // des réglages lui est fermée, inutile d'interroger pour rien.
+  // Chiffre affiché sur la vitrine : avance tout seul à chaque dossier conclu,
+  // mais reste modifiable à la main (correction, clients accompagnés hors
+  // suivi prospects). Réservé à l'admin : la table des réglages lui est
+  // fermée, inutile d'interroger pour rien.
   let clientsAccompagnes = null;
   if(IS_ADMIN){
     const { data: reglage } = await db.from('site_settings')
@@ -3210,7 +3225,7 @@ function renderAnalytics(d){
     <div class="reglage-vitrine">
       <div class="reglage-txt">
         <strong>Clients accompagnés — chiffre affiché sur la vitrine</strong>
-        <span>Aucune donnée ne le mesure : c'est une affirmation de l'agence, sous votre responsabilité. Laissez vide pour n'afficher aucun chiffre.</span>
+        <span>Avance tout seul à chaque dossier passé à « Conclu » dans les prospects. Modifiable à la main pour corriger ou ajouter des clients accompagnés hors suivi. Laissez vide pour n'afficher aucun chiffre.</span>
       </div>
       <div class="reglage-saisie">
         <input type="number" min="0" step="1" id="clientsAccompagnes" class="form-input"

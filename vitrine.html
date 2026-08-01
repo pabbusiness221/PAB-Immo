@@ -1466,8 +1466,9 @@ const SHARE_PREVIEW_URL = SUPABASE_URL + '/functions/v1/share-preview'; // aper�
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Le nombre de clients accompagnés se règle depuis l'espace d'administration
-// (Statistiques → Clients accompagnés) et non plus dans ce fichier. Il reste
-// déclaratif : rien ne le mesure, c'est l'agence qui l'affirme.
+// (Statistiques → Clients accompagnés) et non plus dans ce fichier. Il avance
+// automatiquement quand un dossier prospect passe à « Conclu », mais reste
+// modifiable à la main depuis l'administration.
 
 // ============================================================
 // SUIVI ANALYTIQUE (visites, consultations, favoris)
