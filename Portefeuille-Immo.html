@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- Le robots.txt du dépôt vise cette page (Disallow), mais son propre
+     commentaire l'admet : ça ne prend effet qu'avec un nom de domaine
+     propre, pas sur un sous-domaine github.io partagé. Cette balise-ci,
+     elle, s'applique quel que soit le domaine. -->
+<meta name="robots" content="noindex, nofollow" />
 <link rel="icon" type="image/png" href="assets/logo.png">
 <title>PAB Immo - Mon Portefeuille - Immobilier</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous" />
@@ -642,7 +647,17 @@ const STATUS_OPTIONS = { Vente:['Disponible','Réservé','Vendu'], Location:['Di
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // UUID de VOTRE compte (administrateur) — même valeur que dans schema_comptes_collaborateurs.sql.
-// Sert uniquement à afficher ou masquer le bouton "Boîte de réception" selon qui est connecté.
+//
+// N'AUTORISE RIEN : cette comparaison ne sert qu'à afficher ou masquer des
+// boutons (boîte de réception, journal, agences, avis, prospects) selon qui
+// est connecté — un simple confort d'affichage. Un collaborateur qui
+// modifierait ce fichier dans son navigateur ne gagnerait aucun accès
+// réel : les données elles-mêmes restent filtrées par les règles de
+// sécurité (RLS) de la base, et les actions sensibles (inviter une agence)
+// vérifient l'admin côté serveur via la fonction SQL is_admin(), qui lit
+// auth.uid() et non cette constante. Si l'admin change un jour, modifier
+// UNIQUEMENT is_admin() en base : cette ligne suivra pour l'affichage, mais
+// n'est jamais la source de vérité.
 const ADMIN_ID = '514ff065-fa33-454b-9701-c9aec9053862';
 
 let PROPERTIES = [];

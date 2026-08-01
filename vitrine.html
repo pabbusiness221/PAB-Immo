@@ -120,6 +120,10 @@
     position:relative;overflow:hidden;}
   .hero-bg{position:absolute;inset:-3%;z-index:0;
     background:url('assets/dakar-aerienne.jpg') center 45% / cover no-repeat;
+    /* Deuxième déclaration plutôt que @supports : un navigateur qui ne sait
+       pas lire image-set() ignore toute la ligne (valeur invalide), et
+       retombe proprement sur le JPEG déclaré juste au-dessus. 310 Ko -> 145 Ko. */
+    background:image-set(url('assets/dakar-aerienne.webp') type('image/webp'), url('assets/dakar-aerienne.jpg') type('image/jpeg')) center 45% / cover no-repeat;
     animation:heroZoom 26s ease-in-out infinite alternate;}
   /* Voile teinté à l'encre du logo (3,25,40) et non plus au vert d'origine :
      sur la photo aérienne, un voile vert et un site bleu juraient ensemble.
@@ -711,6 +715,13 @@
         linear-gradient(168deg, rgba(3,25,40,0.94) 0%, rgba(4,28,45,0.89) 42%, rgba(5,32,52,0.80) 100%),
         radial-gradient(600px 300px at 82% -8%, rgba(242,174,5,0.16), transparent 62%),
         url('assets/dakar-aerienne.jpg') center center / cover no-repeat,
+        linear-gradient(155deg, var(--night) 0%, var(--night-2) 58%, #123152 100%);
+      /* Repli automatique sur le JPEG ci-dessus si image-set() n'est pas
+         compris (voir .hero-bg) : 310 Ko -> 145 Ko sur mobile aussi. */
+      background:
+        linear-gradient(168deg, rgba(3,25,40,0.94) 0%, rgba(4,28,45,0.89) 42%, rgba(5,32,52,0.80) 100%),
+        radial-gradient(600px 300px at 82% -8%, rgba(242,174,5,0.16), transparent 62%),
+        image-set(url('assets/dakar-aerienne.webp') type('image/webp'), url('assets/dakar-aerienne.jpg') type('image/jpeg')) center center / cover no-repeat,
         linear-gradient(155deg, var(--night) 0%, var(--night-2) 58%, #123152 100%);
       background-color:var(--night);}
     .hero-eyebrow{font-size:10px;letter-spacing:.12em;margin-bottom:8px;}
@@ -1829,7 +1840,7 @@ function renderCategories(){
   // précis, elle doit se distinguer visuellement des icônes de type.
   const ICONE_TOUS = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>`;
   const tuileTous = PROPERTIES.length ? `<button type="button" class="cat-tile cat-tile-tous ${state.type==='Tous'?'active':''}" data-cat="Tous" aria-pressed="${state.type==='Tous'}">
-    <span class="cat-tile-img" style="background-image:url('assets/dakar-aerienne.jpg')" aria-hidden="true"></span>
+    <span class="cat-tile-img" style="background-image:url('assets/dakar-aerienne.jpg');background-image:image-set(url('assets/dakar-aerienne.webp') type('image/webp'), url('assets/dakar-aerienne.jpg') type('image/jpeg'))" aria-hidden="true"></span>
     <span class="cat-tile-voile" aria-hidden="true"></span>
     <span class="cat-tile-ico" aria-hidden="true">${ICONE_TOUS}</span>
     <span class="cat-tile-in"><span class="cat-tile-nom">Tous les biens</span><span class="cat-tile-nb">${PROPERTIES.length} bien${PROPERTIES.length>1?'s':''}</span></span>
