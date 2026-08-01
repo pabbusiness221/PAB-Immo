@@ -288,6 +288,27 @@
      sans JS ou en animations réduites, les cartes restent visibles. */
   .js-anim .card{opacity:0;transform:translateY(16px);transition:opacity .55s var(--ease), transform .55s var(--ease);}
   .js-anim .card.is-in{opacity:1;transform:none;transition:transform .28s var(--ease), box-shadow .28s var(--ease), border-color .28s var(--ease), opacity .55s var(--ease);}
+  /* Bandeaux (rails, statistiques, avis, appel aux agences) : même principe
+     que les cartes ci-dessus, en un seul bloc plutôt qu'en cascade — ce sont
+     des sections, pas une liste d'éléments à parcourir un par un. */
+  .js-anim .reveal-band{opacity:0;transform:translateY(22px);transition:opacity .6s var(--ease), transform .6s var(--ease);}
+  .js-anim .reveal-band.is-in{opacity:1;transform:none;}
+  /* Chargement : la forme des cartes à venir plutôt qu'un message d'attente —
+     l'œil a déjà quelque chose à lire pendant que les biens arrivent. */
+  .skeleton-card{background:var(--surface);border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow);}
+  .skeleton-card .sk-photo{aspect-ratio:16/10;}
+  .skeleton-card .sk-body{padding:15px 16px 16px;}
+  .skeleton-card .sk-photo, .skeleton-card .sk-line{
+    background:linear-gradient(100deg, var(--surface-alt) 28%, var(--border) 48%, var(--surface-alt) 68%);
+    background-size:200% 100%;animation:skShimmer 1.7s ease-in-out infinite;
+  }
+  .skeleton-card .sk-line{height:11px;border-radius:4px;margin-bottom:10px;}
+  .skeleton-card .sk-line.w70{width:70%;}
+  .skeleton-card .sk-line.w40{height:15px;width:40%;margin-top:14px;margin-bottom:0;}
+  @keyframes skShimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+  @media (prefers-reduced-motion:reduce){
+    .skeleton-card .sk-photo, .skeleton-card .sk-line{animation:none;background:var(--surface-alt);}
+  }
   .card-photo{aspect-ratio:16/10;height:auto;display:flex;align-items:center;justify-content:center;position:relative;background-color:var(--surface-alt);overflow:hidden;}
   /* Sans photo : dégradé posé en CSS pur sur ::before (aucune requête réseau,
      donc rien à différer). Avec photo : vraie balise <img loading="lazy"> —
@@ -826,7 +847,13 @@
     .alert-card{display:none;}
     .alert-form-mobile-title{display:block;}
     .fav-btn{width:44px;height:44px;}
-    .gallery-main{min-height:0;padding:12px;}
+    /* Une hauteur plancher réduite plutôt que nulle : à 0, le temps qu'une
+       nouvelle photo charge (réseau lent, ou simplement le temps du
+       changement), la zone s'effondrait à la hauteur du seul remplissage —
+       et les boutons, calés sur son centre vertical, sautaient tout en
+       haut. 50 % de la hauteur d'écran garde une zone stable sans être
+       trop généreuse sur un petit téléphone. */
+    .gallery-main{min-height:50vh;padding:12px;}
     .gallery-nav,.gallery-close{width:44px;height:44px;}
     .adv-search-grid{grid-template-columns:1fr;padding:16px 16px 8px;}
     .adv-zone-row{padding:14px 16px;flex-direction:column;align-items:stretch;}
@@ -1179,7 +1206,7 @@
      recherche avancée ni de la liste exhaustive plus bas. Masqués (hidden)
      tant que les biens réels n'ont pas encore été chargés : voir
      renderCategories()/renderFeatured(). -->
-<section class="decouverte" aria-labelledby="explorerTitre" id="explorerSection" hidden>
+<section class="decouverte reveal-band" aria-labelledby="explorerTitre" id="explorerSection" hidden>
   <div class="decouverte-tete">
     <div>
       <h2 id="explorerTitre">Explorer par type</h2>
@@ -1189,7 +1216,7 @@
   <div class="rail-scroll" id="categoryRail"></div>
 </section>
 
-<section class="decouverte" aria-labelledby="vedettesTitre" id="vedettesSection" hidden>
+<section class="decouverte reveal-band" aria-labelledby="vedettesTitre" id="vedettesSection" hidden>
   <div class="decouverte-tete">
     <div>
       <h2 id="vedettesTitre">Sélection du moment</h2>
@@ -1218,18 +1245,18 @@
 <!-- Chiffres réels de l'agence. Masqué si l'un d'eux est absent ou nul (voir
      tryRenderStatsBand()) : un chiffre à zéro rassurerait moins qu'il
      n'inquiéterait. -->
-<section class="stats-band" aria-label="PAB Immo en chiffres" id="statsBand" hidden>
+<section class="stats-band reveal-band" aria-label="PAB Immo en chiffres" id="statsBand" hidden>
   <div class="stats-inner">
-    <div class="stat-tile"><div class="n" id="statBiens"><em>0</em></div><div class="l">Biens en portefeuille</div></div>
-    <div class="stat-tile"><div class="n" id="statVerifies"><em>0</em>%</div><div class="l">Annonces vérifiées</div></div>
-    <div class="stat-tile"><div class="n" id="statAgences"><em>0</em></div><div class="l">Agences partenaires</div></div>
-    <div class="stat-tile"><div class="n" id="statClients"><em>0</em></div><div class="l">Clients accompagnés</div></div>
+    <div class="stat-tile"><div class="n" id="statBiens"><em data-count="0">0</em></div><div class="l">Biens en portefeuille</div></div>
+    <div class="stat-tile"><div class="n" id="statVerifies"><em data-count="0">0</em>%</div><div class="l">Annonces vérifiées</div></div>
+    <div class="stat-tile"><div class="n" id="statAgences"><em data-count="0">0</em></div><div class="l">Agences partenaires</div></div>
+    <div class="stat-tile"><div class="n" id="statClients"><em data-count="0">0</em></div><div class="l">Clients accompagnés</div></div>
   </div>
 </section>
 
 <!-- Avis des clients. Modérés : un avis déposé n'apparaît ici qu'une fois
      publié par l'agence depuis le portefeuille. -->
-<section class="avis-band" id="avis" aria-labelledby="avisTitre">
+<section class="avis-band reveal-band" id="avis" aria-labelledby="avisTitre">
   <div class="avis-inner">
     <div class="avis-head">
       <div>
@@ -1281,7 +1308,7 @@
 <!-- Appel aux agences. Placé juste avant le pied de page : c'est une porte
      professionnelle, elle ne doit pas concurrencer les annonces auprès des
      acheteurs, qui sont la raison d'être de cette page. -->
-<section class="collab-band" id="collaborateur" aria-labelledby="collabTitre">
+<section class="collab-band reveal-band" id="collaborateur" aria-labelledby="collabTitre">
   <div class="collab-inner">
     <div class="collab-txt">
       <p class="collab-eyebrow">Vous êtes une agence&nbsp;?</p>
@@ -1607,8 +1634,23 @@ function ficheUrl(p){
   return nom ? new URL('bien/' + nom, window.location.href).toString() : null;
 }
 
+// La forme des cartes à venir plutôt qu'un message d'attente : l'œil a déjà
+// quelque chose à lire pendant que les biens arrivent, et rien ne saute une
+// fois qu'ils remplacent ces gabarits (même grille, même hauteur de carte).
+function skeletonCardsHtml(n){
+  const carte = `<div class="skeleton-card" aria-hidden="true">
+    <div class="sk-photo"></div>
+    <div class="sk-body">
+      <div class="sk-line w70"></div>
+      <div class="sk-line" style="width:45%;"></div>
+      <div class="sk-line w40"></div>
+    </div>
+  </div>`;
+  return carte.repeat(n);
+}
+
 async function loadProperties(){
-  document.getElementById('list').innerHTML = `<div class="empty"><p style="margin:0;color:var(--ink-soft);font-size:13px;">Chargement des biens…</p></div>`;
+  document.getElementById('list').innerHTML = skeletonCardsHtml(6);
   // "public_properties" et "public_property_photos" sont des vues : elles ne renvoient
   // que les biens publiés et Disponible/Réservé, sans jamais exposer vos données privées.
   const [{ data: props, error: e1 }, { data: photos, error: e2 }] = await Promise.all([
@@ -1952,10 +1994,19 @@ function tryRenderStatsBand(){
   const verifiees = PROPERTIES.filter(p => p.verified_at).length;
   const pct = Math.round((verifiees / PROPERTIES.length) * 100);
   if(!pct) return;
-  document.querySelector('#statBiens em').textContent = PROPERTIES.length;
-  document.querySelector('#statVerifies em').textContent = pct;
-  document.querySelector('#statAgences em').textContent = STATS_AGENCES;
-  document.querySelector('#statClients em').textContent = STATS_CLIENTS;
+  // La valeur finale est posée en texte ET en data-count : sans animation
+  // (JS absent, animations réduites), le chiffre correct s'affiche quand
+  // même. Avec l'animation d'ambiance active, countUp() la repart de 0 —
+  // voir le second <script> en bas de page.
+  const poserChiffre = (id, valeur) => {
+    const em = document.querySelector('#' + id + ' em');
+    em.textContent = valeur;
+    em.setAttribute('data-count', valeur);
+  };
+  poserChiffre('statBiens', PROPERTIES.length);
+  poserChiffre('statVerifies', pct);
+  poserChiffre('statAgences', STATS_AGENCES);
+  poserChiffre('statClients', STATS_CLIENTS);
   band.hidden = false;
 }
 
@@ -3182,6 +3233,13 @@ document.querySelectorAll('#viewToggle button').forEach(b=>{
     new MutationObserver(watchCards).observe(list, {childList:true});
     watchCards();
   }
+
+  // Bandeaux (rails de découverte, statistiques, avis, appel aux agences) :
+  // un seul fondu par section, pas de cascade — voir .reveal-band. Certains
+  // sont posés en `hidden` tant que leurs données n'ont pas chargé ; les
+  // observer dès maintenant ne coûte rien, l'intersection ne peut de toute
+  // façon pas se déclencher avant qu'ils ne redeviennent visibles.
+  document.querySelectorAll('.reveal-band').forEach(function(el){ io.observe(el); });
 
   // Compteurs : les nombres (<b data-count>) montent de 0 à leur valeur.
   function countUp(el){
