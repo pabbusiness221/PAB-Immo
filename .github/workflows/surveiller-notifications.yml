@@ -1,0 +1,47 @@
+# Vérifie que les emails (nouveau message, RDV, alerte) partent toujours.
+#
+# Pourquoi cette action existe
+# -----------------------------
+# Si RESEND_API_KEY expire, si un quota est dépassé ou si une fonction Edge
+# se met à échouer, rien ne le signale : les prospects continuent d'écrire,
+# mais PAB Immo ne le sait jamais. Cette action interroge périodiquement
+# public.sante_notifications() — un point de contrôle qui ne renvoie que des
+# compteurs agrégés, jamais de contenu personnel — et échoue volontairement
+# si un problème est détecté. Une action en échec envoie un email à
+# l'adresse GitHub du dépôt : c'est le signal.
+#
+# Aucun secret n'est nécessaire : sante_notifications() se lit avec la même
+# clé publique que le reste du site.
+
+name: Surveiller les notifications
+
+on:
+  schedule:
+    # Toutes les 6 heures : assez tôt pour réagir dans la journée, assez
+    # espacé pour ne pas noyer la boîte mail si un souci traîne.
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Interroger la santé des notifications
+        run: |
+          reponse=$(curl -s -X POST \
+            'https://avanktgaxepzpqmsiauz.supabase.co/rest/v1/rpc/sante_notifications' \
+            -H "apikey: sb_publishable_nAQnS82ru9h-beIDPKMqPA_JO_aSYc-" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+
+          echo "Réponse : $reponse"
+
+          ok=$(echo "$reponse" | python3 -c "import sys,json; print(json.load(sys.stdin)[0]['ok'])")
+          message=$(echo "$reponse" | python3 -c "import sys,json; print(json.load(sys.stdin)[0]['message'])")
+
+          if [ "$ok" != "True" ]; then
+            echo "::error::Notifications en panne : $message"
+            exit 1
+          fi
+
+          echo "Notifications OK : $message"

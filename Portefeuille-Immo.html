@@ -653,11 +653,11 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // est connecté — un simple confort d'affichage. Un collaborateur qui
 // modifierait ce fichier dans son navigateur ne gagnerait aucun accès
 // réel : les données elles-mêmes restent filtrées par les règles de
-// sécurité (RLS) de la base, et les actions sensibles (inviter une agence)
-// vérifient l'admin côté serveur via la fonction SQL is_admin(), qui lit
-// auth.uid() et non cette constante. Si l'admin change un jour, modifier
-// UNIQUEMENT is_admin() en base : cette ligne suivra pour l'affichage, mais
-// n'est jamais la source de vérité.
+// sécurité (RLS) de la base, et IS_ADMIN (voir checkAuth) vient d'un appel
+// à la fonction SQL is_admin(), qui lit la table public.admins — plusieurs
+// administrateurs sont possibles depuis le 1er août 2026. Cette constante ne
+// sert plus qu'à l'étiquette « Vous » sur les biens du tout premier admin ;
+// ce n'est jamais elle qui décide des droits.
 const ADMIN_ID = '514ff065-fa33-454b-9701-c9aec9053862';
 
 let PROPERTIES = [];
@@ -1466,17 +1466,16 @@ async function geocodeSearch(){
 // correspond à aucune option et le champ reste vide. On ramène donc chaque
 // libellé à sa forme standard ; à défaut de correspondance, on laisse vide
 // plutôt que d'inscrire une valeur fausse.
-function _sansAccents(s){
-  return String(s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-}
+// Normalisation des accents : sansAccents() vient de commun.js, partagée
+// avec la vitrine — inutile d'en garder une seconde copie ici.
 function _standardiser(valeur, liste){
   if(!valeur) return '';
-  const base = _sansAccents(valeur)
+  const base = sansAccents(valeur)
     .replace(/\b(departement|department|region|arrondissement|commune|prefecture|ville|of|de|du|des|d)\b/g, ' ')
     .replace(/[^a-z\s]/g, ' ').replace(/\s+/g, ' ').trim();
   const compact = base.replace(/\s/g, '');   // « m bour » → « mbour »
   for(const item of liste){
-    const it = _sansAccents(item).replace(/[^a-z]/g, '');   // « M'bour » → « mbour »
+    const it = sansAccents(item).replace(/[^a-z]/g, '');   // « M'bour » → « mbour »
     if(!it) continue;
     if(base === it || base.split(' ').includes(it) || base.includes(it) ||
        compact === it || compact.includes(it)) return item;
@@ -3376,7 +3375,8 @@ async function checkAuth(){
   const { data: { session } } = await db.auth.getSession();
   if(session){
     document.getElementById('authOverlay').style.display = 'none';
-    IS_ADMIN = session.user.id === ADMIN_ID;
+    const { data: adminCheck } = await db.rpc('is_admin');
+    IS_ADMIN = adminCheck === true;
     document.getElementById('inboxBtn').style.display = IS_ADMIN ? '' : 'none';
   // Le journal trace qui a fait quoi sur les biens de tout le monde :
   // il reste reserve a l'admin, comme la regle de lecture en base.
@@ -3412,7 +3412,8 @@ document.getElementById('authSubmit').onclick = async () => {
   const { data, error } = await db.auth.signInWithPassword({ email, password });
   if(error){ errEl.textContent = "Connexion refusée : identifiants incorrects."; return; }
   document.getElementById('authOverlay').style.display = 'none';
-  IS_ADMIN = data.user.id === ADMIN_ID;
+  const { data: adminCheck } = await db.rpc('is_admin');
+  IS_ADMIN = adminCheck === true;
   document.getElementById('inboxBtn').style.display = IS_ADMIN ? '' : 'none';
   // Le journal trace qui a fait quoi sur les biens de tout le monde :
   // il reste reserve a l'admin, comme la regle de lecture en base.
