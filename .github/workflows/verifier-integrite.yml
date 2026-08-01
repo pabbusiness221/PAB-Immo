@@ -1,0 +1,47 @@
+# Vérifie que les deux pages n'ont pas changé de comportement.
+#
+# Pourquoi cette action existe
+# ----------------------------
+# vitrine.html et Portefeuille-Immo.html font près de 7 000 lignes, et les
+# pannes typiques ne se voient pas au chargement : un identifiant renommé et
+# un bouton ne répond plus, un oubli de esc() et le texte d'un visiteur
+# devient du code exécuté. Rien n'échoue, rien ne s'affiche en rouge — seul
+# l'usage révèle le problème, souvent chez un vrai client.
+#
+# Cette action relance le contrôle à chaque modification de ces fichiers, donc
+# au moment où l'erreur vient d'être introduite et où elle est encore facile
+# à corriger. Une action en échec envoie un mail : c'est le signal.
+#
+# Aucun secret ni réseau : le script ne lit que les fichiers du dépôt.
+
+name: Vérifier l'intégrité des pages
+
+on:
+  push:
+    paths:
+      - 'vitrine.html'
+      - 'Portefeuille-Immo.html'
+      - 'commun.js'
+      - 'commun.css'
+      - 'outils/verifier-integrite.py'
+      - '.github/workflows/verifier-integrite.yml'
+  pull_request:
+    paths:
+      - 'vitrine.html'
+      - 'Portefeuille-Immo.html'
+      - 'commun.js'
+      - 'commun.css'
+  workflow_dispatch:
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Contrôler l'intégrité des pages
+        run: python outils/verifier-integrite.py
