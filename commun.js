@@ -80,6 +80,10 @@ function texteRecherche(p){
     p.operation === 'Location' ? 'à louer location louer loyer' : '',
     p.commune, p.region, p.quartier, p.departement,
     p.status, libelleStatut,
+    // camelCase côté vitrine, snake_case côté admin (voir les deux mapRow) —
+    // et déjà retiré à "Non renseigné" par la vitrine, qui ne veut pas de ce
+    // mot-clé dans les résultats d'une recherche sur autre chose.
+    p.statutFoncier || p.statut_foncier || '',
     p.desc,
     (p.type === 'Champ agricole') ? 'hectare hectares champ agricole terre' : '',
     Number.isFinite(p.surface) ? p.surface + ' ' + surfaceUnit(p.type) : '',

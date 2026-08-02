@@ -1,87 +1,87 @@
 {
  "AP-2026-2278": {
-  "empreinte": "0f4218ee5f272238f5094f0673a6e9a270b3417d",
-  "modifie": "2026-07-23",
+  "empreinte": "3688a1acd008a2489f7063d4c7a67c54109fcb52",
+  "modifie": "2026-08-02",
   "premiere": "2026-07-22"
  },
  "AP-2026-6664": {
-  "empreinte": "265ca24020e628f04939f2004795cb9ac8add219",
-  "modifie": "2026-07-23",
+  "empreinte": "b79cea4942c4d4dcf3950a3df4d28a28deb9a92c",
+  "modifie": "2026-08-02",
   "premiere": "2026-07-22"
  },
  "APT-2024-032": {
-  "empreinte": "fb7ee368fd75e2897e670e5fdfe4cd0bf64d8eb2",
-  "modifie": "2026-07-23",
+  "empreinte": "7898d7b34e04728ede12f77684fce9e045187352",
+  "modifie": "2026-08-02",
   "premiere": "2026-07-22"
  },
  "APT-2024-101": {
-  "empreinte": "c0174d27ad24013784cedb8a0cebc51d4da09ca1",
-  "modifie": "2026-07-23",
+  "empreinte": "bf8ec094e3a27c038dde830bb6fbd01333aef78d",
+  "modifie": "2026-08-02",
   "premiere": "2026-07-22"
  },
  "CH-2026-1262": {
-  "empreinte": "426f126b03fb212796af5e2da800a9d09f89657b",
+  "empreinte": "7a194051f31ad2cc442ef26f43d7674875da5482",
   "modifie": "2026-08-02",
   "premiere": "2026-08-02"
  },
  "CH-2026-5515": {
-  "empreinte": "754d2f6ad1d99b3e8c3397d9e4b3e30d47d7dbdb",
-  "modifie": "2026-07-25",
+  "empreinte": "5395eb1cd3dbaeb1b05618ee87e1ad457bf0173a",
+  "modifie": "2026-08-02",
   "premiere": "2026-07-25"
  },
  "CH-2026-5713": {
-  "empreinte": "7e27f1973cda91517fefd849434530214e30c6b3",
-  "modifie": "2026-07-23",
+  "empreinte": "530e50dd7780aa0eaaf4218aab03d32a9f70c3d4",
+  "modifie": "2026-08-02",
   "premiere": "2026-07-22"
  },
  "CH-2026-8460": {
-  "empreinte": "6b75d6685a855816bf8d9269e09571b82c1cbbc6",
-  "modifie": "2026-07-23",
+  "empreinte": "771c6683582368bfbf3ef4b506a3409089531a0e",
+  "modifie": "2026-08-02",
   "premiere": "2026-07-22"
  },
  "MA-2026-7029": {
-  "empreinte": "008ef62df4bb77008ec97c57831a8fc57e1d3ce0",
-  "modifie": "2026-08-01",
+  "empreinte": "20793bc354160ce75955af9435e00489a1538fc3",
+  "modifie": "2026-08-02",
   "premiere": "2026-07-22"
  },
  "ST-2026-6396": {
-  "empreinte": "6d8feb73a68679c264fe2607f1cde8dcb5e3c28a",
-  "modifie": "2026-08-01",
+  "empreinte": "2d000c9fcd52509e4c2d9e6dcc376db22cb0b4a5",
+  "modifie": "2026-08-02",
   "premiere": "2026-07-23"
  },
  "ST-2026-8903": {
-  "empreinte": "8bdb131869641d5191d98394f207d0a63895891c",
-  "modifie": "2026-07-25",
+  "empreinte": "134edf17178ac8a695b9a0caa7c36e236e56e27f",
+  "modifie": "2026-08-02",
   "premiere": "2026-07-25"
  },
  "TF-2024-0847": {
-  "empreinte": "ca2e77e96252efe4544574bd5d5c3d07d58bc6a7",
-  "modifie": "2026-07-23",
+  "empreinte": "a3268205185b2be7f4be888496cd9a8d22dbc499",
+  "modifie": "2026-08-02",
   "premiere": "2026-07-22"
  },
  "TF-2024-0912": {
-  "empreinte": "454eeb1ce3b84e4e523d5a203856f942a71072a5",
-  "modifie": "2026-07-23",
+  "empreinte": "b38ba1dbd68e9f653319c61f02911734650bd3f7",
+  "modifie": "2026-08-02",
   "premiere": "2026-07-22"
  },
  "TF-2026-2204": {
-  "empreinte": "029edb399ba2fbe7974d009648afdf9899d6bb33",
-  "modifie": "2026-07-23",
+  "empreinte": "d0923e9e91136964dccb1108f086742f0660e11c",
+  "modifie": "2026-08-02",
   "premiere": "2026-07-22"
  },
  "TF-2026-3724": {
-  "empreinte": "a35b5fc52e0bd3f8f4b3140e8c1161a5c690d958",
-  "modifie": "2026-07-23",
+  "empreinte": "f8f0e1de66ddcce27da8dee1c975cfd26dcb1f4a",
+  "modifie": "2026-08-02",
   "premiere": "2026-07-22"
  },
  "TF-2026-5481": {
-  "empreinte": "8f2c51ee0427d701cd7ebb1c9bb902a9dd3a8050",
-  "modifie": "2026-07-25",
+  "empreinte": "820f61bf10bcdd194f03e60f9179ae3001a52701",
+  "modifie": "2026-08-02",
   "premiere": "2026-07-25"
  },
  "TF-2026-5797": {
-  "empreinte": "8f2d0f4a15807d9addf4174989f77f93263e2ac8",
-  "modifie": "2026-07-23",
+  "empreinte": "424a56340a8f3c704c7270670aff715c4fa68d8e",
+  "modifie": "2026-08-02",
   "premiere": "2026-07-22"
  }
 }

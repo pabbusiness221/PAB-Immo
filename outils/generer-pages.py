@@ -513,7 +513,10 @@ def page_bien(b, photos, voisins=(), publiee=None):
   <h1>{esc(titre)}</h1>
   <p class="lieu">{esc((lieu_court(b["quartier"]) + ", ") if b.get("quartier") else "")}{esc(lieu_court(b["commune"]))}, région de {esc(lieu_court(b["region"]))}</p>
   <p class="prix">{prix}</p>
-  <p class="etat" style="background:{'rgba(47,122,78,.12);color:#2F7A4E' if b["status"] == "Disponible" else 'rgba(226,162,44,.15);color:#8F6414'}">{esc(b["status"])}</p>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;">
+    <p class="etat" style="margin:0;background:{'rgba(47,122,78,.12);color:#2F7A4E' if b["status"] == "Disponible" else 'rgba(226,162,44,.15);color:#8F6414'}">{esc(b["status"])}</p>
+    {f'<p class="etat" style="margin:0;background:rgba(37,99,235,.12);color:#2854A6;">{esc(b["statut_foncier"])}</p>' if b.get("statut_foncier") and b["statut_foncier"] != "Non renseigné" else ''}
+  </div>
 
   {'<h2>Photos</h2>' + galerie if photos else ''}
 
@@ -523,6 +526,7 @@ def page_bien(b, photos, voisins=(), publiee=None):
     <li><b>{esc(b["operation"])}</b><span>{fcfa(b["price"])}{'/mois' if b["operation"] == "Location" else ''}</span></li>
     <li><b>Superficie</b><span>{esc(surface(b))}</span></li>
     <li><b>Référence</b><span>{esc(b["ref"])}</span></li>
+    {f'<li><b>Statut foncier</b><span>{esc(b["statut_foncier"])}</span></li>' if b.get("statut_foncier") and b["statut_foncier"] != "Non renseigné" else ''}
     {"".join(f'<li><b>{esc(k)}</b><span>{esc(v)}</span></li>' for k, v in caracs)}
   </ul>
 
