@@ -54,6 +54,18 @@
   .actions{display:flex;gap:10px;flex-wrap:wrap;}
   .actions a{flex:1 1 200px;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;border-radius:999px;font-weight:700;font-size:14px;text-decoration:none;}
   .wa{background:#25D366;color:#fff;} .tel{background:var(--accent);color:#1E1607;}
+  .contact-form{margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.14);}
+  .contact-form label{display:block;color:rgba(255,255,255,.82);font-size:12.5px;font-weight:700;margin:0 0 6px;}
+  .contact-form input,.contact-form textarea{width:100%;box-sizing:border-box;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);border-radius:var(--radius-md);color:#fff;font:inherit;font-size:14px;padding:10px 12px;margin:0 0 12px;}
+  .contact-form input::placeholder,.contact-form textarea::placeholder{color:rgba(255,255,255,.45);}
+  .contact-form textarea{min-height:80px;resize:vertical;font-family:inherit;}
+  .contact-form button{width:100%;min-height:48px;border:none;border-radius:999px;background:var(--accent);color:#1E1607;font-weight:800;font-size:14px;cursor:pointer;}
+  .contact-form button:disabled{opacity:.6;cursor:default;}
+  .cf-msg{margin:10px 0 0;font-size:13px;font-weight:700;min-height:16px;}
+  .cf-msg.err{color:#F3A9A0;} .cf-msg.ok{color:#8FE0B3;}
+  /* Piège anti-bot : hors écran plutôt que display:none, pour rester "visible"
+     aux robots qui vérifient le style calculé avant de tout remplir. */
+  .hp-field{position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;opacity:0;}
 
   .voisins{grid-template-columns:repeat(auto-fit,minmax(210px,1fr));display:grid;gap:12px;}
   .voisin{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;transition:border-color .2s,transform .2s;}
@@ -155,6 +167,18 @@
       <a class="wa" href="https://wa.me/221778494111?text=Bonjour%2C%20je%20suis%20int%C3%A9ress%C3%A9%28e%29%20par%20le%20bien%20CH-2026-1262%20%E2%80%94%20Champ%20agricole%20%C3%A0%20Keur%20Moussa." target="_blank" rel="noopener">Écrire sur WhatsApp</a>
       <a class="tel" href="tel:+221778494111">+221 77 849 41 11</a>
     </div>
+
+    <form class="contact-form" id="cf" novalidate>
+      <label for="cf_name">Nom</label>
+      <input id="cf_name" placeholder="Votre nom" autocomplete="name" required/>
+      <label for="cf_contact">Téléphone ou email</label>
+      <input id="cf_contact" placeholder="Pour vous répondre" autocomplete="tel" required/>
+      <label for="cf_message">Message</label>
+      <textarea id="cf_message" placeholder="Votre question sur ce bien…" required></textarea>
+      <div class="hp-field" aria-hidden="true"><label for="cf_website">Site web</label><input type="text" id="cf_website" name="website" tabindex="-1" autocomplete="off"/></div>
+      <button type="submit" id="cfBtn">Envoyer le message</button>
+      <p class="cf-msg" id="cfMsg" role="status"></p>
+    </form>
   </section>
 
   <h2>Autres biens qui pourraient vous intéresser</h2>
@@ -192,5 +216,73 @@
   <a href="../mentions-legales.html">Mentions légales</a> · <a href="../confidentialite.html">Politique de confidentialité</a><br>
   <span class="reg">© 2026 PAB Immo · NINEA 012603686 · RCCM SN DKR 2025 A 44101</span>
 </footer>
+<script>
+// Écrit directement dans contact_messages via l'API REST, sans charger le
+// SDK Supabase : cette page reste une fiche légère, pas l'application. La
+// clé utilisée est la clé "publishable" — déjà publique dans le code de la
+// vitrine, sans danger : la politique de sécurité de la table n'autorise que
+// l'ajout (INSERT), jamais la lecture, et un déclencheur limite le nombre
+// d'envois par appareil et par heure.
+(function(){
+  var SUPABASE_URL = "https://avanktgaxepzpqmsiauz.supabase.co";
+  var SUPABASE_KEY = "sb_publishable_nAQnS82ru9h-beIDPKMqPA_JO_aSYc-";
+  var PROPERTY_ID = "f4473657-5f10-4521-90c5-827c7421d964";
+  var form = document.getElementById('cf');
+  if(!form) return;
+  form.addEventListener('submit', function(ev){
+    ev.preventDefault();
+    var msgEl = document.getElementById('cfMsg');
+    var btn = document.getElementById('cfBtn');
+    // Piège anti-bot : un humain ne remplit jamais ce champ invisible. On
+    // simule un succès sans rien envoyer, pour ne pas signaler au robot
+    // qu'il a été repéré.
+    if(document.getElementById('cf_website').value.trim()){
+      form.innerHTML = '<p class="cf-msg ok">Message envoyé ! On vous recontacte rapidement.</p>';
+      return;
+    }
+    var name = document.getElementById('cf_name').value.trim();
+    var contact = document.getElementById('cf_contact').value.trim();
+    var message = document.getElementById('cf_message').value.trim();
+    msgEl.className = 'cf-msg';
+    msgEl.textContent = '';
+    if(!name || !contact || !message){
+      msgEl.className = 'cf-msg err';
+      msgEl.textContent = 'Merci de remplir tous les champs.';
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = 'Envoi…';
+    fetch(SUPABASE_URL + '/rest/v1/contact_messages', {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal'
+      },
+      body: JSON.stringify({ property_id: PROPERTY_ID, name: name, contact: contact, message: message, is_read: false })
+    }).then(function(res){
+      if(res.ok){
+        form.innerHTML = '<p class="cf-msg ok">Message envoyé ! On vous recontacte rapidement.</p>';
+        return;
+      }
+      // Le plafond d'envoi (déclencheur enforce_submission_rate_limit) renvoie
+      // un message déjà écrit pour un lecteur humain ; on l'affiche tel quel.
+      return res.json().catch(function(){ return {}; }).then(function(corps){
+        msgEl.className = 'cf-msg err';
+        msgEl.textContent = (corps && corps.message) ? corps.message
+          : "Échec de l'envoi. Réessayez, ou écrivez-nous directement sur WhatsApp.";
+        btn.disabled = false;
+        btn.textContent = 'Envoyer le message';
+      });
+    }).catch(function(){
+      msgEl.className = 'cf-msg err';
+      msgEl.textContent = "Échec de l'envoi. Vérifiez votre connexion, ou écrivez-nous sur WhatsApp.";
+      btn.disabled = false;
+      btn.textContent = 'Envoyer le message';
+    });
+  });
+})();
+</script>
 </body>
 </html>
