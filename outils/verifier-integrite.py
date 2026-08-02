@@ -111,6 +111,63 @@ class VerificateurHtml(HTMLParser):
             self.erreurs.append(f"</{tag}> ligne {self.getpos()[0]} sans ouverture")
 
 
+# ---- Content-Security-Policy : la politique couvre-t-elle l'usage reel ? ---
+def csp_de(html):
+    """Extrait la politique du <meta http-equiv="Content-Security-Policy">,
+    sous la forme {directive: [sources]}. None si la balise est absente."""
+    m = re.search(r'http-equiv="Content-Security-Policy"\s+content="([^"]+)"', html)
+    if not m:
+        return None
+    politique = {}
+    for morceau in m.group(1).split(";"):
+        morceau = morceau.strip()
+        if not morceau:
+            continue
+        jetons = morceau.split()
+        politique[jetons[0]] = jetons[1:]
+    return politique
+
+
+def ressources_externes(html):
+    """Recense les ressources externes que la page charge reellement, telles
+    qu'observees dans le code : scripts et feuilles de style poses dans le
+    HTML, CDN de repli charges dynamiquement (ex. ensureChartJs), tuiles de
+    carte Leaflet, appels fetch() explicites. Ne couvre pas ce que construit
+    le SDK Supabase en interne, ni les sous-ressources d'une CSS externe
+    (fonts.gstatic.com, chargee depuis la CSS de Google Fonts) : un « rien de
+    bloque » ne garantit donc pas une couverture totale, seulement l'absence
+    des ecarts visibles dans le code source."""
+    vues = []
+    for u in re.findall(r'<script[^>]+src="(https://[^"]+)"', html):
+        vues.append(("script-src", u))
+    for u in re.findall(r'<link[^>]+rel="stylesheet"[^>]+href="(https://[^"]+)"', html):
+        vues.append(("style-src", u))
+    for u in re.findall(r"'(https://[^']+\.js)'", html):
+        vues.append(("script-src", u))
+    for u in re.findall(r"tileLayer\('(https://[^']+)'", html):
+        vues.append(("img-src", u.replace("{s}.", "a.")))
+    for u in re.findall(r"fetch\(\s*[`'\"](https://[^`'\"]+)", html):
+        vues.append(("connect-src", u))
+    return vues
+
+
+def csp_autorise(politique, directive, url):
+    """Une source de la directive (ou de default-src, en repli) couvre-t-elle
+    cette URL ? Gere le seul joker que ce projet utilise : *.domaine."""
+    hote = re.sub(r"^https?://", "", url).split("/", 1)[0]
+    for source in politique.get(directive) or politique.get("default-src", []):
+        source = source.strip("'")
+        if source in ("self", "unsafe-inline", "none") or source == "data:":
+            continue
+        hote_source = re.sub(r"^https?://", "", source)
+        if hote_source.startswith("*."):
+            if hote.endswith(hote_source[1:]):
+                return True
+        elif hote_source == hote:
+            return True
+    return False
+
+
 def main():
     for nom in PAGES + PARTAGES:
         if not os.path.exists(os.path.join(RACINE, nom)):
@@ -193,9 +250,31 @@ def main():
         controle(not (v.erreurs or restantes),
                  f"{page} : balises mal equilibrees :\n      "
                  + "\n      ".join((v.erreurs + restantes)[:6]))
+
+        # --- 7. La CSP autorise tout ce que la page charge vraiment -----------
+        # Une ressource bloquee par la CSP ne provoque aucune erreur visible
+        # dans l'usage courant : la page s'affiche, mais amputee. C'est ainsi
+        # que leaflet.css est passe inapercu une fois — les tuiles de carte se
+        # chargeaient (img-src les autorisait), mais la feuille de style qui
+        # les POSITIONNE etait coupee : carte visuellement fausse, aucune
+        # alerte. Verifier « la ressource se charge » ne suffit pas ; il faut
+        # verifier que la politique la couvre.
+        politique = csp_de(html)
+        controle(politique is not None,
+                 f"{page} : plus aucune Content-Security-Policy. Les origines "
+                 f"externes ne sont plus limitees.")
+        if politique:
+            bloquees = []
+            for directive, url in ressources_externes(html):
+                if not csp_autorise(politique, directive, url):
+                    bloquees.append(f"{directive} <- {url[:80]}")
+            controle(not bloquees,
+                     f"{page} : la CSP bloque des ressources que la page "
+                     f"charge :\n      " + "\n      ".join(bloquees[:6])
+                     + "\n      La page s'affichera amputee, sans erreur visible.")
         print()
 
-    # --- 7. Aucun secret dans les fichiers servis aux visiteurs --------------
+    # --- 8. Aucun secret dans les fichiers servis aux visiteurs --------------
     # La cle de service donne un acces TOTAL a la base, RLS comprise. Elle ne
     # doit vivre que dans les secrets des fonctions Edge.
     for nom in PAGES + PARTAGES:
