@@ -1904,6 +1904,15 @@ function filtered(){
 
 const NAV = [['Tous','Tous les biens'],['Terrain','Terrains'],['Maison','Maisons'],['Appartement','Appartements'],['Studio','Studios'],['Champ agricole','Champs agricoles']];
 const OPS = [['Tous','Vente & location'],['Vente','Vente'],['Location','Location']];
+// Photo dédiée par catégorie pour le rail « Explorer par type » — nom de base
+// sans extension : assets/<base>.jpg et assets/<base>.webp doivent exister.
+const CATEGORY_IMG = {
+  Terrain: 'cat-terrain',
+  Maison: 'cat-maison',
+  Appartement: 'cat-appartement',
+  Studio: 'cat-studio',
+  'Champ agricole': 'cat-champ-agricole',
+};
 function renderChips(){
   // aria-pressed reflète l'état actif : sans lui, un lecteur d'écran annonce
   // « Vente, bouton » sans jamais dire si ce filtre est sélectionné.
@@ -1941,9 +1950,14 @@ function renderCategories(){
   const tuiles = NAV.filter(([key]) => key !== 'Tous').map(([key,label])=>{
     const biens = PROPERTIES.filter(p => p.type === key);
     if(!biens.length) return '';
-    const avecPhoto = biens.find(p => p.photos && p.photos.length) || biens[0];
-    const cover = coverUrl(avecPhoto, 260, 55);
-    const fond = cover ? `background-image:url('${cover}')` : `background:${TYPE_COLOR[key]}`;
+    // Une photo dédiée par catégorie plutôt que la couverture d'un bien pris
+    // au hasard parmi ceux qui en ont une : avec un jeu d'essai incomplet
+    // (biens sans photo, photos non représentatives), la tuile finissait par
+    // montrer un plan de bornage ou une photo qui ne représente pas le type.
+    const base = CATEGORY_IMG[key];
+    const fond = base
+      ? `background-image:url('assets/${base}.jpg');background-image:image-set(url('assets/${base}.webp') type('image/webp'), url('assets/${base}.jpg') type('image/jpeg'))`
+      : `background:${TYPE_COLOR[key]}`;
     return `<button type="button" class="cat-tile ${state.type===key?'active':''}" data-cat="${key}" aria-pressed="${state.type===key}">
       <span class="cat-tile-img" style="${fond}" aria-hidden="true"></span>
       <span class="cat-tile-voile" aria-hidden="true"></span>
