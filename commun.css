@@ -67,16 +67,13 @@
     --bleu:#2563EB;
 
     --success:#2F7A4E;
-    --warning:#B57A12;
     --danger:#B03E2B;
 
-    /* Couleurs métier (cohérentes avec TYPE_COLOR / STATUS_COLOR en JS) */
+    /* Couleurs métier utilisées telles quelles en CSS (les autres teintes de
+       TYPE_COLOR / STATUS_COLOR ne vivent qu'en JS, injectées en style
+       inline — pas besoin d'un jeton ici pour celles-là). */
     --brick:#B24A2C;   /* Terrain */
-    --navy:#2E4A61;    /* Maison */
-    --teal:#1F7A73;    /* Appartement */
     --gold:#8F6414;    /* Réservé / valeur */
-    --sage:#3F7A49;    /* Disponible */
-    --stone:#8B9199;   /* Vendu / Loué */
 
     /* Fonds sombres : le bleu nuit de la maquette, et son éclaircie pour les
        dégradés (même valeur que celle utilisée dans la maquette elle-même). */
@@ -85,13 +82,12 @@
 
     /* ---- Échelle typographique ----
        Rapport ~1,25. Une page qui pioche des tailles au hasard se lit comme un
-       brouillon ; une échelle donne le rythme et rend la hiérarchie évidente. */
-    --t-xs:11px; --t-sm:12.5px; --t-base:14px; --t-md:15.5px;
-    --t-lg:18px; --t-xl:22px; --t-2xl:28px; --t-3xl:clamp(30px,4.4vw,46px);
-
-    /* ---- Échelle d'espacement (base 4) ---- */
-    --e-1:4px; --e-2:8px; --e-3:12px; --e-4:16px;
-    --e-5:22px; --e-6:30px; --e-7:42px; --e-8:60px;
+       brouillon ; une échelle donne le rythme et rend la hiérarchie évidente.
+       Seuls xs/sm/md/lg sont repris ailleurs en CSS : les crans au-dessus
+       (base, xl, 2xl, 3xl) avaient été prévus mais chaque grand titre fixe
+       sa propre taille en `clamp()` pour rester responsive, donc rien ne les
+       consomme aujourd'hui. */
+    --t-xs:11px; --t-sm:12.5px; --t-md:15.5px; --t-lg:18px;
 
     /* ---- Angles resserrés : la précision d'un relevé, pas la rondeur d'une
        application grand public. ---- */

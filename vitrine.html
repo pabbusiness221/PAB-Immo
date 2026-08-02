@@ -4,6 +4,27 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex, nofollow" />
+<!-- Content-Security-Policy et Referrer-Policy : les seuls en-têtes de
+     sécurité qu'un <meta> peut porter. X-Frame-Options, X-Content-Type-Options
+     et Permissions-Policy en sont exclus par spécification (ignorés par les
+     navigateurs hors en-tête HTTP réel) — GitHub Pages ne permet pas d'en
+     définir, donc ils ne figurent pas ici : les ajouter en meta donnerait une
+     fausse impression de protection.
+     'unsafe-inline' est nécessaire sur script-src et style-src : tout le code
+     de cette page est en ligne (pas d'étape de build pour poser des nonces).
+     La CSP ne bloque donc pas l'injection de script en ligne — son intérêt
+     ici est de limiter les origines externes autorisées et de couper les
+     plugins (object-src). Domaines : Leaflet/Chart.js/Supabase-JS (CDN),
+     Google Fonts, tuiles de carte (OpenStreetMap, Esri), API et stockage
+     Supabase.
+     cdn.jsdelivr.net doit AUSSI figurer sur style-src et img-src, pas
+     seulement script-src : leaflet.css vient de là (bloqué sans ça, la carte
+     s'affichait avec les bonnes coordonnées en interne mais un rendu visuel
+     complètement faux faute des règles de positionnement de Leaflet — une
+     panne détectée et corrigée après coup), et le contrôle de calques de
+     Leaflet charge son icône depuis le même CDN. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://avanktgaxepzpqmsiauz.supabase.co https://*.tile.openstreetmap.org https://server.arcgisonline.com https://cdn.jsdelivr.net; connect-src 'self' https://avanktgaxepzpqmsiauz.supabase.co https://nominatim.openstreetmap.org; object-src 'none'; base-uri 'self';" />
+<meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
 <link rel="icon" type="image/png" href="assets/logo.png">
 <title>PAB Immo - Biens à vendre &amp; à louer - Dakar &amp; Thiès</title>
 
@@ -19,18 +40,18 @@
 <!-- L'adresse annoncee ici pointait vers Biens-Immo.html/og-image.png, un
      chemin situe SOUS un fichier .html : elle repondait 404, et tout partage
      de la vitrine sur WhatsApp ou Facebook s'affichait sans image. -->
-<meta property="og:image" content="https://pabbusiness221.github.io/PAB-Immo/assets/dakar-aerienne.jpg" />
-<meta property="og:image:secure_url" content="https://pabbusiness221.github.io/PAB-Immo/assets/dakar-aerienne.jpg" />
+<meta property="og:image" content="https://pabbusiness221.github.io/PAB-Immo/assets/dakar-panorama.jpg" />
+<meta property="og:image:secure_url" content="https://pabbusiness221.github.io/PAB-Immo/assets/dakar-panorama.jpg" />
 <meta property="og:image:type" content="image/jpeg" />
-<meta property="og:image:width" content="1600" />
-<meta property="og:image:height" content="1200" />
-<meta property="og:image:alt" content="Vue aérienne de Dakar" />
+<meta property="og:image:width" content="1536" />
+<meta property="og:image:height" content="1024" />
+<meta property="og:image:alt" content="Vue panoramique de villas modernes à Dakar" />
 <meta property="og:url" content="https://pabbusiness221.github.io/PAB-Immo/Biens-Immo.html" />
 <link rel="canonical" href="https://pabbusiness221.github.io/PAB-Immo/Biens-Immo.html" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="PAB Immo — Biens à vendre & à louer, Dakar & Thiès" />
 <meta name="twitter:description" content="Terrains, maisons, appartements et champs agricoles à Dakar et Thiès." />
-<meta name="twitter:image" content="https://pabbusiness221.github.io/PAB-Immo/assets/dakar-aerienne.jpg" />
+<meta name="twitter:image" content="https://pabbusiness221.github.io/PAB-Immo/assets/dakar-panorama.jpg" />
 <meta name="description" content="Terrains, maisons, appartements, studios et champs agricoles à vendre et à louer à Dakar et Thiès — PAB Immo." />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -943,7 +964,7 @@
   "@type": "RealEstateAgent",
   "name": "PAB Immo",
   "url": "https://pabbusiness221.github.io/PAB-Immo/Biens-Immo.html",
-  "image": "https://pabbusiness221.github.io/PAB-Immo/assets/dakar-aerienne.jpg",
+  "image": "https://pabbusiness221.github.io/PAB-Immo/assets/dakar-panorama.jpg",
   "description": "Agence immobilière à Dakar et Thiès : terrains, maisons, appartements et champs agricoles à vendre et à louer.",
   "telephone": "+221778494111",
   "address": {
@@ -1464,7 +1485,6 @@ const STATUS_COLOR = { Disponible:'#397042', 'Réservé':'#B8842A' };
 // filtrée, sans champs privés) est interrogée depuis cette page.
 
  // clé "publishable" (ou "anon" pour les anciens projets)
-const SHARE_PREVIEW_URL = SUPABASE_URL + '/functions/v1/share-preview'; // aperçu WhatsApp/Facebook dynamique par bien
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Le nombre de clients accompagnés se règle depuis l'espace d'administration

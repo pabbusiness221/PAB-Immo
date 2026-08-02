@@ -103,13 +103,13 @@ ne les liraient pas autrement :
 
 | Balise | Nouvelle valeur |
 |---|---|
-| `og:image` | `https://pabimmo.sn/assets/dakar-aerienne.jpg` |
-| `og:image:secure_url` | `https://pabimmo.sn/assets/dakar-aerienne.jpg` |
+| `og:image` | `https://pabimmo.sn/assets/dakar-panorama.jpg` |
+| `og:image:secure_url` | `https://pabimmo.sn/assets/dakar-panorama.jpg` |
 | `og:url` | `https://pabimmo.sn/Biens-Immo.html` |
 | `canonical` | `https://pabimmo.sn/Biens-Immo.html` |
-| `twitter:image` | `https://pabimmo.sn/assets/dakar-aerienne.jpg` |
+| `twitter:image` | `https://pabimmo.sn/assets/dakar-panorama.jpg` |
 | JSON-LD `url` | `https://pabimmo.sn/Biens-Immo.html` |
-| JSON-LD `image` | `https://pabimmo.sn/assets/dakar-aerienne.jpg` |
+| JSON-LD `image` | `https://pabimmo.sn/assets/dakar-panorama.jpg` |
 
 Demandez-la-moi : c'est un seul commit, et je vérifie derrière que rien ne
 pointe plus vers l'ancienne adresse.

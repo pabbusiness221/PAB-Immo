@@ -387,14 +387,15 @@ def page_bien(b, photos, voisins=(), publiee=None):
     desc = description_bien(b)
     prix = fcfa(b["price"]) + ("<span> /mois</span>" if b["operation"] == "Location" else "")
     # Image d'aperçu au partage : la photo du bien recadrée en 1200x630, ou
-    # l'image générique (1600x1200) faute de photo. On garde ses dimensions
-    # pour les déclarer, ce qui fiabilise l'aperçu sur WhatsApp et Facebook.
+    # l'image générique (celle du héros de la vitrine) faute de photo. On
+    # garde ses dimensions pour les déclarer, ce qui fiabilise l'aperçu sur
+    # WhatsApp et Facebook.
     if photos:
         couverture = og_image_url(photos[0]["storage_path"])
         og_w, og_h = OG_W, OG_H
     else:
-        couverture = f"{SITE}/assets/dakar-aerienne.jpg"
-        og_w, og_h = 1600, 1200
+        couverture = f"{SITE}/assets/dakar-panorama.jpg"
+        og_w, og_h = 1536, 1024
 
     # Message WhatsApp pré-rempli : le visiteur n'a rien à retaper.
     wa = f"https://wa.me/{TEL.lstrip('+')}?text=" + urllib.parse.quote(

@@ -150,10 +150,6 @@ function photoUrl(path, width, quality){
     + `?width=${width}&quality=${quality || 65}`;
 }
 
-function publicPhotoUrl(path){
-  return photoUrl(path);
-}
-
 function coverUrl(p, width, quality){
   if(!p.photos || !p.photos.length) return null;
   const cover = p.photos.find(ph=>ph.is_cover) || p.photos[0];
