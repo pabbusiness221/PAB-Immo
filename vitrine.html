@@ -433,6 +433,50 @@
   .drawer-banner .fav-btn{top:14px;left:14px;}
   .fav-chip{display:flex;align-items:center;gap:7px;}
 
+  /* ---------- Comparateur ---------- */
+  .compare-check{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;
+    color:var(--ink-soft);font-weight:600;cursor:pointer;user-select:none;}
+  .compare-check.is-disabled{opacity:.5;cursor:not-allowed;}
+  .compare-check input{width:15px;height:15px;accent-color:var(--gold);cursor:pointer;}
+  .compare-check.is-disabled input{cursor:not-allowed;}
+  .compare-bar[hidden]{display:none;}
+  .compare-bar{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:850;
+    display:flex;align-items:center;gap:16px;background:var(--night);color:#fff;
+    padding:12px 14px 12px 20px;border-radius:999px;box-shadow:0 14px 34px -14px rgba(15,39,71,0.55);
+    max-width:calc(100% - 32px);}
+  .compare-bar-txt{font-size:13px;font-weight:700;white-space:nowrap;}
+  .compare-bar-actions{display:flex;align-items:center;gap:8px;}
+  .compare-bar-vider{background:none;border:none;color:rgba(255,255,255,0.7);font-size:12.5px;
+    font-weight:600;cursor:pointer;padding:6px 4px;}
+  .compare-bar-vider:hover{color:#fff;text-decoration:underline;}
+  .compare-bar #compareBarOuvrir:disabled{opacity:.45;cursor:not-allowed;}
+  @media (max-width:640px){
+    .compare-bar{left:16px;right:16px;bottom:14px;transform:none;max-width:none;
+      justify-content:space-between;padding:10px 10px 10px 16px;}
+  }
+
+  .compare-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px;}
+  .compare-head h2{margin:0;font-size:18px;}
+  .compare-head .drawer-close{position:static;flex-shrink:0;}
+
+  /* Tableau du tiroir de comparaison : défilement horizontal propre à lui,
+     jamais à la page — deux ou trois colonnes de fiches ne tiennent pas sur
+     un écran de téléphone. */
+  .compare-table-wrap{overflow-x:auto;margin-top:8px;}
+  .compare-table{display:grid;border-top:1px solid var(--border);}
+  .compare-col-head{padding:14px 12px;border-bottom:1px solid var(--border);position:relative;}
+  .compare-col-head img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:var(--radius-md);
+    margin-bottom:10px;background:var(--surface-alt);}
+  .compare-col-head h3{margin:0 0 4px;font-size:14px;}
+  .compare-col-head .compare-remove{position:absolute;top:10px;right:10px;border:none;
+    background:rgba(255,255,255,0.92);width:26px;height:26px;border-radius:50%;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px -4px rgba(15,39,71,.5);}
+  .compare-row-label{padding:11px 12px;font-size:12px;font-weight:700;color:var(--ink-soft);
+    text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--filet);
+    display:flex;align-items:center;}
+  .compare-cell{padding:11px 12px;font-size:13.5px;border-bottom:1px solid var(--filet);
+    display:flex;align-items:center;}
+
   /* ---------- Formulaires (message / RDV / alertes) ---------- */
   .subform-tabs{display:flex;gap:8px;margin-top:26px;}
   .subform-tab{flex:1;border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:11px 8px;font-size:12.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s var(--ease);}
@@ -1478,6 +1522,19 @@
 <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitre" aria-hidden="true"></div>
 <div class="gallery-modal hidden" id="galleryModal"></div>
 
+<!-- Comparateur : sélection flottante persistante pendant que la personne
+     continue à parcourir la liste, tiroir séparé du tiroir de détail pour ne
+     pas mêler deux logiques d'ouverture différentes. -->
+<div class="compare-bar" id="compareBar" hidden>
+  <span class="compare-bar-txt" id="compareBarTexte"></span>
+  <div class="compare-bar-actions">
+    <button type="button" class="compare-bar-vider" id="compareBarVider">Vider</button>
+    <button type="button" class="btn btn-primary" id="compareBarOuvrir" disabled>Comparer</button>
+  </div>
+</div>
+<div class="overlay" id="compareOverlay"></div>
+<div class="drawer" id="compareDrawer" role="dialog" aria-modal="true" aria-labelledby="compareTitre" aria-hidden="true"></div>
+
 <!-- Versions figées (pas juste « @2 ») et intégrité vérifiée (SRI) : sans
      cela, jsDelivr peut servir une version mineure différente d'un jour à
      l'autre sans qu'aucun commit ne change ici, et rien ne détecterait un
@@ -1802,6 +1859,36 @@ function toggleFav(id){
 function favIconSvg(active){
   return `<svg width="15" height="15" viewBox="0 0 24 24" fill="${active?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>`;
 }
+
+// ---- Comparateur (en mémoire seulement : une comparaison se fait dans la
+// foulée d'une visite, pas besoin de la retrouver la semaine suivante) ----
+const COMPARE_MAX = 3;
+let COMPARE = [];
+function isCompare(id){ return COMPARE.includes(String(id)); }
+function toggleCompare(id){
+  id = String(id);
+  const idx = COMPARE.indexOf(id);
+  if(idx >= 0) COMPARE.splice(idx, 1);
+  else { if(COMPARE.length >= COMPARE_MAX) return; COMPARE.push(id); }
+  updateCompareBar();
+}
+function updateCompareBar(){
+  const bar = document.getElementById('compareBar');
+  const texte = document.getElementById('compareBarTexte');
+  const btn = document.getElementById('compareBarOuvrir');
+  bar.hidden = COMPARE.length === 0;
+  if(COMPARE.length === 0) return;
+  texte.textContent = COMPARE.length === 1
+    ? '1 bien sélectionné — choisissez-en au moins un second'
+    : `${COMPARE.length} biens sélectionnés`;
+  btn.disabled = COMPARE.length < 2;
+}
+document.getElementById('compareBarVider').onclick = () => {
+  COMPARE = [];
+  updateCompareBar();
+  renderList();
+};
+document.getElementById('compareBarOuvrir').onclick = openCompareDrawer;
 
 // Initialisation protégée : si Leaflet ne s'est pas chargé (CDN indisponible),
 // la vitrine (liste des biens) doit rester utilisable — la carte sera simplement absente.
@@ -2425,6 +2512,10 @@ function renderList(){
           ${dispoFraiche(p) ? `<span class="trust-badge dispo" title="Disponibilité confirmée ${esc(dispoLabel(p))}">Dispo. ${esc(dispoLabel(p))}</span>` : ''}
           ${p.agence_verifiee ? `<span class="trust-badge agence" title="Bien publié par une agence certifiée par PAB Immo">Agence vérifiée</span>` : ''}
         </div>` : ''}
+        <label class="compare-check${(!isCompare(p.id) && COMPARE.length>=COMPARE_MAX)?' is-disabled':''}">
+          <input type="checkbox" data-compare-id="${p.id}"${isCompare(p.id)?' checked':''}${(!isCompare(p.id) && COMPARE.length>=COMPARE_MAX)?' disabled':''} aria-label="Comparer ${esc(p.type)} — ${esc(p.commune)}" />
+          <span>Comparer</span>
+        </label>
         <div class="card-foot">
           <span class="surface-txt mono">${p.surface} ${surfaceUnit(p.type)}</span>
           <span class="price mono">${fcfa(p.price)}${p.operation==='Location'?' /mois':''}</span>
@@ -2476,6 +2567,13 @@ function renderList(){
       if(state.favOnly){ render(); } else { renderList(); }
     };
   });
+  el.querySelectorAll('[data-compare-id]').forEach(cb=>{
+    cb.onclick = (e) => e.stopPropagation();
+    cb.onchange = () => {
+      toggleCompare(cb.dataset.compareId);
+      renderList();
+    };
+  });
 }
 function highlightCard(id){
   state.selected = id;
@@ -2505,8 +2603,9 @@ function highlightCard(id){
 
 function updateScrollLock(){
   const drawerOpen = document.getElementById('drawer').classList.contains('open');
+  const compareOpen = document.getElementById('compareDrawer').classList.contains('open');
   const galleryOpen = !document.getElementById('galleryModal').classList.contains('hidden');
-  document.body.style.overflow = (drawerOpen || galleryOpen) ? 'hidden' : '';
+  document.body.style.overflow = (drawerOpen || compareOpen || galleryOpen) ? 'hidden' : '';
 }
 
 
@@ -2816,6 +2915,110 @@ document.addEventListener('keydown', e=>{
   // fois). Sans ce filtre, le bouton du panneau caché était pris pour le
   // dernier élément — .focus() dessus échoue silencieusement puisqu'il n'est
   // pas réellement focalisable, et le piège ne se refermait jamais.
+  const focusables = [...tiroir.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')]
+    .filter(el => el.offsetParent !== null);
+  if(!focusables.length) return;
+  const premier = focusables[0], dernier = focusables[focusables.length - 1];
+  if(e.shiftKey && document.activeElement === premier){ e.preventDefault(); dernier.focus(); }
+  else if(!e.shiftKey && document.activeElement === dernier){ e.preventDefault(); premier.focus(); }
+});
+
+// ---- Comparateur : tiroir séparé du tiroir de détail --------------------
+// Une seule déclaration des lignes affichées, comme ADV_CRITERES pour la
+// recherche avancée : ajouter un critère de comparaison ne demande qu'une
+// entrée ici, pas une modification du gabarit.
+const COMPARE_LIGNES = [
+  { label:'Prix',            valeur: p => fcfa(p.price) + (p.operation==='Location' ? ' /mois' : '') },
+  { label:'Opération',       valeur: p => esc(p.operation) },
+  { label:'Localisation',    valeur: p => `${p.quartier ? esc(p.quartier)+', ' : ''}${esc(p.region)}` },
+  { label:'Surface',         valeur: p => `${p.surface} ${surfaceUnit(p.type)}` },
+  { label:'Chambres',        valeur: p => p.rooms && p.rooms.chambres != null ? String(p.rooms.chambres) : '—' },
+  { label:'Salles de bain',  valeur: p => p.rooms && p.rooms.sdb != null ? String(p.rooms.sdb) : '—' },
+  { label:'Statut foncier',  valeur: p => p.statutFoncier ? esc(p.statutFoncier) : '—' },
+  { label:'Statut',          valeur: p => esc(STATUS_LABEL[p.status] || p.status) },
+  { label:'Annonce vérifiée',valeur: p => p.verified_at ? 'Oui' : '—' },
+];
+
+function renderCompareDrawer(){
+  const d = document.getElementById('compareDrawer');
+  // Un bien retiré du catalogue entre la sélection et l'ouverture (rare, mais
+  // possible) disparaît simplement de la comparaison plutôt que de la casser.
+  const items = COMPARE.map(id => PROPERTIES.find(p => String(p.id) === id)).filter(Boolean);
+  if(items.length < 2){ closeCompareDrawer(); return; }
+  const cover = p => coverUrl(p, 300, 55);
+  d.innerHTML = `
+    <div class="drawer-content">
+      <div class="compare-head">
+        <h2 id="compareTitre">Comparer ${items.length} biens</h2>
+        <button type="button" class="drawer-close" id="compareClose" aria-label="Fermer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="compare-table-wrap">
+        <div class="compare-table" style="grid-template-columns:150px repeat(${items.length},minmax(160px,1fr));min-width:${150+items.length*160}px;">
+          <div></div>
+          ${items.map(p => `
+          <div class="compare-col-head">
+            <button type="button" class="compare-remove" data-compare-remove="${p.id}" aria-label="Retirer ${esc(p.type)} — ${esc(p.commune)} du comparateur">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            ${cover(p) ? `<img src="${cover(p)}" alt="" loading="lazy" decoding="async">` : ''}
+            <h3>${esc(p.type)} — ${esc(p.commune)}</h3>
+            <button type="button" class="btn btn-primary" style="width:100%;justify-content:center;padding:8px;font-size:12.5px;" data-compare-open="${p.id}">Voir le bien</button>
+          </div>`).join('')}
+          ${COMPARE_LIGNES.map(ligne => `
+          <div class="compare-row-label">${ligne.label}</div>
+          ${items.map(p => `<div class="compare-cell">${ligne.valeur(p)}</div>`).join('')}`).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('compareClose').onclick = closeCompareDrawer;
+  d.querySelectorAll('[data-compare-remove]').forEach(btn=>{
+    btn.onclick = () => {
+      toggleCompare(btn.dataset.compareRemove);
+      renderList();
+      if(COMPARE.length < 2) closeCompareDrawer(); else renderCompareDrawer();
+    };
+  });
+  d.querySelectorAll('[data-compare-open]').forEach(btn=>{
+    btn.onclick = () => {
+      const p = PROPERTIES.find(x => String(x.id) === btn.dataset.compareOpen);
+      closeCompareDrawer();
+      if(p) openDrawer(p);
+    };
+  });
+}
+
+let focusAvantCompare = null;
+function openCompareDrawer(){
+  if(COMPARE.length < 2) return;
+  focusAvantCompare = document.activeElement;
+  renderCompareDrawer();
+  document.getElementById('compareDrawer').classList.add('open');
+  document.getElementById('compareDrawer').setAttribute('aria-hidden', 'false');
+  document.getElementById('compareOverlay').classList.add('open');
+  updateScrollLock();
+  const closeBtn = document.getElementById('compareClose');
+  if(closeBtn) closeBtn.focus();
+}
+function closeCompareDrawer(){
+  document.getElementById('compareDrawer').classList.remove('open');
+  document.getElementById('compareDrawer').setAttribute('aria-hidden', 'true');
+  document.getElementById('compareOverlay').classList.remove('open');
+  updateScrollLock();
+  if(focusAvantCompare && document.body.contains(focusAvantCompare)) focusAvantCompare.focus();
+  focusAvantCompare = null;
+}
+document.getElementById('compareOverlay').onclick = closeCompareDrawer;
+
+// Même piège au clavier que le tiroir de détail (voir plus haut) : sans lui,
+// Tab ferait sortir le focus du tiroir sans que rien à l'écran ne le montre.
+document.addEventListener('keydown', e=>{
+  const tiroir = document.getElementById('compareDrawer');
+  if(!tiroir.classList.contains('open')) return;
+  if(e.key === 'Escape'){ closeCompareDrawer(); return; }
+  if(e.key !== 'Tab') return;
   const focusables = [...tiroir.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')]
     .filter(el => el.offsetParent !== null);
   if(!focusables.length) return;
