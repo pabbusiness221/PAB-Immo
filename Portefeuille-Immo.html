@@ -3017,6 +3017,14 @@ function prospectFaits(p){
   if(p.nb_rdv) faits.push(`${p.nb_rdv} rendez-vous`);
   if(p.nb_visites_realisees) faits.push(`${p.nb_visites_realisees} visite${p.nb_visites_realisees>1?'s':''} réalisée${p.nb_visites_realisees>1?'s':''}`);
   if(p.property_ref) faits.push(`${p.property_type} · ${p.property_commune}`);
+  // Prospect vendeur : son bien n'existe pas encore au catalogue (pas de
+  // property_ref), il vient de estimer_bien() via seller_estimates.
+  if(p.estimation_commune){
+    const montant = (p.estimation_basse && p.estimation_haute)
+      ? `${fcfa(p.estimation_basse)} – ${fcfa(p.estimation_haute)}`
+      : 'estimation non concluante';
+    faits.push(`Vendeur — ${p.estimation_type} · ${p.estimation_commune} · ${p.estimation_surface} ${surfaceUnit(p.estimation_type)} · ${montant}`);
+  }
   return faits;
 }
 
