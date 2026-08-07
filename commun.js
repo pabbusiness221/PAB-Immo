@@ -55,6 +55,30 @@ function regionOptions(selection, avecToutes){
 const fcfa = n => n.toLocaleString('fr-FR') + ' FCFA';
 const surfaceUnit = type => type === 'Champ agricole' ? 'ha' : 'm²';
 
+// ---- Équivalence en euros et dollars, pour les acheteurs de la diaspora ----
+// Le FCFA (XOF) est arrimé à l'euro à un taux FIXE depuis 1999 (traité entre
+// la zone UEMOA et la zone euro) : 655,957 F CFA pour 1 € n'est pas une
+// estimation, c'est un taux légalement invariable, quel que soit le marché.
+const TAUX_XOF_EUR = 655.957;
+// Le dollar, lui, flotte réellement contre le FCFA. Cette valeur est
+// indicative (ordre de grandeur au 2 août 2026, dérivé d'un EUR/USD proche de
+// 1,09) et doit être corrigée à la main de temps en temps — un taux figé mais
+// à jour reste plus honnête qu'un taux « en direct » qu'aucune API gratuite
+// ne fournit de façon fiable ici. Modifier UNIQUEMENT cette ligne (et la même
+// constante dans outils/generer-pages.py) pour la mettre à jour.
+const TAUX_XOF_USD = 600;
+
+// Rendu textuel, utilisé partout où l'équivalence doit s'afficher — jamais
+// sur la liste des annonces (trop d'annonces, pas assez de place), mais sur
+// le tiroir d'un bien et sur sa fiche générée, où un acheteur qui raisonne en
+// euros ou en dollars en a vraiment besoin pour se projeter.
+function prixSecondaire(prixFcfa){
+  if(!Number.isFinite(prixFcfa)) return '';
+  const eur = Math.round(prixFcfa / TAUX_XOF_EUR).toLocaleString('fr-FR');
+  const usd = Math.round(prixFcfa / TAUX_XOF_USD).toLocaleString('fr-FR');
+  return `≈ ${eur} € · ${usd} $US`;
+}
+
 function esc(s){
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }

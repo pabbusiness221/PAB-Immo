@@ -410,6 +410,7 @@
     #drawer .photo-strip{grid-template-columns:repeat(6,1fr);}
   }
   .info-box .k{font-size:10.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;font-weight:700;}
+  .info-box .v-secondaire{font-size:11px;color:var(--ink-soft);font-weight:600;margin-top:2px;}
   .photo-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(62px,80px));justify-content:start;gap:8px;margin-top:8px;}
   .detail-map{width:100%;height:240px;border-radius:var(--radius-md);overflow:hidden;background:var(--surface-alt);box-shadow:inset 0 0 0 1px var(--border);margin-top:12px;}
   .gallery-nav:hover,.gallery-close:hover{transform:scale(1.06);}
@@ -2595,7 +2596,7 @@ function openDrawer(p){
       </div>` : ''}
       <div class="grid2">
         <div class="info-box"><div class="k">Superficie</div><div class="v mono">${p.surface} ${surfaceUnit(p.type)}</div></div>
-        <div class="info-box"><div class="k">${p.operation}</div><div class="v mono" style="color:var(--gold)">${fcfa(p.price)}${p.operation==='Location'?'/mois':''}</div></div>
+        <div class="info-box"><div class="k">${p.operation}</div><div class="v mono" style="color:var(--gold)">${fcfa(p.price)}${p.operation==='Location'?'/mois':''}</div><div class="v-secondaire mono">${prixSecondaire(p.price)}${p.operation==='Location'?'/mois':''}</div></div>
       </div>
       <div class="section-title">Localisation</div>
       <div class="detail-map" id="drawerMap"></div>

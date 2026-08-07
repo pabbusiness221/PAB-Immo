@@ -217,6 +217,26 @@ def fcfa(n):
     return f"{int(float(n)):,}".replace(",", " ") + " FCFA"
 
 
+# ---- Équivalence en euros et dollars, pour les acheteurs de la diaspora ----
+# Mêmes valeurs que dans commun.js, forcément dupliquées : Python et le
+# JavaScript du navigateur ne partagent aucun fichier. Les deux constantes
+# doivent être corrigées ensemble.
+#
+# Le FCFA (XOF) est arrimé à l'euro à un taux FIXE depuis 1999 (traité entre
+# la zone UEMOA et la zone euro) : 655,957 F CFA pour 1 € n'est pas une
+# estimation, c'est un taux légalement invariable, quel que soit le marché.
+TAUX_XOF_EUR = 655.957
+# Le dollar, lui, flotte réellement contre le FCFA. Valeur indicative (ordre
+# de grandeur au 2 août 2026) à corriger à la main de temps en temps.
+TAUX_XOF_USD = 600
+
+
+def prix_secondaire(prix_fcfa):
+    eur = f"{round(float(prix_fcfa) / TAUX_XOF_EUR):,}".replace(",", " ")
+    usd = f"{round(float(prix_fcfa) / TAUX_XOF_USD):,}".replace(",", " ")
+    return f"≈ {eur} € · {usd} $US"
+
+
 def unite(type_bien):
     return "ha" if type_bien == "Champ agricole" else "m²"
 
@@ -465,6 +485,7 @@ def page_bien(b, photos, voisins=(), publiee=None):
   .lieu{{color:var(--ink-soft);font-size:14.5px;margin:0 0 18px;}}
   .prix{{font-family:'Manrope',sans-serif;font-size:26px;font-weight:800;margin:0 0 4px;}}
   .prix span{{font-size:15px;font-weight:600;color:var(--ink-soft);}}
+  .prix-secondaire{{font-size:13px;color:var(--ink-soft);margin:0 0 14px;}}
   .etat{{display:inline-block;font-size:11.5px;font-weight:800;padding:5px 12px;border-radius:999px;margin-bottom:22px;}}
   .photo{{margin:0 0 10px;}}
   .photo img{{width:100%;height:auto;display:block;border-radius:var(--radius-md);background:var(--surface-alt);}}
@@ -514,6 +535,7 @@ def page_bien(b, photos, voisins=(), publiee=None):
   <h1>{esc(titre)}</h1>
   <p class="lieu">{esc((lieu_court(b["quartier"]) + ", ") if b.get("quartier") else "")}{esc(lieu_court(b["commune"]))}, région de {esc(lieu_court(b["region"]))}</p>
   <p class="prix">{prix}</p>
+  <p class="prix-secondaire">{prix_secondaire(b["price"])}{'/mois' if b["operation"] == "Location" else ''}</p>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;">
     <p class="etat" style="margin:0;background:{'rgba(47,122,78,.12);color:#2F7A4E' if b["status"] == "Disponible" else 'rgba(226,162,44,.15);color:#8F6414'}">{esc(b["status"])}</p>
     {f'<p class="etat" style="margin:0;background:rgba(37,99,235,.12);color:#2854A6;">{esc(b["statut_foncier"])}</p>' if b.get("statut_foncier") and b["statut_foncier"] != "Non renseigné" else ''}
@@ -889,6 +911,104 @@ GUIDES = [
     juridique et il ne remplace pas les vérifications d'un notaire pour une transaction réelle.
     Le droit foncier sénégalais évolue&nbsp;; en cas de doute, consultez un professionnel avant
     de vous engager.</p>
+""",
+    },
+    {
+        "slug": "acheter-terrain-senegal-depuis-etranger",
+        "titre": "Acheter un terrain au Sénégal depuis l'étranger : procuration, notaire, vérifications",
+        "description": "Vivre en France, en Italie ou ailleurs n'empêche pas d'acheter un "
+                        "terrain au Sénégal. Voici comment fonctionne la procuration, ce que "
+                        "vérifie un notaire, et les précautions propres à un achat à distance.",
+        "date_publication": "2026-08-05",
+        "corps": """
+    <p>Une grande partie des acheteurs de terrain à Dakar et à Thiès ne vit pas au Sénégal.
+    C'est une situation ordinaire, pas un obstacle — mais elle change une chose&nbsp;: les
+    vérifications qui, sur place, se font naturellement en marchant sur le terrain, doivent être
+    organisées différemment. Ce guide explique comment.</p>
+
+    <h2>La procuration&nbsp;: acheter sans être présent</h2>
+
+    <p>La procuration (ou « mandat ») est l'outil central d'un achat à distance. Elle permet de
+    donner, par un acte notarié, le pouvoir d'agir en votre nom à une personne de confiance —
+    souvent un proche sur place, ou directement un notaire. Trois points à retenir&nbsp;:</p>
+
+    <ul>
+      <li><strong>Elle se signe devant notaire</strong>, soit au Sénégal si vous vous y trouvez
+      ponctuellement, soit devant un notaire ou l'ambassade/le consulat du Sénégal dans votre
+      pays de résidence, qui la transmet ensuite au Sénégal.</li>
+      <li><strong>Son étendue doit rester précise</strong>&nbsp;: une procuration limitée à
+      « signer l'acte d'achat de la parcelle X, pour un prix maximum de Y » protège bien mieux
+      qu'un mandat général et permanent, qui reste utilisable bien après la transaction pour
+      laquelle vous l'aviez prévu.</li>
+      <li><strong>Elle a une durée</strong>&nbsp;: fixez-en une, et exigez sa révocation
+      formelle une fois la transaction conclue.</li>
+    </ul>
+
+    <h2>Le rôle du notaire</h2>
+
+    <p>Au Sénégal comme en France, le notaire n'est pas un simple témoin de la signature&nbsp;:
+    il vérifie l'identité des parties, l'origine et le statut du bien (voir notre
+    <a href="verifier-titre-foncier-senegal.html">guide sur le titre foncier</a>), l'absence
+    d'hypothèque ou d'opposition, et rédige l'acte qui vous rend juridiquement propriétaire.
+    C'est lui — pas l'agence, pas le vendeur — qui porte la responsabilité de ces vérifications.
+    Pour un achat à distance, son rôle est encore plus central&nbsp;: il devient vos yeux sur
+    place au moment décisif.</p>
+
+    <h2>Ce qu'il faut vérifier avant d'envoyer le moindre franc</h2>
+
+    <ul>
+      <li>Le statut foncier du terrain (titre foncier, bail ou délibération) et sa
+      correspondance avec la parcelle réellement visée — par photo, vidéo, ou un geomètre
+      mandaté sur place si le montant le justifie.</li>
+      <li>L'identité du vendeur, comparée au nom inscrit sur le document de propriété.</li>
+      <li>L'existence d'un notaire clairement identifié, joignable directement — pas seulement
+      « connu » du vendeur ou de l'intermédiaire.</li>
+      <li>Le taux de change utilisé si vous raisonnez en euros ou en dollars&nbsp;: le FCFA est
+      arrimé à l'euro à un taux fixe (655,957 F CFA pour 1&nbsp;€), donc jamais soumis aux
+      variations qui touchent d'autres devises — un repère utile pour convertir vous-même un
+      prix affiché en FCFA.</li>
+    </ul>
+
+    <h2>Les précautions propres à l'achat à distance</h2>
+
+    <ul>
+      <li><strong>Ne jamais transférer de fonds avant l'acte notarié</strong>, même face à
+      l'urgence apparente d'une « offre limitée dans le temps » — une pression classique.</li>
+      <li><strong>Privilégier un virement bancaire traçable</strong> plutôt qu'un transfert
+      d'argent informel, y compris pour un acompte.</li>
+      <li><strong>Demander des preuves visuelles récentes</strong> du terrain (photo datée,
+      appel vidéo sur place) plutôt que de se fier uniquement aux photos de l'annonce.</li>
+      <li><strong>Se méfier d'un intermédiaire qui décourage le contact direct</strong> avec le
+      notaire ou qui propose de « tout gérer » sans jamais vous mettre en relation avec lui.</li>
+    </ul>
+
+    <h2>Ce que PAB Immo fait pour les acheteurs à distance</h2>
+
+    <p>Chaque annonce publiée porte un statut foncier déclaré et, pour les biens marqués
+    « Annonce vérifiée », un contrôle préalable des documents et de l'existence réelle du
+    terrain. Nous répondons par WhatsApp et par téléphone, ce qui couvre la plupart des fuseaux
+    horaires sans qu'il soit nécessaire de se déplacer avant d'être prêt à conclure.</p>
+
+    <h2>Questions fréquentes</h2>
+
+    <p><strong>Faut-il obligatoirement passer par un notaire sénégalais&nbsp;?</strong><br>
+    Pour l'acte de vente lui-même, oui&nbsp;: c'est lui qui a compétence sur un bien situé au
+    Sénégal. Un notaire à l'étranger peut en revanche authentifier la procuration qui permettra
+    à votre mandataire d'agir sur place.</p>
+
+    <p><strong>Combien de temps prend une procuration depuis l'étranger&nbsp;?</strong><br>
+    Cela dépend du pays et du mode utilisé (notaire local ou consulat), et les délais varient
+    trop pour être donnés ici de façon fiable&nbsp;: demandez un délai précis directement à
+    l'organisme qui l'établira.</p>
+
+    <p><strong>Peut-on financer l'achat depuis un compte à l'étranger&nbsp;?</strong><br>
+    Oui, par virement bancaire international vers un compte au Sénégal — le vôtre ou, une fois
+    l'acte prêt, celui indiqué par le notaire. Passer par un compte personnel plutôt que par un
+    intermédiaire non identifié reste la règle la plus sûre.</p>
+
+    <p class="avert">Cet article donne des repères généraux&nbsp;; ce n'est pas un avis
+    juridique. Les démarches de procuration varient selon votre pays de résidence&nbsp;:
+    vérifiez-les auprès d'un notaire ou du consulat du Sénégal compétent avant de vous engager.</p>
 """,
     },
 ]
