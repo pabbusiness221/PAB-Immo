@@ -538,7 +538,11 @@
   .avis-carte .a-texte{font-size:14px;line-height:1.6;color:var(--ink);margin:0 0 11px;}
   .avis-carte .a-bas{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}
   .avis-carte .a-nom{font-weight:800;font-size:13.5px;}
+  .avis-carte .a-bien-tag{display:inline-block;margin-left:8px;padding:2px 9px;border-radius:999px;
+    background:var(--accent-soft);color:var(--gold);font-size:11px;font-weight:700;vertical-align:middle;}
   .avis-carte .a-date{font-size:11.5px;color:var(--ink-soft);}
+  .avis-bien-info{margin:0 0 16px;padding:10px 14px;border-radius:var(--radius-md);
+    background:var(--accent-soft);color:var(--ink);font-size:13.5px;font-weight:600;}
   .avis-plus{display:flex;justify-content:center;margin-top:18px;}
   .avis-plus:empty{display:none;}
   .avis-plus-btn{background:var(--surface);border:1.5px solid var(--border);color:var(--ink);
@@ -1318,6 +1322,9 @@
     <div class="avis-plus" id="avisPlus"></div>
 
     <form class="avis-form hidden" id="avisForm" novalidate>
+      <p class="avis-bien-info" id="avisBienInfo" hidden></p>
+      <input type="hidden" id="avis_bien_ref" />
+      <input type="hidden" id="avis_bien_libelle" />
       <div class="avis-form-grid">
         <div class="form-field">
           <label class="sf-label" for="avis_nom">Votre nom</label>
@@ -3175,7 +3182,7 @@ function renderAvisListe(){
       <div class="a-etoiles" aria-label="${a.rating} étoiles sur 5">${etoilesHtml(a.rating)}</div>
       <p class="a-texte">${esc(a.comment)}</p>
       <div class="a-bas">
-        <span class="a-nom">${esc(a.author_name)}</span>
+        <span class="a-nom">${esc(a.author_name)}${a.property_label ? `<span class="a-bien-tag">${esc(a.property_label)}</span>` : ''}</span>
         <span class="a-date">${new Date(a.created_at).toLocaleDateString('fr-FR', {month:'long', year:'numeric'})}</span>
       </div>
     </div>`).join('');
@@ -3227,6 +3234,28 @@ document.getElementById('avisToggleBtn').onclick = () => {
   if(ouvert){ form.scrollIntoView({ behavior:'smooth', block:'nearest' }); document.getElementById('avis_nom').focus(); }
 };
 
+// Arrivée depuis la demande d'avis envoyée par WhatsApp à la conclusion d'un
+// dossier (?avis=1&avis_ref=…&avis_libelle=…#avis) : le bien concerné est
+// pré-rempli et rappelé à la personne, le formulaire s'ouvre tout seul
+// puisqu'elle est venue spécifiquement pour ça.
+function appliquerAvisDepuisURL(){
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('avis') !== '1') return;
+  const ref = params.get('avis_ref') || '';
+  const libelle = params.get('avis_libelle') || '';
+  if(ref) document.getElementById('avis_bien_ref').value = ref;
+  if(libelle){
+    document.getElementById('avis_bien_libelle').value = libelle;
+    const info = document.getElementById('avisBienInfo');
+    info.textContent = `Votre avis portera sur : ${libelle}`;
+    info.hidden = false;
+  }
+  document.getElementById('avisForm').classList.remove('hidden');
+  document.getElementById('avisToggleBtn').setAttribute('aria-expanded', 'true');
+  document.getElementById('avis').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+appliquerAvisDepuisURL();
+
 document.getElementById('avisForm').onsubmit = async (e) => {
   e.preventDefault();
   const val = id => document.getElementById(id).value.trim();
@@ -3252,7 +3281,9 @@ document.getElementById('avisForm').onsubmit = async (e) => {
   // n'est lisible que par l'administrateur. PostgreSQL refuserait de renvoyer
   // une ligne que l'auteur n'a pas le droit de relire, et l'envoi échouerait.
   const { error } = await db.from('reviews').insert({
-    author_name: nom, rating: avisNote, comment
+    author_name: nom, rating: avisNote, comment,
+    property_ref: val('avis_bien_ref') || null,
+    property_label: val('avis_bien_libelle') || null
   });
   if(error){
     errEl.textContent = messageErreurEnvoi(error, "Échec de l'envoi :");

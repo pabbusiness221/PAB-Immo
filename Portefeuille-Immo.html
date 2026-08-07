@@ -2747,10 +2747,15 @@ function etoilesAdmin(n){
   return '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n);
 }
 
+// Objectif fixé pour les avis nommés, rattachés à un bien précis — le
+// différenciateur le plus crédible, plus fort qu'un avis générique.
+const OBJECTIF_AVIS_AVEC_BIEN = 15;
+
 function renderAvis(){
   const d = document.getElementById('avisDrawer');
   const enAttente = AVIS.filter(a => a.status === 'En attente').length;
   const publies = AVIS.filter(a => a.status === 'Publié').length;
+  const publiesAvecBien = AVIS.filter(a => a.status === 'Publié' && a.property_ref).length;
   d.innerHTML = `
     <div class="journal-tete">
       <div>
@@ -2762,12 +2767,16 @@ function renderAvis(){
         <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
       </button>
     </div>
+    ${AVIS.length > 0 ? `<p class="analytics-note" style="margin:0 20px 14px;">
+      ${publiesAvecBien} avis nommés liés à un bien sur l'objectif de ${OBJECTIF_AVIS_AVEC_BIEN}.
+    </p>` : ''}
     ${AVIS.length === 0
       ? `<div class="inbox-empty">Les visiteurs laissent leur avis en bas de la vitrine. Publiez-les ici pour qu'ils s'affichent.</div>`
       : `<div class="journal-liste">${AVIS.map(a => `
         <div class="agence-item" style="align-items:flex-start;">
           <div class="agence-txt">
             <strong>${esc(a.author_name)} <span style="color:var(--gold);font-weight:700;letter-spacing:1px;">${etoilesAdmin(a.rating)}</span></strong>
+            ${a.property_label ? `<span style="color:var(--ink-soft);font-size:12px;">${esc(a.property_label)}</span>` : ''}
             <span style="color:var(--ink);margin-top:5px;">${esc(a.comment)}</span>
             <span>reçu ${freshnessLabel(a.created_at)}</span>
           </div>
@@ -2966,7 +2975,8 @@ function renderProspects(){
 }
 
 async function majEtapeProspect(id, etape, champ){
-  const avant = (PROSPECTS.find(p=>p.id === id) || {}).stage;
+  const prospect = PROSPECTS.find(p=>p.id === id) || {};
+  const avant = prospect.stage;
   champ.disabled = true;
   const { error } = await db.from('leads').update({ stage: etape }).eq('id', id);
   champ.disabled = false;
@@ -2979,12 +2989,52 @@ async function majEtapeProspect(id, etape, champ){
   }
   // Le chiffre « clients accompagnés » de la vitrine avance tout seul dès
   // qu'un dossier passe à Conclu (et recule si l'étape est corrigée par
-  // erreur), pour ne plus dépendre d'y penser à la main à chaque fois.
-  if(etape === 'Conclu' && avant !== 'Conclu') await ajusterClientsAccompagnes(1);
+  // erreur), pour ne plus dépendre d'y penser à la main à chaque fois. La
+  // remise des clés est aussi le meilleur moment — et le seul qu'on n'oublie
+  // jamais — pour solliciter un avis : même déclencheur, une case de plus.
+  if(etape === 'Conclu' && avant !== 'Conclu'){
+    await ajusterClientsAccompagnes(1);
+    proposerDemandeAvis(prospect);
+  }
   else if(avant === 'Conclu' && etape !== 'Conclu') await ajusterClientsAccompagnes(-1);
   await loadProspects();
   renderProspects();
   majBadgeProspects();
+}
+
+// Un contact de prospect peut être un numéro, mais aussi un e-mail ou une
+// fiche de test (« Test », une adresse mail…) : sans ce filtre, on tenterait
+// d'ouvrir WhatsApp avec un numéro qui n'en est pas un.
+function numeroWhatsapp(contact){
+  const chiffres = String(contact || '').replace(/\D/g, '');
+  if(chiffres.length < 8 || chiffres.length > 13) return null;
+  return chiffres.startsWith('221') ? chiffres : '221' + chiffres.replace(/^0+/, '');
+}
+
+// Propose systématiquement une demande d'avis à la conclusion d'un dossier,
+// pré-remplie avec le bien concerné — objectif : 15 avis nommés, chacun
+// rattaché à une transaction réelle plutôt qu'un « Super agence ! » générique.
+// Le lien pointe vers le formulaire public avec le bien pré-rempli
+// (voir appliquerAvisDepuisURL dans vitrine.html) ; la personne n'a plus qu'à
+// noter et commenter.
+function proposerDemandeAvis(prospect){
+  const nom = prospect.name || 'ce client';
+  const libelle = [prospect.property_type, prospect.property_commune].filter(Boolean).join(' — ');
+  const numero = numeroWhatsapp(prospect.contact);
+  if(!numero){
+    alert(`Dossier conclu pour ${nom} — pensez à lui demander un avis à la main : pas de numéro WhatsApp reconnu dans « ${prospect.contact || '—'} ».`);
+    return;
+  }
+  if(!confirm(`Dossier conclu pour ${nom}${libelle ? ' (' + libelle + ')' : ''}. Ouvrir WhatsApp pour lui demander un avis ?`)) return;
+  const lien = new URL('vitrine.html', window.location.href);
+  lien.searchParams.set('avis', '1');
+  if(prospect.property_ref) lien.searchParams.set('avis_ref', prospect.property_ref);
+  if(libelle) lien.searchParams.set('avis_libelle', libelle);
+  lien.hash = 'avis';
+  const message = `Bonjour ${nom}, merci pour votre confiance ! `
+    + (libelle ? `Votre dossier pour ${libelle} vient d'être conclu.` : `Votre dossier vient d'être conclu.`)
+    + `\n\nAuriez-vous 2 minutes pour laisser un avis sur votre expérience avec PAB Immo ?\n${lien.toString()}`;
+  window.open(`https://wa.me/${numero}?text=${encodeURIComponent(message)}`, '_blank', 'noopener');
 }
 
 async function ajusterClientsAccompagnes(delta){
