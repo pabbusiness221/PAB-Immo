@@ -1642,8 +1642,12 @@ function openForm(existing){
       </div>
 
       <div class="form-field full" style="margin-top:4px;">
-        <label class="form-label">Description</label>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+          <label class="form-label" style="margin:0;">Description</label>
+          <button type="button" class="btn" id="f_descIA" style="padding:5px 12px;font-size:11.5px;background:var(--surface);border:1.5px solid var(--primary);color:var(--primary);">Générer avec l'IA</button>
+        </div>
         <textarea class="form-textarea" id="f_desc">${esc(p.desc||'')}</textarea>
+        <p class="form-error" id="f_descIAError" style="margin-top:4px;"></p>
       </div>
 
       <div class="form-field full">
@@ -1720,11 +1724,64 @@ function openForm(existing){
     renderPhotoGrid();
   };
   document.getElementById('formSave').onclick = () => saveProperty(existing);
+  document.getElementById('f_descIA').onclick = () => genererDescriptionIA();
 
   document.getElementById('formOverlay').classList.add('open');
   document.getElementById('formDrawerPanel').classList.add('open');
   updateScrollLock();
   focoliserPanneauAdmin('formDrawerPanel');
+}
+
+// Lit les champs déjà saisis dans le formulaire — pas besoin d'avoir
+// enregistré le bien au préalable, la génération marche dès qu'il y a de quoi
+// écrire quelque chose de vrai.
+function collecterChampsPourDescription(){
+  const type = document.getElementById('f_type').value;
+  const operation = document.getElementById('f_operation').value;
+  const champs = {
+    type, operation,
+    statut_foncier: document.getElementById('f_statut_foncier').value,
+    commune: document.getElementById('f_commune').value.trim(),
+    region: document.getElementById('f_region').value.trim(),
+    quartier: document.getElementById('f_quartier').value.trim(),
+    surface: document.getElementById('f_surface').value,
+    price: document.getElementById('f_price').value,
+  };
+  const equipEl = document.getElementById('f_equip');
+  champs.equipements = equipEl ? equipEl.value.split(',').map(s=>s.trim()).filter(Boolean) : [];
+  if(type !== 'Terrain' && type !== 'Champ agricole'){
+    champs.chambres = document.getElementById('f_chambres').value || null;
+    champs.salons = document.getElementById('f_salons').value || null;
+    champs.salles_bain = document.getElementById('f_sdb').value || null;
+    champs.cuisine = document.getElementById('f_cuisine').value || null;
+  }
+  return champs;
+}
+
+async function genererDescriptionIA(){
+  const btn = document.getElementById('f_descIA');
+  const errEl = document.getElementById('f_descIAError');
+  errEl.textContent = '';
+  const champs = collecterChampsPourDescription();
+  if(!champs.commune || !champs.surface || !champs.price){
+    errEl.textContent = 'Renseignez au moins la commune, la superficie et le prix avant de générer.';
+    return;
+  }
+  const original = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Génération…';
+  const { data, error } = await db.functions.invoke('generer-description', { body: champs });
+  btn.disabled = false;
+  btn.textContent = original;
+  if(error){
+    let detail = error.message || 'Erreur inconnue.';
+    if(error.context && typeof error.context.json === 'function'){
+      try{ const corps = await error.context.json(); if(corps?.erreur) detail = corps.erreur; } catch{}
+    }
+    errEl.textContent = 'La génération a échoué : ' + detail;
+    return;
+  }
+  document.getElementById('f_desc').value = data?.description || '';
 }
 
 async function saveProperty(existing){
