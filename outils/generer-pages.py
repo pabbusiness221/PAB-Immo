@@ -924,6 +924,105 @@ GUIDES = [
     Le droit foncier sénégalais évolue&nbsp;; en cas de doute, consultez un professionnel avant
     de vous engager.</p>
 """,
+        "titre_en": "Freehold Title, Lease, or Council Deliberation: How to Verify a Plot's Legal Status in Senegal",
+        "description_en": "Freehold title, lease, council deliberation: what each status means, "
+                           "why the difference matters before you buy, and how to verify it in "
+                           "practice. An up-to-date guide for buying land in Senegal.",
+        "corps_en": """
+    <p>Before the price, before the surface area, the first question worth asking about a plot
+    in Senegal is a legal one: <strong>what land title status does it rest on?</strong>
+    That question decides whether you're buying full, transferable ownership, or a more fragile,
+    sometimes contestable right. It is also, by far, the leading source of property disputes in
+    the country.</p>
+
+    <h2>The three statuses you will encounter</h2>
+
+    <p><strong>Freehold title (titre foncier, TF)</strong> is the most secure status: the
+    plot is registered in its owner's name at the Land Registry (Conservation de la Propriété
+    Foncière). This title is enforceable against everyone, transferable, and can serve as
+    collateral for a loan. It is the equivalent of a definitive deed of ownership.</p>
+
+    <p><strong>A lease (bail)</strong> applies to land that belongs to the State or a
+    municipality, which its holder has the right to occupy and use for a set period — sometimes
+    long, but never unlimited. The lessor remains the legal owner of the land. Under certain
+    conditions a lease can be converted into freehold title, but it is not one until that
+    conversion has actually taken place.</p>
+
+    <p><strong>A council deliberation (délibération)</strong> is an allocation decision made by a
+    municipal council, granting a parcel of national land to an individual. It is the most common
+    status on rural or community land, and often the first step before eventual registration. A
+    deliberation is <strong>not</strong> a title of ownership: it can, in some cases, be
+    revoked by the municipality that issued it, particularly if the land is not developed within
+    the required timeframe.</p>
+
+    <h2>Why this difference changes everything for a buyer</h2>
+
+    <p>Buying on the basis of a deliberation is not necessarily a mistake — a large share of
+    Senegal's rural land operates this way, and many deliberations are perfectly regular. But the
+    risk is not the same as with freehold title: you need to know <em>what you are
+    buying</em>, accept it knowingly, and adjust your caution — and possibly your price —
+    accordingly. The problem isn't the status itself: it's finding out about it after
+    signing.</p>
+
+    <h2>How to verify it, in practice</h2>
+
+    <ul>
+      <li><strong>Ask for the original document</strong> — freehold title, lease, or
+      deliberation — and the exact name it bears. A serious seller never refuses this.</li>
+      <li><strong>Check that it matches</strong> the plot actually visited — parcel number,
+      surface area, boundaries as described on the document. A survey by a licensed surveyor
+      removes any doubt.</li>
+      <li><strong>Confirm the registration</strong> of a freehold title with the Land Registry
+      office responsible for that parcel, and check for the absence of any mortgage or pending
+      dispute.</li>
+      <li><strong>Go through a notary</strong> for the deed of sale. A private agreement (a
+      simple paper signed between individuals) over land held under freehold title does not carry
+      the same legal weight as a notarized deed, and is not enough to make you the owner.</li>
+      <li><strong>For a deliberation</strong>, verify that it was indeed issued by the
+      municipality with authority over that land, and how long ago — an older deliberation,
+      developed and uncontested, is a more reassuring signal than a very recent one.</li>
+    </ul>
+
+    <h2>Warning signs</h2>
+
+    <ul>
+      <li>A seller who rushes the transaction or refuses to show original documents.</li>
+      <li>A price noticeably below the surrounding market, with no clear explanation.</li>
+      <li>An advertised surface area that doesn't match the one on the document.</li>
+      <li>Several different people presenting themselves as the seller of the same plot.</li>
+    </ul>
+
+    <h2>What PAB Immo checks before publishing a listing</h2>
+
+    <p>Every property published on this site carries a declared land title status, visible
+    directly on its listing page. Listings marked "Verified listing" have had their documents and
+    the property's actual existence checked before publication. This badge doesn't replace the
+    checks that remain yours to make at the time of purchase — it reduces the number of
+    properties you need to run them on.</p>
+
+    <h2>Frequently asked questions</h2>
+
+    <p><strong>Is a lease worse than freehold title?</strong><br>
+    It isn't "worse", it's different: a lease grants a right to occupy and use the land for
+    a limited time, not full ownership. For personal use over a reasonable period, it can suit you
+    perfectly well; for a long-term investment meant to be passed on, freehold title remains
+    preferable.</p>
+
+    <p><strong>Can a deliberation be converted into freehold title?</strong><br>
+    Yes, that's a common path, but it follows a procedure and timeline specific to each situation.
+    It is neither automatic nor guaranteed: check with a notary or directly with the land
+    services before counting on it.</p>
+
+    <p><strong>Can a buyer living abroad verify all of this remotely?</strong><br>
+    For the most part, yes, through a notarized power of attorney given to a trusted person or a
+    notary on the ground. This is precisely the case — buying without being able to travel —
+    where the checks above matter most: they are normally done in person, and their absence
+    is harder to spot from a distance.</p>
+
+    <p class="avert">This article provides general guidance; it is not legal advice and
+    does not replace a notary's checks for an actual transaction. Senegalese land law evolves;
+    if in doubt, consult a professional before committing.</p>
+""",
     },
     {
         "slug": "acheter-terrain-senegal-depuis-etranger",
@@ -1022,14 +1121,125 @@ GUIDES = [
     juridique. Les démarches de procuration varient selon votre pays de résidence&nbsp;:
     vérifiez-les auprès d'un notaire ou du consulat du Sénégal compétent avant de vous engager.</p>
 """,
+        "titre_en": "Buying Land in Senegal from Abroad: Power of Attorney, the Notary's Role, Due Diligence",
+        "description_en": "Living in France, Italy, or elsewhere doesn't stop you from buying "
+                           "land in Senegal. Here's how power of attorney works, what a notary "
+                           "checks, and the precautions specific to a remote purchase.",
+        "corps_en": """
+    <p>A large share of land buyers in Dakar and Thiès don't live in Senegal. That's an ordinary
+    situation, not an obstacle — but it changes one thing: the checks that, on the ground,
+    happen naturally by walking the plot, need to be organized differently. This guide explains
+    how.</p>
+
+    <h2>Power of attorney: buying without being present</h2>
+
+    <p>A power of attorney (or "mandate") is the central tool for a remote purchase. Through a
+    notarized deed, it lets you give a trusted person — often a relative on the ground, or a
+    notary directly — the authority to act on your behalf. Three points to keep in mind:</p>
+
+    <ul>
+      <li><strong>It is signed before a notary</strong>, either in Senegal if you happen to be
+      there, or before a notary or the Senegalese embassy/consulate in your country of residence,
+      which then forwards it to Senegal.</li>
+      <li><strong>Its scope should stay precise</strong>: a power of attorney limited to
+      "sign the deed of purchase for plot X, up to a maximum price of Y" protects you far better
+      than a broad, standing mandate, which remains usable long after the transaction it was
+      meant for.</li>
+      <li><strong>It has a duration</strong>: set one, and require its formal revocation
+      once the transaction is complete.</li>
+    </ul>
+
+    <h2>The notary's role</h2>
+
+    <p>In Senegal as in France, the notary is not a mere witness to the signature: they
+    verify the parties' identity, the property's origin and status (see our
+    <a href="verifier-titre-foncier-senegal.html">guide to land title status</a>), the absence of
+    any mortgage or dispute, and draft the deed that legally makes you the owner. It is the
+    notary — not the agency, not the seller — who bears responsibility for these checks. For a
+    remote purchase, their role becomes even more central: they become your eyes on the
+    ground at the decisive moment.</p>
+
+    <h2>What to check before sending a single franc</h2>
+
+    <ul>
+      <li>The plot's land title status (freehold title, lease, or deliberation) and whether it
+      matches the plot actually seen — by photo, video, or a surveyor commissioned on site if the
+      amount justifies it.</li>
+      <li>The seller's identity, checked against the name on the property document.</li>
+      <li>The existence of a clearly identified notary, reachable directly — not merely
+      "known" to the seller or intermediary.</li>
+      <li>The exchange rate, if you're thinking in euros or dollars: the FCFA is pegged to
+      the euro at a fixed rate (655.957 F CFA to 1&nbsp;€), so it is never subject to the swings
+      that affect other currencies — a useful anchor for converting a price shown in FCFA
+      yourself.</li>
+    </ul>
+
+    <h2>Precautions specific to a remote purchase</h2>
+
+    <ul>
+      <li><strong>Never transfer funds before the notarized deed</strong>, even under the
+      apparent urgency of a "limited-time offer" — a classic pressure tactic.</li>
+      <li><strong>Favor a traceable bank transfer</strong> over an informal money transfer, even
+      for a deposit.</li>
+      <li><strong>Ask for recent visual proof</strong> of the land (a dated photo, a video call on
+      site) rather than relying solely on the listing's photos.</li>
+      <li><strong>Be wary of an intermediary who discourages direct contact</strong> with the
+      notary, or who offers to "handle everything" without ever putting you in touch with one.</li>
+    </ul>
+
+    <h2>What PAB Immo does for remote buyers</h2>
+
+    <p>Every listing we publish carries a declared land title status and, for properties marked
+    "Verified listing", a prior check of the documents and the land's actual existence. We
+    respond on WhatsApp and by phone, which covers most time zones without requiring you to
+    travel before you're ready to close.</p>
+
+    <h2>Frequently asked questions</h2>
+
+    <p><strong>Must the deed be signed by a Senegalese notary?</strong><br>
+    For the deed of sale itself, yes: they have jurisdiction over property located in
+    Senegal. A notary abroad can, however, authenticate the power of attorney that will let your
+    representative act on the ground.</p>
+
+    <p><strong>How long does a power of attorney take from abroad?</strong><br>
+    It depends on the country and the method used (local notary or consulate), and timelines vary
+    too much to give a reliable figure here: ask the office that will issue it for a precise
+    estimate.</p>
+
+    <p><strong>Can the purchase be funded from an account abroad?</strong><br>
+    Yes, by international bank transfer to an account in Senegal — either yours, or, once the
+    deed is ready, the one indicated by the notary. Going through a personal account rather than
+    an unidentified intermediary remains the safest rule.</p>
+
+    <p class="avert">This article provides general guidance; it is not legal advice. Power
+    of attorney procedures vary by country of residence: check them with a notary or the
+    relevant Senegalese consulate before committing.</p>
+""",
     },
 ]
 
 
-def page_guide(g):
-    """Rend une page de guide. Même habillage que les fiches (bandeau,
-    commun.css, pied de page) : un même site, pas deux."""
-    url = f"{SITE}/guides/{g['slug']}.html"
+def page_guide(g, lang="fr"):
+    """Rend une page de guide, en français ou en anglais. Même habillage que
+    les fiches (bandeau, commun.css, pied de page) : un même site, pas deux.
+
+    L'anglais vit dans guides/en/ (un niveau de plus vers la racine du site),
+    plutôt qu'un paramètre ?lang= comme la vitrine : ce sont des pages
+    statiques indépendantes, jamais retraduites automatiquement (contenu à
+    caractère juridique — voir la décision prise pour l'étape 3 du
+    multilingue), donc chacune mérite sa propre URL indexable par Google."""
+    en = lang == "en"
+    prefixe = "../.." if en else ".."
+    titre = g["titre_en"] if en else g["titre"]
+    description = g["description_en"] if en else g["description"]
+    corps = g["corps_en"] if en else g["corps"]
+    dossier = "guides/en" if en else "guides"
+    url = f"{SITE}/{dossier}/{g['slug']}.html"
+    # L'autre langue vit dans le dossier voisin, sous le même nom de fichier :
+    # depuis guides/en/, ../<slug>.html ; depuis guides/, en/<slug>.html.
+    lien_autre_langue = f"../{g['slug']}.html" if en else f"en/{g['slug']}.html"
+    url_fr = f"{SITE}/guides/{g['slug']}.html"
+    url_en = f"{SITE}/guides/en/{g['slug']}.html"
     # json.dumps, pas esc() : esc() échappe pour du HTML (& -> &amp;), mais le
     # contenu d'un <script> n'est jamais décodé comme le reste du HTML — un
     # titre qui contiendrait un jour un « & » ou un guillemet se retrouverait
@@ -1037,39 +1247,44 @@ def page_guide(g):
     ld = json.dumps({
         "@context": "https://schema.org",
         "@type": "Article",
-        "headline": g["titre"],
-        "description": g["description"],
+        "headline": titre,
+        "description": description,
         "datePublished": g["date_publication"],
+        "inLanguage": "en" if en else "fr",
         "author": {"@type": "Organization", "name": AGENCE},
         "publisher": {"@type": "Organization", "name": AGENCE},
         "mainEntityOfPage": url,
     }, ensure_ascii=False, indent=2)
     return f'''<!DOCTYPE html>
-<html lang="fr">
+<html lang="{"en" if en else "fr"}">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>{esc(g["titre"])} | {AGENCE}</title>
-<meta name="description" content="{esc(g["description"])}" />
+<title>{esc(titre)} | {AGENCE}</title>
+<meta name="description" content="{esc(description)}" />
 <link rel="canonical" href="{url}" />
+<link rel="alternate" hreflang="fr" href="{url_fr}" />
+<link rel="alternate" hreflang="en" href="{url_en}" />
 {'<meta name="robots" content="noindex, follow" />' if EN_MAINTENANCE else '<meta name="robots" content="index, follow" />'}
 <meta property="og:type" content="article" />
 <meta property="og:site_name" content="{AGENCE}" />
-<meta property="og:locale" content="fr_FR" />
-<meta property="og:title" content="{esc(g["titre"])}" />
-<meta property="og:description" content="{esc(g["description"])}" />
+<meta property="og:locale" content="{"en_US" if en else "fr_FR"}" />
+<meta property="og:title" content="{esc(titre)}" />
+<meta property="og:description" content="{esc(description)}" />
 <meta property="og:url" content="{url}" />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="{esc(g["titre"])}" />
-<meta name="twitter:description" content="{esc(g["description"])}" />
+<meta name="twitter:title" content="{esc(titre)}" />
+<meta name="twitter:description" content="{esc(description)}" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../commun.css" />
+<link rel="stylesheet" href="{prefixe}/commun.css" />
 <style>
   body{{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}}
-  .bandeau{{background:var(--night);padding:14px 20px;}}
-  .bandeau a{{color:#fff;text-decoration:none;font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;}}
-  .bandeau a span{{color:var(--accent);}}
+  .bandeau{{background:var(--night);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}}
+  .bandeau a.marque{{color:#fff;text-decoration:none;font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;}}
+  .bandeau a.marque span{{color:var(--accent);}}
+  .bandeau a.langue{{color:rgba(255,255,255,0.72);text-decoration:underline;font-size:12.5px;font-weight:600;}}
+  .bandeau a.langue:hover{{color:#fff;}}
   main{{max-width:720px;margin:0 auto;padding:26px 20px 60px;}}
   .fil{{font-size:12.5px;color:var(--ink-soft);margin:0 0 16px;}}
   .fil a{{color:var(--ink-soft);}}
@@ -1099,35 +1314,38 @@ def page_guide(g):
 </script>
 </head>
 <body>
-<header class="bandeau"><a href="../{ACCUEIL}">PAB <span>Immo</span></a></header>
+<header class="bandeau">
+  <a class="marque" href="{prefixe}/{ACCUEIL}">PAB <span>Immo</span></a>
+  <a class="langue" href="{lien_autre_langue}">{"Lire en français" if en else "Read in English"}</a>
+</header>
 
 <main>
-  <nav class="fil" aria-label="Fil d'Ariane">
-    <a href="./">Guides</a> › {esc(g["titre"])}
+  <nav class="fil" aria-label="{"Breadcrumb" if en else "Fil d'Ariane"}">
+    <a href="./">Guides</a> › {esc(titre)}
   </nav>
 
   <p class="eyebrow">Guide</p>
-  <h1>{esc(g["titre"])}</h1>
-  <p class="date">Publié le {esc(g["date_publication"])}</p>
+  <h1>{esc(titre)}</h1>
+  <p class="date">{"Published on" if en else "Publié le"} {esc(g["date_publication"])}</p>
 
-  {g["corps"]}
+  {corps}
 
   <section class="contact">
-    <h2>Une question sur un bien précis&nbsp;?</h2>
-    <p>Nous répondons rapidement, par WhatsApp ou par téléphone.</p>
+    <h2>{"Have a question about a property?" if en else "Une question sur un bien précis&nbsp;?"}</h2>
+    <p>{"We reply quickly, on WhatsApp or by phone." if en else "Nous répondons rapidement, par WhatsApp ou par téléphone."}</p>
     <div class="actions">
-      <a class="wa" href="https://wa.me/{TEL.lstrip('+')}" target="_blank" rel="noopener">Écrire sur WhatsApp</a>
+      <a class="wa" href="https://wa.me/{TEL.lstrip('+')}" target="_blank" rel="noopener">{"Message us on WhatsApp" if en else "Écrire sur WhatsApp"}</a>
       <a class="tel" href="tel:{TEL}">{TEL_AFFICHE}</a>
     </div>
   </section>
 
-  <a class="retour" href="./">← Tous les guides</a>
-  <a class="retour" href="../{ACCUEIL}" style="margin-left:18px;">Voir les biens disponibles</a>
+  <a class="retour" href="./">{"← All guides" if en else "← Tous les guides"}</a>
+  <a class="retour" href="{prefixe}/{ACCUEIL}" style="margin-left:18px;">{"See available properties" if en else "Voir les biens disponibles"}</a>
 </main>
 
 <footer>
-  {AGENCE} — {TEL_AFFICHE} · {EMAIL} · visites sur rendez-vous<br>
-  <a href="../mentions-legales.html">Mentions légales</a> · <a href="../confidentialite.html">Politique de confidentialité</a><br>
+  {AGENCE} — {TEL_AFFICHE} · {EMAIL} · {"visits by appointment" if en else "visites sur rendez-vous"}<br>
+  <a href="{prefixe}/mentions-legales.html">{"Legal notice" if en else "Mentions légales"}</a> · <a href="{prefixe}/confidentialite.html">{"Privacy policy" if en else "Politique de confidentialité"}</a><br>
   <span class="reg">© {date.today().year} {AGENCE} · NINEA {NINEA} · RCCM {RCCM}</span>
 </footer>
 </body>
@@ -1135,33 +1353,47 @@ def page_guide(g):
 '''
 
 
-def page_guides_index(guides):
+def page_guides_index(guides, lang="fr"):
     """Page d'index des guides — le point d'entrée lié depuis le pied de page
     de la vitrine, et la seule page de ce dossier que Google découvre sans
-    passer par le sitemap."""
+    passer par le sitemap. Même choix de dossier que page_guide() : guides/en/
+    pour l'anglais."""
+    en = lang == "en"
+    prefixe = "../.." if en else ".."
+    dossier = "guides/en" if en else "guides"
+    url = f"{SITE}/{dossier}/"
+    lien_autre_langue = "../" if en else "en/"
     cartes = "".join(f'''
     <a class="carte-guide" href="{g['slug']}.html">
       <span class="eyebrow">Guide</span>
-      <h2>{esc(g["titre"])}</h2>
-      <p>{esc(g["description"])}</p>
+      <h2>{esc(g["titre_en"] if en else g["titre"])}</h2>
+      <p>{esc(g["description_en"] if en else g["description"])}</p>
     </a>''' for g in guides)
+    titre_page = "Guides & tips" if en else "Guides et conseils"
+    intro = ("What's worth knowing before you buy, sell, or rent in Dakar and Thiès."
+             if en else
+             "Ce qu'il est utile de savoir avant d'acheter, de vendre ou de louer à Dakar et à Thiès.")
     return f'''<!DOCTYPE html>
-<html lang="fr">
+<html lang="{"en" if en else "fr"}">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Guides et conseils | {AGENCE}</title>
-<meta name="description" content="Conseils pratiques pour acheter, vendre ou louer un bien à Dakar et Thiès : statut foncier, démarches, achat à distance." />
-<link rel="canonical" href="{SITE}/guides/" />
+<title>{titre_page} | {AGENCE}</title>
+<meta name="description" content="{'Practical advice for buying, selling, or renting property in Dakar and Thiès: land title status, procedures, buying from abroad.' if en else 'Conseils pratiques pour acheter, vendre ou louer un bien à Dakar et Thiès : statut foncier, démarches, achat à distance.'}" />
+<link rel="canonical" href="{url}" />
+<link rel="alternate" hreflang="fr" href="{SITE}/guides/" />
+<link rel="alternate" hreflang="en" href="{SITE}/guides/en/" />
 {'<meta name="robots" content="noindex, follow" />' if EN_MAINTENANCE else '<meta name="robots" content="index, follow" />'}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../commun.css" />
+<link rel="stylesheet" href="{prefixe}/commun.css" />
 <style>
   body{{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}}
-  .bandeau{{background:var(--night);padding:14px 20px;}}
-  .bandeau a{{color:#fff;text-decoration:none;font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;}}
-  .bandeau a span{{color:var(--accent);}}
+  .bandeau{{background:var(--night);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}}
+  .bandeau a.marque{{color:#fff;text-decoration:none;font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;}}
+  .bandeau a.marque span{{color:var(--accent);}}
+  .bandeau a.langue{{color:rgba(255,255,255,0.72);text-decoration:underline;font-size:12.5px;font-weight:600;}}
+  .bandeau a.langue:hover{{color:#fff;}}
   main{{max-width:900px;margin:0 auto;padding:34px 20px 60px;}}
   h1{{font-family:'Manrope',sans-serif;font-size:clamp(24px,4.5vw,32px);font-weight:800;letter-spacing:-0.02em;margin:0 0 8px;}}
   main > p{{color:var(--ink-soft);font-size:15px;margin:0 0 30px;}}
@@ -1178,19 +1410,22 @@ def page_guides_index(guides):
 </style>
 </head>
 <body>
-<header class="bandeau"><a href="../{ACCUEIL}">PAB <span>Immo</span></a></header>
+<header class="bandeau">
+  <a class="marque" href="{prefixe}/{ACCUEIL}">PAB <span>Immo</span></a>
+  <a class="langue" href="{lien_autre_langue}">{"Lire en français" if en else "Read in English"}</a>
+</header>
 
 <main>
-  <h1>Guides et conseils</h1>
-  <p>Ce qu'il est utile de savoir avant d'acheter, de vendre ou de louer à Dakar et à Thiès.</p>
+  <h1>{titre_page}</h1>
+  <p>{intro}</p>
   <div class="grille-guides">{cartes}
   </div>
-  <a class="retour" href="../{ACCUEIL}">← Voir les biens disponibles</a>
+  <a class="retour" href="{prefixe}/{ACCUEIL}">{"← See available properties" if en else "← Voir les biens disponibles"}</a>
 </main>
 
 <footer>
-  {AGENCE} — {TEL_AFFICHE} · {EMAIL} · visites sur rendez-vous<br>
-  <a href="../mentions-legales.html">Mentions légales</a> · <a href="../confidentialite.html">Politique de confidentialité</a><br>
+  {AGENCE} — {TEL_AFFICHE} · {EMAIL} · {"visits by appointment" if en else "visites sur rendez-vous"}<br>
+  <a href="{prefixe}/mentions-legales.html">{"Legal notice" if en else "Mentions légales"}</a> · <a href="{prefixe}/confidentialite.html">{"Privacy policy" if en else "Politique de confidentialité"}</a><br>
   <span class="reg">© {date.today().year} {AGENCE} · NINEA {NINEA} · RCCM {RCCM}</span>
 </footer>
 </body>
@@ -1252,14 +1487,26 @@ def main():
     # base, donc jamais nettoyé au début de cette fonction comme bien/ — un
     # guide qui disparaîtrait à chaque exécution serait absurde.
     os.makedirs(DOSSIER_GUIDES, exist_ok=True)
+    # Anglais dans un sous-dossier voisin plutôt qu'un ?lang= : ce sont des
+    # pages statiques indépendantes (voir page_guide()), chacune avec sa
+    # propre URL indexable — pas une traduction automatique à la volée comme
+    # les descriptions de biens, un contenu à caractère juridique se rédige
+    # directement dans les deux langues.
+    dossier_guides_en = os.path.join(DOSSIER_GUIDES, "en")
+    os.makedirs(dossier_guides_en, exist_ok=True)
     urls_guides = []
     for g in GUIDES:
         with open(os.path.join(DOSSIER_GUIDES, f"{g['slug']}.html"), "w", encoding="utf-8") as f:
-            f.write(page_guide(g))
+            f.write(page_guide(g, "fr"))
+        with open(os.path.join(dossier_guides_en, f"{g['slug']}.html"), "w", encoding="utf-8") as f:
+            f.write(page_guide(g, "en"))
         urls_guides.append((f"{SITE}/guides/{g['slug']}.html", g["date_publication"]))
+        urls_guides.append((f"{SITE}/guides/en/{g['slug']}.html", g["date_publication"]))
     with open(os.path.join(DOSSIER_GUIDES, "index.html"), "w", encoding="utf-8") as f:
-        f.write(page_guides_index(GUIDES))
-    print(f"  {len(GUIDES)} guide(s) écrit(s) dans guides/")
+        f.write(page_guides_index(GUIDES, "fr"))
+    with open(os.path.join(dossier_guides_en, "index.html"), "w", encoding="utf-8") as f:
+        f.write(page_guides_index(GUIDES, "en"))
+    print(f"  {len(GUIDES)} guide(s) écrit(s) dans guides/ (fr + en)")
 
     # --- sitemap.xml --------------------------------------------------------
     # Chaque adresse porte la date de son dernier changement réel, pas celle du
@@ -1279,8 +1526,12 @@ def main():
                f"<changefreq>weekly</changefreq><priority>0.8</priority></url>"
                for u, d in urls]
     if urls_guides:
+        derniere_maj_guides = max(d for _, d in urls_guides)
         lignes.append(f"  <url><loc>{SITE}/guides/</loc>"
-                       f"<lastmod>{max(d for _, d in urls_guides)}</lastmod>"
+                       f"<lastmod>{derniere_maj_guides}</lastmod>"
+                       f"<changefreq>monthly</changefreq><priority>0.7</priority></url>")
+        lignes.append(f"  <url><loc>{SITE}/guides/en/</loc>"
+                       f"<lastmod>{derniere_maj_guides}</lastmod>"
                        f"<changefreq>monthly</changefreq><priority>0.7</priority></url>")
     lignes += [f"  <url><loc>{u}</loc><lastmod>{d}</lastmod>"
                f"<changefreq>monthly</changefreq><priority>0.7</priority></url>"

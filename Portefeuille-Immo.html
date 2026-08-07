@@ -1861,6 +1861,13 @@ async function saveProperty(existing){
     chambres: null, salons: null, salles_bain: null, cuisine: null, equipements: null,
     etage: null, annee_construction: null, meuble: null, charges: null, caution: null
   };
+  // La traduction anglaise est mise en cache à la volée côté vitrine (voir
+  // traduire-description) : si la description française change, ce cache
+  // devient faux plutôt qu'obsolète-mais-correct. On le vide pour qu'une
+  // nouvelle traduction, à jour, se regénère au prochain visiteur anglophone.
+  if(existing && existing.desc !== (payload.description || '')){
+    payload.description_en = null;
+  }
   if(!existing){
     payload.date_acquisition = new Date().toISOString().slice(0, 10);
   }

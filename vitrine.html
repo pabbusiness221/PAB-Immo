@@ -771,6 +771,7 @@
     transition:background-color .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease);
   }
   .btn-icon-header:hover{background:rgba(255,255,255,0.26);}
+  .lang-btn{font-family:'Manrope',sans-serif;font-size:12.5px;font-weight:800;letter-spacing:.02em;}
   .btn-icon-header.active{background:var(--accent);border-color:var(--accent);color:var(--primary);}
   header.scrolled .btn-icon-header{background:var(--surface-alt);border-color:var(--border);color:var(--ink-soft);}
   header.scrolled .btn-icon-header:hover{background:var(--border);}
@@ -1083,6 +1084,10 @@
     <button type="button" class="btn-icon-header" id="headerFavBtn" aria-pressed="false" aria-label="Afficher uniquement mes favoris" title="Mes favoris">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>
     </button>
+    <!-- Bascule de langue : FR/EN uniquement pour l'instant (voir I18N).
+         Persistée (voir definirLangue) pour ne pas revenir au français à
+         chaque visite d'un lecteur anglophone. -->
+    <button type="button" class="btn-icon-header lang-btn" id="langToggleBtn" aria-label="Switch to English" title="Switch to English">FR</button>
     <a class="btn btn-whatsapp" href="https://wa.me/221778494111" target="_blank" rel="noopener" aria-label="Contacter par WhatsApp">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M20.5 3.5A11 11 0 003.6 17.3L2 22l4.9-1.6A11 11 0 1020.5 3.5zM12 20a8 8 0 01-4.1-1.1l-.3-.2-3 1 1-2.9-.2-.3A8 8 0 1112 20zm4.4-5.9c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.6.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1-1.3-.6-2.2-1.1-3.1-2.6-.2-.4.2-.4.6-1.2.1-.2 0-.4 0-.5-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.2-1 1-1 2.4s1 2.8 1.1 3c.1.2 2 3 4.8 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1 0-.1-.2-.2-.4-.3z"/></svg>
       <span class="btn-label">WhatsApp</span>
@@ -1097,7 +1102,12 @@
   <div class="hero-veil" aria-hidden="true"></div>
   <div class="hero-inner">
     <p class="hero-eyebrow">Trouvez. Investissez. Vivez.</p>
-    <h2 class="hero-title">Trouvez le bien <em id="heroRotate">qui vous ressemble.</em></h2>
+    <!-- « Trouvez le bien » isolé dans son propre élément : un nœud qui
+         mélange du texte fixe et un enfant (ici la partie qui défile) n'est
+         pas une feuille pour traduireDans(), qui ne traite que les nœuds de
+         texte ENTIERS — sans cela, ce texte restait figé en français quelle
+         que soit la langue choisie. -->
+    <h2 class="hero-title"><span id="heroTrouvez">Trouvez le bien</span> <em id="heroRotate">qui vous ressemble.</em></h2>
     <div class="hero-stat" id="heroStat"></div>
     <div class="hero-trust">
       <div class="trust-item">
@@ -1590,7 +1600,7 @@
       <a href="mentions-legales.html">Mentions légales</a>
       <a href="confidentialite.html">Politique de confidentialité</a>
     </div>
-    <p>© <span id="footerYear">2026</span> PAB Immo — Tous droits réservés · Dakar &amp; Thiès · Visites sur rendez-vous</p>
+    <p>© <span id="footerYear">2026</span> PAB Immo — <span>Tous droits réservés</span> · <span>Dakar &amp; Thiès</span> · <span>Visites sur rendez-vous</span></p>
     <p class="footer-reg">NINEA 012603686 · RCCM SN DKR 2025 A 44101</p>
   </div>
 </footer>
@@ -1623,6 +1633,163 @@
 <script src="commun.js"></script>
 <script>
 
+// ============================================================
+// LANGUE (FR / EN)
+// ============================================================
+// Choix délibéré : un dictionnaire indexé par la PHRASE FRANÇAISE exacte,
+// pas par une clé sémantique inventée ("hero.title"). Deux raisons :
+//   1. Le HTML statique n'a besoin d'aucune marque supplémentaire (pas de
+//      data-i18n sur chaque balise) — traduireDans() compare directement le
+//      texte déjà présent au dictionnaire et le remplace s'il matche.
+//   2. Le français reste la référence unique : une phrase qui change ici
+//      cesse simplement de matcher (visible immédiatement, rien ne casse),
+//      plutôt qu'une clé orpheline qu'il faudrait chercher à la main.
+// Limite assumée : ne traduit que les nœuds de texte ENTIERS et les valeurs
+// d'attribut (placeholder/aria-label/title) qui correspondent mot pour mot.
+// Une phrase qui mélange texte fixe et valeur dynamique dans le même nœud
+// (ex. « Mermoz, région de Dakar ») n'est pas couverte par ce mécanisme —
+// seuls les libellés fixes le sont.
+const LANG_KEY = 'pab_lang';
+let state_lang_init = safeLocalGet(LANG_KEY);
+if(state_lang_init !== 'en') state_lang_init = 'fr';
+// Un lien partagé peut forcer la langue (?lang=en), utile pour un message à
+// un contact anglophone sans qu'il ait à chercher le bouton.
+const langURL = new URLSearchParams(window.location.search).get('lang');
+if(langURL === 'en' || langURL === 'fr') state_lang_init = langURL;
+
+const I18N_EN = {
+  // En-tête
+  'Terrains':'Land', 'Maisons':'Houses', 'Appartements':'Apartments', 'Studios':'Studios', 'Champs agricoles':'Farmland',
+  'Terrain':'Land', 'Maison':'House', 'Appartement':'Apartment', 'Studio':'Studio', 'Champ agricole':'Farmland',
+  'Mon espace':'My space', 'Votre partenaire immobilier de confiance':'Your trusted real estate partner',
+  'Être alerté(e)':'Get alerts', 'Mes favoris':'My favorites',
+  // Hero
+  'Trouvez. Investissez. Vivez.':'Find. Invest. Live.',
+  'Trouvez le bien':'Find the property',
+  'qui vous ressemble.':'that suits you.', 'prêt à visiter.':'ready to visit.', 'au bon prix.':'at the right price.', 'à Dakar & Thiès.':'in Dakar & Thiès.',
+  'Annonces vérifiées':'Verified listings', 'Gérées personnellement':'Personally managed',
+  'Clients accompagnés':'Clients helped', 'Du premier contact à la remise des clés':'From first contact to key handover',
+  'Collaborateurs de confiance':'Trusted partners', 'Agences vérifiées par PAB Immo':'Agencies verified by PAB Immo',
+  'Accompagnement personnalisé':'Personalized support', 'Réponse rapide par WhatsApp':'Fast reply on WhatsApp',
+  'Dakar & Thiès':'Dakar & Thiès', 'Visites sur rendez-vous':'Visits by appointment',
+  // Recherche
+  'Rechercher : type, lieu, prix, réf…':'Search: type, location, price, ref…',
+  'Recherche avancée':'Advanced search',
+  'Région':'Region', 'Toutes régions':'All regions',
+  'Département':'District', 'Tous départements':'All districts',
+  'Commune':'Municipality', 'Quartier':'Neighborhood',
+  'Statut foncier':'Land title status', 'Peu importe':'Any',
+  'Titre foncier':'Freehold title', 'Bail':'Lease', 'Délibération':'Council deliberation',
+  'Budget':'Budget', 'minimum':'minimum', 'maximum':'maximum',
+  'Surface minimum':'Minimum size', 'Chambres minimum':'Minimum bedrooms',
+  "Les champs agricoles sont comptés en m² pour la comparaison.":'Farmland is counted in m² for comparison.',
+  "Autour d'un point":'Around a point', 'Aucune zone sélectionnée':'No area selected',
+  'Autour de moi':'Around me', 'Choisir sur la carte':'Choose on the map', '✕ Effacer':'✕ Clear',
+  'Enregistrer cette recherche':'Save this search', 'Réinitialiser tous les filtres':'Reset all filters',
+  'Vente & location':'Sale & rental', 'Vente':'Sale', 'Location':'Rental',
+  'Liste':'List', 'Carte':'Map',
+  'Aucun bien ne correspond aujourd’hui ?':'No match today?',
+  'Laissez votre email, on vous préviendra pour les prochains biens qui correspondent.':'Leave your email, we’ll notify you about matching properties.',
+  // Découverte / stats
+  'Explorer par type':'Browse by type', 'Ce que nous avons en portefeuille':'What we currently have',
+  'Tous les biens':'All properties',
+  'Sélection du moment':'Featured now', 'Annonces mises en avant par l’agence':'Listings highlighted by the agency', 'Tout voir ↓':'See all ↓',
+  'Biens en portefeuille':'Properties listed', 'Annonces vérifiées ':'Verified listings ',
+  'Agences partenaires':'Partner agencies',
+  // Cartes / tuiles
+  'Voir le bien':'View property', 'Ajouter aux favoris':'Add to favorites', 'Retirer des favoris':'Remove from favorites',
+  'Nouveau':'New', 'Sponsorisé':'Sponsored', 'Vérifiée':'Verified', '✓ Vérifiée':'✓ Verified',
+  'Disponible':'Available', 'Sous offre':'Under offer',
+  'Comparer':'Compare', 'Vider':'Clear', 'mo':'mo', 'ch.':'bd.',
+  'Statut juridique déclaré par l’agence':'Land title status declared by the agency',
+  'Agence vérifiée':'Verified agency',
+  'Publié par une agence dont l’identité a été contrôlée par PAB Immo':'Published by an agency whose identity was verified by PAB Immo',
+  'Annonce vérifiée':'Verified listing',
+  'Documents et existence du bien contrôlés par PAB Immo':'Documents and existence of the property checked by PAB Immo',
+  'Meublé':'Furnished', 'Non meublé':'Unfurnished',
+  'Chambre':'Bedroom', 'Chambres':'Bedrooms', 'Salon':'Living room', 'Salons':'Living rooms',
+  'Salle de bain':'Bathroom', 'Salles de bain':'Bathrooms', 'Cuisine':'Kitchen',
+  'Équipée':'Equipped', 'Simple':'Basic', 'Étage':'Floor', 'Construction':'Built',
+  'Caractéristiques':'Features', 'Localisation':'Location', 'Photos':'Photos', 'Description':'Description',
+  'Superficie':'Size', 'Charges':'Utility fees', 'Caution':'Security deposit',
+  'Intéressé(e) par ce bien ? Réf.':'Interested in this property? Ref.',
+  'Appeler':'Call', 'Partager ce bien':'Share this property',
+  // Footer
+  'Nos biens':'Our properties', 'Professionnels':'Professionals', 'Nous contacter':'Contact us',
+  'Guides & conseils':'Guides & tips', 'Devenir collaborateur':'Become a partner', 'Espace collaborateur':'Partner area',
+  'Mentions légales':'Legal notice', 'Politique de confidentialité':'Privacy policy',
+  'Tous droits réservés':'All rights reserved',
+};
+
+// L'ORIGINAL FRANÇAIS est mémorisé sur chaque nœud au premier passage
+// (data-fr / data-fr-<attribut>), puis TOUJOURS recalculé à partir de cet
+// original — jamais à partir du texte actuellement affiché. Sans ça, un
+// second appel (changement de filtre, retour au français, ou simplement un
+// second passage sur un contenu déjà traduit une fois) pourrait retraduire
+// un texte déjà en anglais qui coïncide par hasard avec une clé française
+// existante ailleurs dans le dictionnaire — rencontré avec « Localisation »
+// → « Location » (anglais) → reconnu à tort comme le mot français
+// « Location » (une location) → « Rental ». Repartir de l'original à chaque
+// fois rend l'opération idempotente et réversible dans les deux sens.
+// Ces conteneurs traduisent déjà tout leur propre contenu à chaque rendu (via
+// t(), directement depuis PROPERTIES) : l'appel global traduireDans(document.
+// body) au changement de langue ne doit PAS y entrer. S'il le faisait, il
+// marquerait un texte déjà en anglais comme s'il était « l'original français »
+// (data-fr) dès le prochain appel — et le retraduirait un cran plus loin au
+// tour suivant. Rencontré avec le tiroir de détail, resté ouvert d'un
+// changement de langue à l'autre.
+// #langToggleBtn est logé à la même enseigne : definirLangue() pose son texte
+// et ses attributs DIRECTEMENT selon la langue cible (déjà « résolus », pas du
+// français figé) — exactement le même risque que le tiroir, constaté ici en
+// premier : le bouton se figeait sur EN et ignorait les clics suivants.
+const CONTENEURS_AUTONOMES = ['#drawer', '#compareDrawer', '#list', '#vedettesRail', '#categoryRail', '#chipsOp', '#langToggleBtn'];
+function traduireDans(root){
+  if(!root) return;
+  const attrs = ['placeholder','aria-label','title'];
+  root.querySelectorAll('*').forEach(node=>{
+    if(CONTENEURS_AUTONOMES.some(sel => node.closest(sel))) return;
+    if(node.children.length === 0 && node.textContent.trim()){
+      if(node.dataset.fr === undefined) node.dataset.fr = node.textContent;
+      const original = node.dataset.fr;
+      const cle = original.trim();
+      node.textContent = (state.lang === 'en' && I18N_EN[cle]) ? original.replace(cle, I18N_EN[cle]) : original;
+    }
+    attrs.forEach(attr=>{
+      if(!node.hasAttribute || !node.hasAttribute(attr)) return;
+      const dataKey = 'fr' + attr.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+      if(node.dataset[dataKey] === undefined) node.dataset[dataKey] = node.getAttribute(attr);
+      const original = node.dataset[dataKey];
+      node.setAttribute(attr, (state.lang === 'en' && I18N_EN[original]) ? I18N_EN[original] : original);
+    });
+  });
+}
+// Pour le texte composé en JS (jamais posé tel quel dans le DOM avant d'être
+// assemblé avec une valeur dynamique) : t('Phrase française') renvoie la
+// traduction si elle existe, sinon la phrase elle-même — jamais de clé brute
+// affichée par erreur.
+function t(fr){ return (state.lang === 'en' && I18N_EN[fr]) || fr; }
+function bienLabel(n){
+  return state.lang === 'en' ? `${n} propert${n>1?'ies':'y'}` : `${n} bien${n>1?'s':''}`;
+}
+
+function definirLangue(lang){
+  state.lang = lang;
+  safeLocalSet(LANG_KEY, lang);
+  const btn = document.getElementById('langToggleBtn');
+  if(btn){
+    btn.textContent = lang === 'en' ? 'EN' : 'FR';
+    btn.setAttribute('aria-label', lang === 'en' ? 'Passer en français' : 'Switch to English');
+    btn.setAttribute('title', lang === 'en' ? 'Passer en français' : 'Switch to English');
+  }
+  document.documentElement.lang = lang;
+  traduireDans(document.body);
+  // Les listes/tuiles/tiroir sont regénérées entièrement à chaque changement
+  // de filtre : sans un nouveau passage ici, elles retomberaient en français
+  // au prochain rendu.
+  renderHeroStat();
+  render();
+  renderFeatured();
+}
 
 const STATUS_LABEL = { Disponible:'Disponible', 'Réservé':'Sous offre' };
 // Même vert que le portefeuille : il sert d'encre ET de fond (à 13 %) dans
@@ -1717,7 +1884,11 @@ function mapRow(r){
     caution: r.caution != null ? Number(r.caution) : null,
     etage: r.etage || null,
     anneeConstruction: r.annee_construction || null,
-    dateDisponibilite: r.date_disponibilite || null
+    dateDisponibilite: r.date_disponibilite || null,
+    // Traduction mise en cache par traduire-description — voir openDrawer(),
+    // qui la demande à la volée si elle manque encore et que la vitrine est
+    // en anglais.
+    descriptionEn: r.description_en || null
   };
 }
 
@@ -1778,6 +1949,11 @@ function dispoFraiche(p){
 function dispoLabel(p){
   const j = joursDepuis(p.availability_checked_at);
   if(j === null) return '';
+  if(state.lang === 'en'){
+    if(j <= 0) return 'today';
+    if(j === 1) return 'yesterday';
+    return `${j} days ago`;
+  }
   if(j <= 0) return "aujourd'hui";
   if(j === 1) return 'hier';
   return `il y a ${j} jours`;
@@ -1790,7 +1966,7 @@ function emmenagementFutur(p){
   return !!p.dateDisponibilite && p.dateDisponibilite > new Date().toISOString().slice(0,10);
 }
 function emmenagementLabel(p){
-  return new Date(p.dateDisponibilite + 'T00:00:00').toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' });
+  return new Date(p.dateDisponibilite + 'T00:00:00').toLocaleDateString(state.lang==='en'?'en-GB':'fr-FR', { day:'numeric', month:'long', year:'numeric' });
 }
 
 // Les photos sont stockées telles que téléversées : jusqu'à 2 Mo et
@@ -1894,7 +2070,7 @@ async function loadProperties(){
 
 let state = { type:'Tous', op:'Tous', search:'', selected:null, favOnly:false, page:1,
   region:'', departement:'', commune:'', quartier:'', centerLat:null, centerLng:null, radiusKm:null,
-  prixMin:'', prixMax:'', surfaceMin:'', chambresMin:'', statutFoncier:'' };
+  prixMin:'', prixMax:'', surfaceMin:'', chambresMin:'', statutFoncier:'', lang: state_lang_init };
 
 // ---- Critères de la recherche avancée --------------------------------------
 // Une seule déclaration, dont se déduisent l'enregistrement d'une recherche,
@@ -2128,13 +2304,14 @@ function renderChips(){
   // boutons [data-type] du header et du pied de page restent branchés
   // ci-dessous — ce ne sont pas des puces, mais ils suivent le même filtre.
   document.getElementById('chipsOp').innerHTML = OPS.map(([key,label])=>
-    `<button class="chip ${state.op===key?'active':''}" data-op="${key}" aria-pressed="${state.op===key}">${label}</button>`).join('');
+    `<button class="chip ${state.op===key?'active':''}" data-op="${key}" aria-pressed="${state.op===key}">${t(label)}</button>`).join('');
   document.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>{ state.op=b.dataset.op; majEtiquettePrix(); render(); });
   document.querySelectorAll('[data-type]').forEach(b=>b.onclick=(e)=>{ e.preventDefault(); state.type=b.dataset.type; render(); document.getElementById('titreBiens').scrollIntoView({ behavior:'smooth', block:'start' }); });
 }
 
 function renderHeroStat(){
-  document.getElementById('heroStat').innerHTML = `<b data-count="${PROPERTIES.length}">${PROPERTIES.length}</b>&nbsp;biens disponibles à Dakar et Thiès`;
+  const suite = state.lang === 'en' ? ' properties available in Dakar and Thiès' : ' biens disponibles à Dakar et Thiès';
+  document.getElementById('heroStat').innerHTML = `<b data-count="${PROPERTIES.length}">${PROPERTIES.length}</b>${suite}`;
 }
 
 // ---- Découverte rapide : catégories + sélection du moment ------------------
@@ -2153,7 +2330,7 @@ function renderCategories(){
     <span class="cat-tile-img" style="background-image:url('assets/dakar-panorama.jpg');background-image:image-set(url('assets/dakar-panorama.webp') type('image/webp'), url('assets/dakar-panorama.jpg') type('image/jpeg'))" aria-hidden="true"></span>
     <span class="cat-tile-voile" aria-hidden="true"></span>
     <span class="cat-tile-ico" aria-hidden="true">${ICONE_TOUS}</span>
-    <span class="cat-tile-in"><span class="cat-tile-nom">Tous les biens</span><span class="cat-tile-nb">${PROPERTIES.length} bien${PROPERTIES.length>1?'s':''}</span></span>
+    <span class="cat-tile-in"><span class="cat-tile-nom">${t('Tous les biens')}</span><span class="cat-tile-nb">${bienLabel(PROPERTIES.length)}</span></span>
   </button>` : '';
   const tuiles = NAV.filter(([key]) => key !== 'Tous').map(([key,label])=>{
     const biens = PROPERTIES.filter(p => p.type === key);
@@ -2170,7 +2347,7 @@ function renderCategories(){
       <span class="cat-tile-img" style="${fond}" aria-hidden="true"></span>
       <span class="cat-tile-voile" aria-hidden="true"></span>
       <span class="cat-tile-ico" aria-hidden="true">${typeIcon(key, 14)}</span>
-      <span class="cat-tile-in"><span class="cat-tile-nom">${label}</span><span class="cat-tile-nb">${biens.length} bien${biens.length>1?'s':''}</span></span>
+      <span class="cat-tile-in"><span class="cat-tile-nom">${t(label)}</span><span class="cat-tile-nb">${bienLabel(biens.length)}</span></span>
     </button>`;
   }).join('');
   host.innerHTML = tuileTous + tuiles;
@@ -2186,6 +2363,7 @@ function renderCategories(){
     };
   });
   activerGlisserPourDefiler(host);
+  traduireDans(host);
 }
 
 function renderFeatured(){
@@ -2205,24 +2383,24 @@ function renderFeatured(){
       <div class="bien-tile-photo"${cover?'':` style="background:linear-gradient(135deg, ${TYPE_COLOR[p.type]}, #161B22);"`}>
         ${cover ? `<img src="${cover}" alt="" loading="lazy" decoding="async" onerror="photoFallback(this)">` : `<span class="card-photo-ico">${typeIcon(p.type)}</span>`}
         <div class="bien-tile-etiq">
-          ${p.sponsorisee ? `<span class="pill" style="background:var(--night);color:var(--accent);border:1px solid rgba(242,174,5,.45);" title="Cette annonce bénéficie d'une mise en avant payante">Sponsorisé</span>`
-            : estRecent(p) ? `<span class="pill" style="background:rgba(37,99,235,0.94);color:#fff;">Nouveau</span>` : ''}
-          ${p.verified_at ? `<span class="pill" style="background:rgba(255,255,255,0.94);color:#256540;">✓ Vérifiée</span>` : ''}
+          ${p.sponsorisee ? `<span class="pill" style="background:var(--night);color:var(--accent);border:1px solid rgba(242,174,5,.45);" title="Cette annonce bénéficie d'une mise en avant payante">${t('Sponsorisé')}</span>`
+            : estRecent(p) ? `<span class="pill" style="background:rgba(37,99,235,0.94);color:#fff;">${t('Nouveau')}</span>` : ''}
+          ${p.verified_at ? `<span class="pill" style="background:rgba(255,255,255,0.94);color:#256540;">✓ ${t('Vérifiée')}</span>` : ''}
         </div>
-        <button type="button" class="fav-btn ${isFav(p.id)?'active':''}" data-fav-id="${p.id}" aria-pressed="${isFav(p.id)}" aria-label="${isFav(p.id)?'Retirer des favoris':'Ajouter aux favoris'}">${favIconSvg(isFav(p.id))}</button>
+        <button type="button" class="fav-btn ${isFav(p.id)?'active':''}" data-fav-id="${p.id}" aria-pressed="${isFav(p.id)}" aria-label="${isFav(p.id)?t('Retirer des favoris'):t('Ajouter aux favoris')}">${favIconSvg(isFav(p.id))}</button>
       </div>
       <div class="bien-tile-corps">
-        <div class="bien-tile-prix">${fcfa(p.price)}${p.operation==='Location'?' <small>/mois</small>':''}</div>
-        <button type="button" class="bien-tile-titre" data-open-id="${p.id}">${p.type} — ${esc(p.commune)}</button>
+        <div class="bien-tile-prix">${fcfa(p.price)}${p.operation==='Location'?` <small>/${t('mo')}</small>`:''}</div>
+        <button type="button" class="bien-tile-titre" data-open-id="${p.id}">${t(p.type)} — ${esc(p.commune)}</button>
         <div class="bien-tile-lieu">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
           <span>${p.quartier ? esc(p.quartier)+', ' : ''}${esc(p.region)}</span>
         </div>
         <div class="bien-tile-faits">
           <span><b>${p.surface}</b> ${surfaceUnit(p.type)}</span>
-          ${p.rooms && p.rooms.chambres != null ? `<span><b>${p.rooms.chambres}</b> ch.</span>` : ''}
+          ${p.rooms && p.rooms.chambres != null ? `<span><b>${p.rooms.chambres}</b> ${t('ch.')}</span>` : ''}
         </div>
-        <button type="button" class="bien-tile-cta" data-open-id="${p.id}">Voir le bien</button>
+        <button type="button" class="bien-tile-cta" data-open-id="${p.id}">${t('Voir le bien')}</button>
       </div>
     </article>`;
   }).join('');
@@ -2238,6 +2416,7 @@ function renderFeatured(){
     };
   });
   activerGlisserPourDefiler(host);
+  traduireDans(host);
 }
 
 // ---- Chiffres réels de l'agence --------------------------------------------
@@ -2569,11 +2748,14 @@ function renderList(){
   const annonce = document.getElementById('annonceResultats');
   if(annonce){
     annonce.textContent = items.length === 0
-      ? 'Aucun bien ne correspond aux critères.'
-      : `${items.length} bien${items.length > 1 ? 's' : ''} correspond${items.length > 1 ? 'ent' : ''} aux critères.`;
+      ? (state.lang==='en' ? 'No property matches the criteria.' : 'Aucun bien ne correspond aux critères.')
+      : (state.lang==='en' ? `${items.length} propert${items.length > 1 ? 'ies' : 'y'} match the criteria.`
+                            : `${items.length} bien${items.length > 1 ? 's' : ''} correspond${items.length > 1 ? 'ent' : ''} aux critères.`);
   }
   if(items.length===0){
-    el.innerHTML = `<div class="empty"><h3 style="margin:0 0 6px;font-size:15px;">Aucun bien ne correspond</h3><p style="margin:0;color:var(--ink-soft);font-size:12.5px;">Essayez d'élargir la recherche ou de changer de filtre.</p></div>`;
+    el.innerHTML = state.lang==='en'
+      ? `<div class="empty"><h3 style="margin:0 0 6px;font-size:15px;">No property matches</h3><p style="margin:0;color:var(--ink-soft);font-size:12.5px;">Try widening your search or changing a filter.</p></div>`
+      : `<div class="empty"><h3 style="margin:0 0 6px;font-size:15px;">Aucun bien ne correspond</h3><p style="margin:0;color:var(--ink-soft);font-size:12.5px;">Essayez d'élargir la recherche ou de changer de filtre.</p></div>`;
     return;
   }
   // Découpage en pages. La borne est resserrée ici plutôt qu'au moment du
@@ -2590,38 +2772,38 @@ function renderList(){
     <div class="card ${state.selected===p.id?'selected':''}" data-id="${p.id}">
       <div class="card-photo"${cover?'':` style="--cover:linear-gradient(135deg, ${TYPE_COLOR[p.type]}, #161B22);"`}>
         ${cover?`<img class="card-photo-img" src="${cover}" alt="" loading="lazy" decoding="async">`:`<span class="card-photo-ico">${typeIcon(p.type)}</span>`}
-        <button type="button" class="fav-btn ${isFav(p.id)?'active':''}" data-fav-id="${p.id}" aria-pressed="${isFav(p.id)}" aria-label="${isFav(p.id)?'Retirer des favoris':'Ajouter aux favoris'}">${favIconSvg(isFav(p.id))}</button>
-        <span class="pill" style="position:absolute;bottom:10px;left:10px;background:${STATUS_COLOR[p.status]};color:#fff;">${STATUS_LABEL[p.status]}</span>
-        <span class="pill" style="position:absolute;top:10px;left:10px;background:rgba(255,255,255,0.92);color:var(--ink);">${p.operation}</span>
-        ${p.sponsorisee ? `<span class="pill pill-sponso" title="Cette annonce bénéficie d'une mise en avant payante">Sponsorisé</span>` : ''}
+        <button type="button" class="fav-btn ${isFav(p.id)?'active':''}" data-fav-id="${p.id}" aria-pressed="${isFav(p.id)}" aria-label="${isFav(p.id)?t('Retirer des favoris'):t('Ajouter aux favoris')}">${favIconSvg(isFav(p.id))}</button>
+        <span class="pill" style="position:absolute;bottom:10px;left:10px;background:${STATUS_COLOR[p.status]};color:#fff;">${t(STATUS_LABEL[p.status])}</span>
+        <span class="pill" style="position:absolute;top:10px;left:10px;background:rgba(255,255,255,0.92);color:var(--ink);">${t(p.operation)}</span>
+        ${p.sponsorisee ? `<span class="pill pill-sponso" title="Cette annonce bénéficie d'une mise en avant payante">${t('Sponsorisé')}</span>` : ''}
       </div>
       <div class="card-body">
         <div class="card-top">
-          <h3><button type="button" class="card-open" data-open-id="${p.id}">${p.type} — ${esc(p.commune)}</button></h3>
+          <h3><button type="button" class="card-open" data-open-id="${p.id}">${t(p.type)} — ${esc(p.commune)}</button></h3>
         </div>
         <div class="card-meta">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
           <span>${p.quartier ? esc(p.quartier)+', ' : ''}${esc(p.region)}</span>
-          ${p.rooms && p.rooms.chambres != null ? `<span style="margin:0 2px;">·</span><span>${p.rooms.chambres} ch. · ${p.rooms.sdb} sdb</span>` : ''}
+          ${p.rooms && p.rooms.chambres != null ? `<span style="margin:0 2px;">·</span><span>${p.rooms.chambres} ${t('ch.')} · ${p.rooms.sdb} ${state.lang==='en'?'ba.':'sdb'}</span>` : ''}
         </div>
         ${(p.verified_at || dispoFraiche(p) || p.agence_verifiee || p.statutFoncier) ? `
         <div class="trust-row">
-          ${p.verified_at ? `<span class="trust-badge verifiee" title="Documents et existence du bien contrôlés par PAB Immo"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>Vérifiée</span>` : ''}
-          ${p.statutFoncier ? `<span class="trust-badge foncier" title="Statut foncier déclaré par l'agence">${esc(p.statutFoncier)}</span>` : ''}
-          ${dispoFraiche(p) ? `<span class="trust-badge dispo" title="Disponibilité confirmée ${esc(dispoLabel(p))}">Dispo. ${esc(dispoLabel(p))}</span>` : ''}
-          ${p.agence_verifiee ? `<span class="trust-badge agence" title="Bien publié par une agence certifiée par PAB Immo">Agence vérifiée</span>` : ''}
+          ${p.verified_at ? `<span class="trust-badge verifiee" title="Documents et existence du bien contrôlés par PAB Immo"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>${t('Vérifiée')}</span>` : ''}
+          ${p.statutFoncier ? `<span class="trust-badge foncier" title="Statut foncier déclaré par l'agence">${esc(t(p.statutFoncier))}</span>` : ''}
+          ${dispoFraiche(p) ? `<span class="trust-badge dispo" title="Disponibilité confirmée ${esc(dispoLabel(p))}">${state.lang==='en'?'Avail.':'Dispo.'} ${esc(dispoLabel(p))}</span>` : ''}
+          ${p.agence_verifiee ? `<span class="trust-badge agence" title="Bien publié par une agence certifiée par PAB Immo">${t('Agence vérifiée')}</span>` : ''}
         </div>` : ''}
         <label class="compare-check${(!isCompare(p.id) && COMPARE.length>=COMPARE_MAX)?' is-disabled':''}">
-          <input type="checkbox" data-compare-id="${p.id}"${isCompare(p.id)?' checked':''}${(!isCompare(p.id) && COMPARE.length>=COMPARE_MAX)?' disabled':''} aria-label="Comparer ${esc(p.type)} — ${esc(p.commune)}" />
-          <span>Comparer</span>
+          <input type="checkbox" data-compare-id="${p.id}"${isCompare(p.id)?' checked':''}${(!isCompare(p.id) && COMPARE.length>=COMPARE_MAX)?' disabled':''} aria-label="${t('Comparer')} ${esc(t(p.type))} — ${esc(p.commune)}" />
+          <span>${t('Comparer')}</span>
         </label>
         <div class="card-foot">
           <span class="surface-txt mono">${p.surface} ${surfaceUnit(p.type)}</span>
-          <span class="price mono">${fcfa(p.price)}${p.operation==='Location'?' /mois':''}</span>
+          <span class="price mono">${fcfa(p.price)}${p.operation==='Location'?` /${t('mo')}`:''}</span>
         </div>
       </div>
     </div>`;
-  }).join('') + pagerHtml(items.length, totalPages, start, pageItems.length, 'Pagination des annonces');
+  }).join('') + pagerHtml(items.length, totalPages, start, pageItems.length, state.lang==='en'?'Listings pagination':'Pagination des annonces', state.lang);
 
   el.querySelectorAll('[data-page-step]').forEach(btn=>{
     btn.onclick = () => {
@@ -2673,6 +2855,7 @@ function renderList(){
       renderList();
     };
   });
+  traduireDans(el);
 }
 function highlightCard(id){
   state.selected = id;
@@ -2759,83 +2942,83 @@ function openDrawer(p){
       <button class="drawer-close" id="drawerClose" aria-label="Fermer la fiche">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#161B22" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
-      <button type="button" class="fav-btn ${isFav(p.id)?'active':''}" id="drawerFavBtn" aria-pressed="${isFav(p.id)}" aria-label="${isFav(p.id)?'Retirer des favoris':'Ajouter aux favoris'}">${favIconSvg(isFav(p.id))}</button>
-      <span class="pill" style="position:absolute;left:16px;bottom:-13px;background:${STATUS_COLOR[p.status]};color:#fff;box-shadow:var(--shadow)">${STATUS_LABEL[p.status]}</span>
-      <span class="pill" style="position:absolute;right:16px;bottom:-13px;background:#fff;color:var(--ink);box-shadow:var(--shadow)">${p.operation}</span>
+      <button type="button" class="fav-btn ${isFav(p.id)?'active':''}" id="drawerFavBtn" aria-pressed="${isFav(p.id)}" aria-label="${isFav(p.id)?t('Retirer des favoris'):t('Ajouter aux favoris')}">${favIconSvg(isFav(p.id))}</button>
+      <span class="pill" style="position:absolute;left:16px;bottom:-13px;background:${STATUS_COLOR[p.status]};color:#fff;box-shadow:var(--shadow)">${t(STATUS_LABEL[p.status])}</span>
+      <span class="pill" style="position:absolute;right:16px;bottom:-13px;background:#fff;color:var(--ink);box-shadow:var(--shadow)">${t(p.operation)}</span>
     </div>
     <div class="drawer-content">
-      <h2 id="drawerTitre" style="font-size:20px;margin:10px 0 2px;">${p.type} — ${esc(p.commune)}</h2>
-      <div class="card-meta"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>${p.quartier ? esc(p.quartier)+', ' : ''}${esc(p.commune)}, région de ${esc(p.region)}</span></div>
+      <h2 id="drawerTitre" style="font-size:20px;margin:10px 0 2px;">${t(p.type)} — ${esc(p.commune)}</h2>
+      <div class="card-meta"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>${p.quartier ? esc(p.quartier)+', ' : ''}${esc(p.commune)}, ${state.lang==='en'?'region of':'région de'} ${esc(p.region)}</span></div>
       ${(p.verified_at || p.availability_checked_at || p.agence_verifiee || p.statutFoncier || p.meuble != null || emmenagementFutur(p)) ? `
       <div class="trust-panel">
         ${p.statutFoncier ? `
         <div class="trust-line">
           <span class="trust-ico ok"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 3v5h5M6 3h8l5 5v13a1 1 0 01-1 1H6a1 1 0 01-1-1V4a1 1 0 011-1z"/></svg></span>
-          <div><strong>Statut foncier : ${esc(p.statutFoncier)}</strong><span>Statut juridique déclaré par l'agence</span></div>
+          <div><strong>${t('Statut foncier')} : ${esc(t(p.statutFoncier))}</strong><span>${t('Statut juridique déclaré par l’agence')}</span></div>
         </div>` : ''}
         ${p.meuble != null ? `
         <div class="trust-line">
           <span class="trust-ico ok"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 7v11M21 7v11M3 11h18M6 11V8a2 2 0 012-2h8a2 2 0 012 2v3"/></svg></span>
-          <div><strong>${p.meuble ? 'Meublé' : 'Non meublé'}</strong></div>
+          <div><strong>${p.meuble ? t('Meublé') : t('Non meublé')}</strong></div>
         </div>` : ''}
         ${emmenagementFutur(p) ? `
         <div class="trust-line">
           <span class="trust-ico ok"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
-          <div><strong>Disponible à partir du ${esc(emmenagementLabel(p))}</strong></div>
+          <div><strong>${state.lang==='en'?'Available from':'Disponible à partir du'} ${esc(emmenagementLabel(p))}</strong></div>
         </div>` : ''}
         ${p.agence_verifiee ? `
         <div class="trust-line">
           <span class="trust-ico ok"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M10 21v-6h4v6"/></svg></span>
-          <div><strong>Agence vérifiée</strong><span>Publié par une agence dont l'identité a été contrôlée par PAB Immo</span></div>
+          <div><strong>${t('Agence vérifiée')}</strong><span>${t('Publié par une agence dont l’identité a été contrôlée par PAB Immo')}</span></div>
         </div>` : ''}
         ${p.verified_at ? `
         <div class="trust-line">
           <span class="trust-ico ok"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
-          <div><strong>Annonce vérifiée</strong><span>Documents et existence du bien contrôlés par PAB Immo</span></div>
+          <div><strong>${t('Annonce vérifiée')}</strong><span>${t('Documents et existence du bien contrôlés par PAB Immo')}</span></div>
         </div>` : ''}
         ${p.availability_checked_at ? `
         <div class="trust-line">
           <span class="trust-ico ${dispoFraiche(p) ? 'ok' : 'vieux'}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
-          <div><strong>Disponibilité confirmée ${esc(dispoLabel(p))}</strong><span>${dispoFraiche(p) ? 'Information récente' : 'Information ancienne — vérifiez auprès de nous avant de vous déplacer'}</span></div>
+          <div><strong>${state.lang==='en'?'Availability confirmed':'Disponibilité confirmée'} ${esc(dispoLabel(p))}</strong><span>${dispoFraiche(p) ? (state.lang==='en'?'Recent information':'Information récente') : (state.lang==='en'?'Older information — check with us before travelling':'Information ancienne — vérifiez auprès de nous avant de vous déplacer')}</span></div>
         </div>` : ''}
       </div>` : ''}
-      <p style="font-size:13.5px;line-height:1.6;margin-top:14px;">${esc(p.desc)}</p>
+      <p id="drawerDesc" style="font-size:13.5px;line-height:1.6;margin-top:14px;">${esc((state.lang==='en' && p.descriptionEn) ? p.descriptionEn : p.desc)}</p>
       ${photos.length ? `
-      <div class="section-title">Photos</div>
+      <div class="section-title">${t('Photos')}</div>
       <div class="photo-strip">
         ${photos.map((ph, idx) => `
-          <button type="button" class="thumb-btn" data-open-gallery="${idx}" aria-label="Agrandir la photo ${idx + 1} sur ${photos.length}">
+          <button type="button" class="thumb-btn" data-open-gallery="${idx}" aria-label="${state.lang==='en'?`Enlarge photo ${idx+1} of ${photos.length}`:`Agrandir la photo ${idx + 1} sur ${photos.length}`}">
             <img src="${ph.thumb}" alt="Photo ${idx + 1}" loading="lazy" decoding="async" onerror="photoFallback(this)" />
             ${idx === 0 && photos.length > 1 ? `<span class="thumb-count">+${photos.length - 1}</span>` : ''}
           </button>`).join('')}
       </div>` : ''}
       <div class="grid2">
-        <div class="info-box"><div class="k">Superficie</div><div class="v mono">${p.surface} ${surfaceUnit(p.type)}</div></div>
-        <div class="info-box"><div class="k">${p.operation}</div><div class="v mono" style="color:var(--gold)">${fcfa(p.price)}${p.operation==='Location'?'/mois':''}</div><div class="v-secondaire mono">${prixSecondaire(p.price)}${p.operation==='Location'?'/mois':''}</div></div>
-        ${p.charges != null ? `<div class="info-box"><div class="k">Charges</div><div class="v mono">${fcfa(p.charges)}/mois</div></div>` : ''}
-        ${p.caution != null ? `<div class="info-box"><div class="k">Caution</div><div class="v mono">${fcfa(p.caution)}</div></div>` : ''}
+        <div class="info-box"><div class="k">${t('Superficie')}</div><div class="v mono">${p.surface} ${surfaceUnit(p.type)}</div></div>
+        <div class="info-box"><div class="k">${t(p.operation)}</div><div class="v mono" style="color:var(--gold)">${fcfa(p.price)}${p.operation==='Location'?'/'+t('mo'):''}</div><div class="v-secondaire mono">${prixSecondaire(p.price)}${p.operation==='Location'?'/'+t('mo'):''}</div></div>
+        ${p.charges != null ? `<div class="info-box"><div class="k">${t('Charges')}</div><div class="v mono">${fcfa(p.charges)}/${t('mo')}</div></div>` : ''}
+        ${p.caution != null ? `<div class="info-box"><div class="k">${t('Caution')}</div><div class="v mono">${fcfa(p.caution)}</div></div>` : ''}
       </div>
-      <div class="section-title">Localisation</div>
+      <div class="section-title">${t('Localisation')}</div>
       <div class="detail-map" id="drawerMap"></div>
       ${(p.rooms || p.etage || p.anneeConstruction) ? `
-      <div class="section-title">Caractéristiques</div>
+      <div class="section-title">${t('Caractéristiques')}</div>
       ${p.rooms && p.rooms.chambres != null ? `
       <div class="features">
         <div class="feature">
           <div class="fi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 18v-6a2 2 0 012-2h14a2 2 0 012 2v6"/><path d="M3 18h18"/><path d="M5 10V6a2 2 0 012-2h2a2 2 0 012 2v4"/></svg></div>
-          <div class="fv">${p.rooms.chambres}</div><div class="fl">Chambre${p.rooms.chambres>1?'s':''}</div>
+          <div class="fv">${p.rooms.chambres}</div><div class="fl">${state.lang==='en'?`Bedroom${p.rooms.chambres>1?'s':''}`:`Chambre${p.rooms.chambres>1?'s':''}`}</div>
         </div>
         <div class="feature">
           <div class="fi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M20 9V7a2 2 0 00-2-2H6a2 2 0 00-2 2v2"/><path d="M2 11h20v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5z"/><path d="M4 17v3M20 17v3"/></svg></div>
-          <div class="fv">${p.rooms.salons}</div><div class="fl">Salon${p.rooms.salons>1?'s':''}</div>
+          <div class="fv">${p.rooms.salons}</div><div class="fl">${state.lang==='en'?`Living room${p.rooms.salons>1?'s':''}`:`Salon${p.rooms.salons>1?'s':''}`}</div>
         </div>
         <div class="feature">
           <div class="fi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M9 6L6.5 3.5a1.5 1.5 0 00-2.5 1V11"/><path d="M2 11h20v3a5 5 0 01-5 5H7a5 5 0 01-5-5v-3z"/><path d="M6 19v2M18 19v2"/></svg></div>
-          <div class="fv">${p.rooms.sdb}</div><div class="fl">Salle${p.rooms.sdb>1?'s':''} de bain</div>
+          <div class="fv">${p.rooms.sdb}</div><div class="fl">${state.lang==='en'?`Bathroom${p.rooms.sdb>1?'s':''}`:`Salle${p.rooms.sdb>1?'s':''} de bain`}</div>
         </div>
         <div class="feature">
           <div class="fi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h1a2 2 0 002-2V2"/><path d="M5 9v13"/><path d="M18 2c-1.5 2-1.5 5 0 7v11"/></svg></div>
-          <div class="fv" style="font-size:11.5px;">${esc(p.rooms.cuisine)}</div><div class="fl">Cuisine</div>
+          <div class="fv" style="font-size:11.5px;">${esc(t(p.rooms.cuisine))}</div><div class="fl">${t('Cuisine')}</div>
         </div>
       </div>` : ''}
       ${(p.etage || p.anneeConstruction) ? `
@@ -2843,18 +3026,18 @@ function openDrawer(p){
         ${p.etage ? `
         <div class="feature">
           <div class="fi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M8 8h.01M12 8h.01M16 8h.01M8 12h.01M12 12h.01M16 12h.01"/></svg></div>
-          <div class="fv" style="font-size:11.5px;">${esc(p.etage)}</div><div class="fl">Étage</div>
+          <div class="fv" style="font-size:11.5px;">${esc(p.etage)}</div><div class="fl">${t('Étage')}</div>
         </div>` : ''}
         ${p.anneeConstruction ? `
         <div class="feature">
           <div class="fi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
-          <div class="fv">${p.anneeConstruction}</div><div class="fl">Construction</div>
+          <div class="fv">${p.anneeConstruction}</div><div class="fl">${t('Construction')}</div>
         </div>` : ''}
       </div>` : ''}
       ${p.rooms && p.rooms.autres && p.rooms.autres.length ? `<div class="tags" style="margin-top:10px;">${p.rooms.autres.map(a=>`<span class="tag">${esc(a)}</span>`).join('')}</div>` : ''}
       ` : ''}
       <div class="contact-box">
-        <p>Intéressé(e) par ce bien&nbsp;? Réf. ${esc(p.ref)}</p>
+        <p>${state.lang==='en'?'Interested in this property? Ref.':'Intéressé(e) par ce bien&nbsp;? Réf.'} ${esc(p.ref)}</p>
         <div class="contact-actions">
           <a class="btn btn-whatsapp" href="https://wa.me/221778494111?text=${waText}" target="_blank" rel="noopener">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M20.5 3.5A11 11 0 003.6 17.3L2 22l4.9-1.6A11 11 0 1020.5 3.5zM12 20a8 8 0 01-4.1-1.1l-.3-.2-3 1 1-2.9-.2-.3A8 8 0 1112 20z"/></svg>
@@ -2862,54 +3045,54 @@ function openDrawer(p){
           </a>
           <a class="btn btn-primary" href="tel:+221778494111">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.7a2 2 0 01-.5 2.1L8 9.7a16 16 0 006.3 6.3l1.2-1.2a2 2 0 012.1-.5c.9.3 1.8.5 2.7.6a2 2 0 011.7 2z"/></svg>
-            Appeler
+            ${t('Appeler')}
           </a>
         </div>
         <button type="button" class="btn" id="shareBtn" style="width:100%;justify-content:center;margin-top:8px;background:#fff;border:1.5px solid var(--border);color:var(--ink);">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg>
-          <span id="shareBtnLabel">Partager ce bien</span>
+          <span id="shareBtnLabel">${t('Partager ce bien')}</span>
         </button>
         ${ficheUrl(p) ? `
         <a class="btn" href="${esc(ficheUrl(p))}" style="width:100%;justify-content:center;margin-top:8px;background:transparent;border:1.5px solid var(--border);color:var(--ink-soft);font-weight:600;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3h7v7"/><path d="M10 14L21 3"/><path d="M21 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h5"/></svg>
-          Ouvrir la fiche imprimable
+          ${state.lang==='en'?'Open printable sheet':'Ouvrir la fiche imprimable'}
         </a>` : ''}
       </div>
 
       <div class="subform-tabs">
-        <button type="button" class="subform-tab active" data-tab="message">Envoyer un message</button>
-        <button type="button" class="subform-tab" data-tab="rdv">Prendre rendez-vous</button>
+        <button type="button" class="subform-tab active" data-tab="message">${state.lang==='en'?'Send a message':'Envoyer un message'}</button>
+        <button type="button" class="subform-tab" data-tab="rdv">${state.lang==='en'?'Book a visit':'Prendre rendez-vous'}</button>
       </div>
       <div class="subform-panel" id="panel-message">
-        <label class="sf-label" for="msg_name">Nom</label>
-        <input class="sf-input" id="msg_name" placeholder="Votre nom"/>
-        <label class="sf-label" for="msg_contact">Téléphone ou email</label>
-        <input class="sf-input" id="msg_contact" placeholder="Pour vous répondre"/>
-        <label class="sf-label" for="msg_text">Message</label>
-        <textarea class="sf-textarea" id="msg_text" placeholder="Votre question sur ce bien…"></textarea>
+        <label class="sf-label" for="msg_name">${state.lang==='en'?'Name':'Nom'}</label>
+        <input class="sf-input" id="msg_name" placeholder="${state.lang==='en'?'Your name':'Votre nom'}"/>
+        <label class="sf-label" for="msg_contact">${state.lang==='en'?'Phone or email':'Téléphone ou email'}</label>
+        <input class="sf-input" id="msg_contact" placeholder="${state.lang==='en'?'So we can reply':'Pour vous répondre'}"/>
+        <label class="sf-label" for="msg_text">${state.lang==='en'?'Message':'Message'}</label>
+        <textarea class="sf-textarea" id="msg_text" placeholder="${state.lang==='en'?'Your question about this property…':'Votre question sur ce bien…'}"></textarea>
         <div class="hp-field" aria-hidden="true"><label for="msg_website">Site web</label><input type="text" id="msg_website" name="website" tabindex="-1" autocomplete="off"/></div>
-        <button class="btn btn-primary sf-submit" id="msgSubmitBtn">Envoyer le message</button>
+        <button class="btn btn-primary sf-submit" id="msgSubmitBtn">${state.lang==='en'?'Send message':'Envoyer le message'}</button>
         <p class="sf-error" id="msgError"></p>
       </div>
       <div class="subform-panel hidden" id="panel-rdv">
-        <label class="sf-label" for="rdv_name">Nom</label>
-        <input class="sf-input" id="rdv_name" placeholder="Votre nom"/>
-        <label class="sf-label" for="rdv_contact">Téléphone ou email</label>
-        <input class="sf-input" id="rdv_contact" placeholder="Pour vous confirmer le RDV"/>
+        <label class="sf-label" for="rdv_name">${state.lang==='en'?'Name':'Nom'}</label>
+        <input class="sf-input" id="rdv_name" placeholder="${state.lang==='en'?'Your name':'Votre nom'}"/>
+        <label class="sf-label" for="rdv_contact">${state.lang==='en'?'Phone or email':'Téléphone ou email'}</label>
+        <input class="sf-input" id="rdv_contact" placeholder="${state.lang==='en'?'To confirm the appointment':'Pour vous confirmer le RDV'}"/>
         <div class="sf-row2">
-          <div><label class="sf-label" for="rdv_date">Date souhaitée</label><input class="sf-input" id="rdv_date" type="date" style="margin-bottom:0;"/></div>
-          <div><label class="sf-label" for="rdv_time">Créneau</label>
+          <div><label class="sf-label" for="rdv_date">${state.lang==='en'?'Preferred date':'Date souhaitée'}</label><input class="sf-input" id="rdv_date" type="date" style="margin-bottom:0;"/></div>
+          <div><label class="sf-label" for="rdv_time">${state.lang==='en'?'Time slot':'Créneau'}</label>
             <select class="sf-select" id="rdv_time" style="margin-bottom:0;">
-              <option value="Matin">Matin</option>
-              <option value="Après-midi">Après-midi</option>
-              <option value="Soir">Soir</option>
+              <option value="Matin">${state.lang==='en'?'Morning':'Matin'}</option>
+              <option value="Après-midi">${state.lang==='en'?'Afternoon':'Après-midi'}</option>
+              <option value="Soir">${state.lang==='en'?'Evening':'Soir'}</option>
             </select>
           </div>
         </div>
         <div class="hp-field" aria-hidden="true"><label for="rdv_website">Site web</label><input type="text" id="rdv_website" name="website" tabindex="-1" autocomplete="off"/></div>
-        <label class="sf-label" style="margin-top:8px;" for="rdv_message">Message (optionnel)</label>
-        <textarea class="sf-textarea" id="rdv_message" placeholder="Précisions utiles pour la visite…"></textarea>
-        <button class="btn btn-primary sf-submit" id="rdvSubmitBtn">Demander ce rendez-vous</button>
+        <label class="sf-label" style="margin-top:8px;" for="rdv_message">${state.lang==='en'?'Message (optional)':'Message (optionnel)'}</label>
+        <textarea class="sf-textarea" id="rdv_message" placeholder="${state.lang==='en'?'Useful details for the visit…':'Précisions utiles pour la visite…'}"></textarea>
+        <button class="btn btn-primary sf-submit" id="rdvSubmitBtn">${state.lang==='en'?'Request this appointment':'Demander ce rendez-vous'}</button>
         <p class="sf-error" id="rdvError"></p>
       </div>
     </div>`;
@@ -2922,7 +3105,7 @@ function openDrawer(p){
     const fb = document.getElementById('drawerFavBtn');
     fb.classList.toggle('active', isFav(p.id));
     fb.setAttribute('aria-pressed', String(isFav(p.id)));
-    fb.setAttribute('aria-label', isFav(p.id) ? 'Retirer des favoris' : 'Ajouter aux favoris');
+    fb.setAttribute('aria-label', isFav(p.id) ? t('Retirer des favoris') : t('Ajouter aux favoris'));
     fb.innerHTML = favIconSvg(isFav(p.id));
     renderList();
     renderFeatured();
@@ -2941,24 +3124,24 @@ function openDrawer(p){
     // Piège anti-bot : un humain ne remplit jamais ce champ invisible.
     // On simule un succès sans rien enregistrer, pour ne pas indiquer au robot qu'il a été repéré.
     if(document.getElementById('msg_website').value.trim()){
-      document.getElementById('panel-message').innerHTML = '<p class="sf-success">Message envoyé ! On vous recontacte rapidement.</p>';
+      document.getElementById('panel-message').innerHTML = `<p class="sf-success">${state.lang==='en'?'Message sent! We’ll get back to you shortly.':'Message envoyé ! On vous recontacte rapidement.'}</p>`;
       return;
     }
     const name = document.getElementById('msg_name').value.trim();
     const contact = document.getElementById('msg_contact').value.trim();
     const message = document.getElementById('msg_text').value.trim();
     const errEl = document.getElementById('msgError');
-    if(!name || !contact || !message){ errEl.textContent = 'Merci de remplir tous les champs.'; return; }
+    if(!name || !contact || !message){ errEl.textContent = state.lang==='en'?'Please fill in all fields.':'Merci de remplir tous les champs.'; return; }
     errEl.textContent = '';
     const btn = document.getElementById('msgSubmitBtn');
-    btn.disabled = true; btn.textContent = 'Envoi…';
+    btn.disabled = true; btn.textContent = state.lang==='en'?'Sending…':'Envoi…';
     const { error } = await db.from('contact_messages').insert({ property_id: p.id, name, contact, message, is_read: false });
-    if(error){ errEl.textContent = messageErreurEnvoi(error, "Échec de l'envoi :"); btn.disabled = false; btn.textContent = 'Envoyer le message'; return; }
-    document.getElementById('panel-message').innerHTML = '<p class="sf-success">Message envoyé ! On vous recontacte rapidement.</p>';
+    if(error){ errEl.textContent = messageErreurEnvoi(error, state.lang==='en'?'Send failed:':"Échec de l'envoi :"); btn.disabled = false; btn.textContent = state.lang==='en'?'Send message':'Envoyer le message'; return; }
+    document.getElementById('panel-message').innerHTML = `<p class="sf-success">${state.lang==='en'?'Message sent! We’ll get back to you shortly.':'Message envoyé ! On vous recontacte rapidement.'}</p>`;
   };
   document.getElementById('rdvSubmitBtn').onclick = async () => {
     if(document.getElementById('rdv_website').value.trim()){
-      document.getElementById('panel-rdv').innerHTML = '<p class="sf-success">Demande envoyée ! On vous confirme le créneau rapidement.</p>';
+      document.getElementById('panel-rdv').innerHTML = `<p class="sf-success">${state.lang==='en'?'Request sent! We’ll confirm the time slot shortly.':'Demande envoyée ! On vous confirme le créneau rapidement.'}</p>`;
       return;
     }
     const name = document.getElementById('rdv_name').value.trim();
@@ -2967,13 +3150,13 @@ function openDrawer(p){
     const time = document.getElementById('rdv_time').value;
     const message = document.getElementById('rdv_message').value.trim();
     const errEl = document.getElementById('rdvError');
-    if(!name || !contact || !date){ errEl.textContent = 'Merci de remplir au moins le nom, le contact et la date.'; return; }
+    if(!name || !contact || !date){ errEl.textContent = state.lang==='en'?'Please fill in at least the name, contact and date.':'Merci de remplir au moins le nom, le contact et la date.'; return; }
     errEl.textContent = '';
     const btn = document.getElementById('rdvSubmitBtn');
-    btn.disabled = true; btn.textContent = 'Envoi…';
+    btn.disabled = true; btn.textContent = state.lang==='en'?'Sending…':'Envoi…';
     const { error } = await db.from('appointments').insert({ property_id: p.id, name, contact, preferred_date: date, preferred_time: time, message: message || null, status: 'En attente' });
-    if(error){ errEl.textContent = messageErreurEnvoi(error, "Échec de l'envoi :"); btn.disabled = false; btn.textContent = 'Demander ce rendez-vous'; return; }
-    document.getElementById('panel-rdv').innerHTML = '<p class="sf-success">Demande envoyée ! On vous confirme le créneau rapidement.</p>';
+    if(error){ errEl.textContent = messageErreurEnvoi(error, state.lang==='en'?'Send failed:':"Échec de l'envoi :"); btn.disabled = false; btn.textContent = state.lang==='en'?'Request this appointment':'Demander ce rendez-vous'; return; }
+    document.getElementById('panel-rdv').innerHTML = `<p class="sf-success">${state.lang==='en'?'Request sent! We’ll confirm the time slot shortly.':'Demande envoyée ! On vous confirme le créneau rapidement.'}</p>`;
   };
   const tiroir = document.getElementById('drawer');
   tiroir.classList.add('open');
@@ -2991,6 +3174,30 @@ function openDrawer(p){
     url.searchParams.set('bien', p.ref);
     history.pushState({ ref: p.ref }, '', url);
   }
+  // Pas de traduireDans() ici : le tiroir traduit déjà chaque libellé en le
+  // composant (voir t() ci-dessus). Un second passage de remplacement par
+  // phrase provoquerait une double traduction sur un texte déjà en anglais
+  // qui coïncide avec une clé française existante — rencontré ici même avec
+  // « Localisation » → « Location » → « Rental » (« Location » étant aussi
+  // le mot français pour une location).
+  demanderDescriptionAnglaise(p);
+}
+
+// Traduction de la description : à la volée au premier visiteur anglophone
+// qui ouvre CE bien, puis mise en cache côté serveur (voir la fonction Edge
+// traduire-description) pour tous les suivants. Le français reste affiché
+// pendant l'appel — jamais de blanc, jamais un « chargement » qui bloque.
+async function demanderDescriptionAnglaise(p){
+  if(state.lang !== 'en' || p.descriptionEn || !p.desc || !p.desc.trim()) return;
+  const { data, error } = await db.functions.invoke('traduire-description', { body: { ref: p.ref } });
+  // Si la personne a changé de bien ou repassé en français entre-temps, cette
+  // traduction ne concerne plus ce qui est affiché : on la garde en mémoire
+  // pour la prochaine fois (elle est bien assignée à p, l'objet du catalogue)
+  // mais on ne touche pas au tiroir.
+  if(error || !data || !data.description_en) return;
+  p.descriptionEn = data.description_en;
+  const desc = document.getElementById('drawerDesc');
+  if(desc && state.selected === p.id && state.lang === 'en') desc.textContent = data.description_en;
 }
 // Élément qui avait le focus avant l'ouverture du tiroir. On l'y ramène à la
 // fermeture : sinon le focus repart en haut de page et il faut retraverser
@@ -3359,6 +3566,12 @@ function toggleFavOnly(){
   render();
 }
 document.getElementById('headerFavBtn').onclick = toggleFavOnly;
+
+document.getElementById('langToggleBtn').onclick = () => definirLangue(state.lang === 'en' ? 'fr' : 'en');
+// Applique tout de suite le libellé du bouton et traduit le HTML statique
+// déjà présent (en-tête, recherche avancée, pied de page…) si la langue
+// mémorisée est l'anglais — sans attendre un premier clic.
+if(state.lang === 'en') definirLangue('en');
 
 // Même logique pour l'alerte : le bandeau et l'icône d'en-tête ouvrent et
 // referment le même formulaire, quel que soit celui qui a été actionné.
@@ -3859,7 +4072,7 @@ document.querySelectorAll('#viewToggle button').forEach(b=>{
       rot.classList.add('swap-out');
       setTimeout(function(){
         pi = (pi + 1) % phrases.length;
-        rot.textContent = phrases[pi];
+        rot.textContent = t(phrases[pi]);
         rot.classList.remove('swap-out');
       }, 400);
     }, 3200);
@@ -3867,9 +4080,16 @@ document.querySelectorAll('#viewToggle button').forEach(b=>{
 
   // Champ de recherche : des exemples s'écrivent puis s'effacent, pour animer
   // et suggérer quoi chercher. S'arrête dès que le visiteur clique dedans.
+  // La liste dépend de la langue courante AU DÉMARRAGE de l'animation : elle
+  // ne bascule pas en cours de frappe si la langue change pendant qu'elle
+  // tourne, un cas assez rare pour ne pas justifier de la relancer.
   var search = document.getElementById('search');
   if(search){
-    var ex = ['Appartement à Mermoz…', 'Terrain à Thiès…', '3 chambres…', 'À louer à Dakar…', 'Studio…', 'Champ agricole…'];
+    var exemplesParLangue = {
+      fr: ['Appartement à Mermoz…', 'Terrain à Thiès…', '3 chambres…', 'À louer à Dakar…', 'Studio…', 'Champ agricole…'],
+      en: ['Apartment in Mermoz…', 'Land in Thiès…', '3 bedrooms…', 'For rent in Dakar…', 'Studio…', 'Farmland…']
+    };
+    var ex = exemplesParLangue[(typeof state !== 'undefined' && state.lang === 'en') ? 'en' : 'fr'];
     var ei = 0, ci = 0, del = false, on = true, tmr;
     function tw(){
       if(!on) return;
@@ -3880,7 +4100,7 @@ document.querySelectorAll('#viewToggle button').forEach(b=>{
       else if(del && ci <= 0){ del = false; ei = (ei + 1) % ex.length; tmr = setTimeout(tw, 280); }
       else tmr = setTimeout(tw, del ? 45 : 82);
     }
-    function stopTw(){ on = false; clearTimeout(tmr); search.setAttribute('placeholder', 'Rechercher : type, lieu, prix, réf…'); }
+    function stopTw(){ on = false; clearTimeout(tmr); search.setAttribute('placeholder', t('Rechercher : type, lieu, prix, réf…')); }
     search.addEventListener('focus', stopTw, {once:true});
     search.addEventListener('input', stopTw, {once:true});
     tmr = setTimeout(tw, 900);

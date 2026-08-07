@@ -374,8 +374,19 @@ document.addEventListener('keydown', e => {
 // ---- Pagination de liste ---------------------------------------------------
 // state.page et PER_PAGE appartiennent à chaque page : la vitrine pagine par
 // 20 (deux annonces par ligne), le portefeuille par 10 (une par ligne).
-function pagerHtml(total, totalPages, start, shown, libelle){
+function pagerHtml(total, totalPages, start, shown, libelle, lang){
   if(totalPages <= 1) return '';
+  // lang est optionnel et ne change rien pour l'espace de gestion (qui ne le
+  // passe jamais) : seule la vitrine, qui connaît la langue courante, le
+  // fournit pour basculer ce libellé en anglais.
+  if(lang === 'en'){
+    return `
+    <nav class="list-pager" aria-label="${esc(libelle || 'Pagination')}">
+      <button type="button" class="pager-btn" data-page-step="-1" ${state.page===1?'disabled':''}>‹ Previous</button>
+      <span class="pager-status">Page ${state.page} of ${totalPages}<small>${start+1}–${start+shown} of ${total} properties</small></span>
+      <button type="button" class="pager-btn" data-page-step="1" ${state.page===totalPages?'disabled':''}>Next ›</button>
+    </nav>`;
+  }
   return `
     <nav class="list-pager" aria-label="${esc(libelle || 'Pagination')}">
       <button type="button" class="pager-btn" data-page-step="-1" ${state.page===1?'disabled':''}>‹ Précédent</button>
