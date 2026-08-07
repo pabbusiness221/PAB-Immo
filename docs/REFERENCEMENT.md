@@ -1,6 +1,6 @@
 # Référencement — PAB Immo
 
-Dernière mise à jour : **25 juillet 2026**
+Dernière mise à jour : **7 août 2026**
 
 ---
 
@@ -52,6 +52,23 @@ un bien dépublié ne laisse pas de page fantôme derrière lui.
 > En pratique vous n'avez rien à lancer : l'action GitHub le fait **toutes les
 > 15 minutes** (voir [MISE-EN-LIGNE.md](MISE-EN-LIGNE.md)). Ce rappel manuel ne
 > sert qu'en dépannage.
+
+---
+
+## 1 bis. Les guides, en français et en anglais
+
+`outils/generer-pages.py` publie aussi des **articles de fond** (ex. : le
+statut foncier d'un terrain), sous `guides/` en français et `guides/en/` en
+anglais — deux pages distinctes, pas une traduction automatique à la volée
+comme pour les descriptions de biens (voir le futur [GUIDE-UTILISATION.md](GUIDE-UTILISATION.md)).
+
+Chaque paire de pages porte une balise `hreflang` qui dit à Google « ceci est
+la version anglaise de cette page française, et inversement » — sans elle,
+Google pourrait proposer la mauvaise langue à un visiteur, ou traiter les deux
+pages comme un contenu dupliqué plutôt que comme deux versions d'un même
+article. L'index `guides/index.html` (et son équivalent `guides/en/index.html`)
+suit la même logique de maillage que `bien/index.html` : une page en HTML pur
+qui pointe vers tous les articles, pour que rien ne soit un cul-de-sac.
 
 ---
 

@@ -1,6 +1,6 @@
 # Brancher un nom de domaine
 
-Dernière mise à jour : **25 juillet 2026**
+Dernière mise à jour : **7 août 2026**
 
 ---
 
@@ -113,6 +113,11 @@ ne les liraient pas autrement :
 
 Demandez-la-moi : c'est un seul commit, et je vérifie derrière que rien ne
 pointe plus vers l'ancienne adresse.
+
+> Les **pages de guides** (`guides/…` et `guides/en/…`) n'ont rien à toucher à
+> la main : leurs adresses, y compris les liens `hreflang` entre versions
+> française et anglaise, sont déjà calculées à partir de la même variable
+> `SITE` et se réécrivent d'elles-mêmes au prochain passage du script.
 
 ---
 

@@ -50,6 +50,7 @@ select * from site_visits;
 select * from property_views;
 select * from favorite_events;
 select * from activity_logs;
+select * from seller_estimates;       -- DONNÉES PERSONNELLES (estimation vendeurs)
 ```
 
 Ranger les fichiers dans un dossier daté, **hors du dépôt** : `sauvegardes/2026-07-21/`.
@@ -155,10 +156,18 @@ Une sauvegarde jamais restaurée n'est pas une sauvegarde. Le test se fait sur u
 > 2026) ajoute une table, une vue, quatre fonctions, trois déclencheurs, deux
 > index et quatre politiques. Les **avis clients** (25 juillet) ajoutent la table
 > `reviews`, la vue `public_reviews`, la vue `public_stats`, deux déclencheurs
-> (limite anti-spam + horodatage de modération) et leurs politiques. L'ensemble a
-> été vérifié syntaxiquement hors ligne (pglast), mais **n'a pas été rejoué sur
-> une base vierge**. Le tableau ci-dessus reste le constat du 21 juillet, il n'a
-> pas été réécrit après coup.
+> (limite anti-spam + horodatage de modération) et leurs politiques.
+> **L'estimation vendeurs** (7 août) ajoute la table `seller_estimates`, la
+> fonction `estimer_bien()`, deux déclencheurs (limite anti-spam + rattachement
+> au prospect, réutilisés tels quels depuis le pipeline existant) et étend la
+> vue `leads_enrichis`. **La description anglaise** (7 août) ajoute la colonne
+> `description_en` sur `properties`. Le pipeline de prospects et les avis
+> clients ont été vérifiés syntaxiquement hors ligne (pglast) ; l'estimation
+> vendeurs et la description anglaise ont, elles, été jouées directement sur le
+> projet Supabase de production lors de leur mise au point — une exécution
+> réelle, pas seulement une analyse de syntaxe. Aucun de ces ajouts n'a en
+> revanche été **rejoué sur une base vierge** : le tableau ci-dessus reste le
+> constat du 21 juillet, il n'a pas été réécrit après coup.
 
 **Un défaut réel a été trouvé et corrigé grâce à ce test** : la colonne `location`
 était transcrite en `default (st_setsrid(...))` alors qu'il s'agit d'une colonne

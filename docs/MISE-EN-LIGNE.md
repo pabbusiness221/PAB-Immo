@@ -1,6 +1,6 @@
 # Mise en ligne — procédure
 
-Dernière mise à jour : **25 juillet 2026**
+Dernière mise à jour : **7 août 2026**
 
 Le site est actuellement **en maintenance**. Ce document décrit la bascule vers
 le site public, dans l'ordre. Il existe parce que la bascule touche cinq
@@ -30,6 +30,14 @@ le reste au nettoyage.
 > projet **Supabase en plan Pro** (le gratuit se met en pause et plafonne le
 > trafic) et **vérifier le domaine d'envoi chez Resend** pour des e-mails d'alerte
 > fiables. Voir aussi [NOM-DE-DOMAINE.md](NOM-DE-DOMAINE.md).
+
+> **Prérequis IA** : les fonctions Edge `generer-description` (rédaction
+> assistée, admin) et `traduire-description` (traduction anglaise à la volée,
+> vitrine) ont besoin du secret **`GROQ_API_KEY`** (clé gratuite sur
+> [console.groq.com](https://console.groq.com)), à configurer dans
+> `Project Settings → Edge Functions → Secrets` sur Supabase. Sans lui, ces deux
+> fonctions répondent une erreur claire plutôt qu'un texte — rien de cassé côté
+> visiteur, mais les descriptions ne se génèrent ni ne se traduisent plus.
 
 ---
 

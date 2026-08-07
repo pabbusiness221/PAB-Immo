@@ -1,6 +1,6 @@
 # Guide d'utilisation — PAB Immo
 
-Dernière mise à jour : **25 juillet 2026**
+Dernière mise à jour : **7 août 2026**
 
 Ce guide explique comment faire fonctionner le site au quotidien. Il s'adresse à
 vous, sans supposer de connaissances techniques. Les sujets purement techniques
@@ -92,11 +92,28 @@ Cliquez sur **Ajouter un bien** (le bouton doré). Remplissez :
 - **Latitude / Longitude** : la position sur la carte. Indispensable pour que le
   bien apparaisse au bon endroit.
 - **Superficie** : en m², ou en **hectares** pour un champ agricole.
+- **Statut foncier** : Titre foncier, Bail, Délibération, ou Non renseigné.
+  Affiché comme badge sur la vitrine (voir §5) et utilisable comme filtre par
+  vos visiteurs — à remplir dès que vous le connaissez.
+- **Meublé** (biens habitables) : Meublé ou Non meublé. Avec, si utile,
+  **charges** (FCFA/mois) et **caution** (FCFA) — deux critères que vos clients
+  demandent systématiquement en location, autant les afficher tout de suite.
+- **Étage** et **année de construction** pour un appartement ou une maison.
+- **Disponible à partir du** (optionnel) : une date future si le bien n'est pas
+  libre immédiatement.
 - **Prix**, **Description**, et les **pièces** (chambres, salons, etc.) pour les
   biens habitables.
 
 Une **référence** (ex. `TF-2026-1234`) est attribuée automatiquement, avec un
 préfixe par type : TF terrain, MA maison, AP appartement, ST studio, CH champ.
+
+### Rédiger la description avec l'IA
+
+À côté du champ **Description**, le bouton **« Générer avec l'IA »** rédige un
+texte de présentation à partir des informations déjà saisies (type, commune,
+surface, pièces, prix…). Il reste à relire et ajuster : le texte proposé est un
+point de départ, pas un texte définitif à publier tel quel. Vous gardez la main
+— rien n'est publié sans votre validation via le bouton Enregistrer.
 
 ### Les photos
 
@@ -121,18 +138,21 @@ publié reste visible pour vous seul, le temps de le compléter.
 
 ## 5. Les badges de confiance
 
-Trois badges peuvent apparaître sur une annonce, côté vitrine. Ils se règlent
-dans la fiche du bien, section **Confiance**.
+Quatre badges peuvent apparaître sur une annonce, côté vitrine.
 
 | Badge | Ce qu'il dit | Qui le pose |
 |---|---|---|
-| **Annonce vérifiée** | Documents et existence du bien contrôlés | L'admin seul |
-| **Disponibilité** | Le bien est toujours disponible, confirmé récemment | Vous, bouton *Confirmer* |
+| **Annonce vérifiée** | Documents et existence du bien contrôlés | L'admin seul, section **Confiance** de la fiche |
+| **Disponibilité** | Le bien est toujours disponible, confirmé récemment | Vous, bouton *Confirmer*, section **Confiance** |
 | **Agence vérifiée** | Publié par une agence certifiée | Via l'écran Agences |
+| **Statut foncier** (ex. « Titre foncier ») | Le statut juridique déclaré par l'agence | Automatique dès que le champ **Statut foncier** (§4) est renseigné |
 
 La **disponibilité** est datée : au-delà d'un mois sans confirmation, le badge
 disparaît de lui-même plutôt que d'afficher une date périmée. Pensez à cliquer
 *Confirmer* de temps en temps sur vos biens actifs.
+
+Le badge **Statut foncier** n'a pas de case à cocher séparée : il apparaît tout
+seul dès que ce champ n'est pas laissé à « Non renseigné ».
 
 ---
 
@@ -176,6 +196,13 @@ Faites avancer chaque prospect à la main, au fil de vos échanges. L'écran ind
 depuis combien de jours chacun n'a pas donné signe de vie, pour savoir qui
 relancer. Le **taux de conversion** en haut se calcule sur les dossiers tranchés
 (conclus + perdus), pas sur le total — il ne chute pas à chaque nouveau contact.
+
+> **Les prospects « Vendeur »** apparaissent dans la même liste. Ce sont des
+> personnes qui ont utilisé l'estimation indicative de la vitrine (§11) puis
+> laissé leur contact — elles n'ont donc **pas encore de bien au catalogue**.
+> La fiche affiche « Vendeur » suivi du type de bien, de la commune et de la
+> surface qu'elles ont indiqués, pour que vous sachiez de quoi leur parler au
+> premier appel.
 
 ### Modérer les avis clients
 
@@ -264,6 +291,10 @@ Pour vous mettre à leur place, ouvrez la vitrine par le bouton **Vitrine**.
 - **Liste et carte** : chaque bien apparaît des deux côtés. La carte propose un
   bouton **Plan / Satellite** (vue aérienne) en haut à droite.
 - **Favoris** : le visiteur peut marquer des biens (gardés sur son appareil).
+- **Comparateur** : en sélectionnant plusieurs biens dans la liste, une barre
+  apparaît en bas d'écran avec un bouton **Comparer**, qui ouvre un tableau
+  côte à côte (prix, surface, statut foncier, pièces…). Pratique pour un
+  visiteur qui hésite entre plusieurs annonces.
 - **Fiche d'un bien** : photos, caractéristiques, carte (Plan / Satellite), et
   boutons **WhatsApp** et **Appeler**, plus un formulaire de message et de
   rendez-vous.
@@ -271,10 +302,46 @@ Pour vous mettre à leur place, ouvrez la vitrine par le bouton **Vitrine**.
   Ils n'apparaissent qu'après votre validation (voir §7, *Modérer les avis*).
 - **Partage** : le bouton *Partager* envoie un lien qui, sur WhatsApp ou
   Facebook, affiche la photo et le prix du bien.
+- **Estimation indicative (« Obtenez une estimation »)** : un vendeur potentiel
+  indique le type de bien, la commune et la surface ; le site calcule une
+  fourchette de prix à partir de vos propres biens comparables déjà en base,
+  et l'affiche avec un avertissement explicite (« indicative, non
+  contractuelle »). S'il laisse ensuite son contact, il devient un prospect
+  **Vendeur** dans votre pipeline (voir §7). C'est un deuxième point d'entrée,
+  pour les personnes qui veulent vendre ou louer plutôt qu'acheter.
 - **Devenir collaborateur** : en bas de page, le formulaire par lequel les
   agences vous postulent (voir §8).
 - **Bas de page** : réseaux sociaux, coordonnées, et les pages **Mentions
   légales** et **Politique de confidentialité**.
+
+---
+
+## 11 bis. Le site en anglais, et les guides
+
+### Le bouton FR / EN
+
+En haut de la vitrine, un bouton bascule toute l'interface entre **français**
+et **anglais** : recherche, fiches, catégories, formulaires. Le choix du
+visiteur est mémorisé sur son appareil.
+
+- Les **descriptions de biens** sont rédigées par vous en français, jamais à
+  retraduire à la main : la première fois qu'un visiteur consulte un bien en
+  anglais, le site traduit sa description automatiquement, puis **garde la
+  traduction en mémoire** pour tous les visiteurs suivants — un seul appel à
+  l'IA par bien, jamais un par visite.
+- **Si vous modifiez la description française** d'un bien depuis le
+  portefeuille, l'ancienne traduction anglaise est effacée automatiquement :
+  le prochain visiteur anglophone en déclenchera une nouvelle, à jour. Vous
+  n'avez rien à faire de votre côté.
+
+### Les guides
+
+Le lien **Guides & conseils** en pied de page mène à des articles pratiques
+(ex. : comprendre le statut foncier d'un terrain). Contrairement aux
+descriptions de biens, ces articles ne sont **pas traduits automatiquement** :
+chaque version, française et anglaise, est rédigée à part pour rester précise
+sur des sujets juridiques. Elles vivent à des adresses séparées
+(`guides/…` et `guides/en/…`), chacune indexable par Google dans sa langue.
 
 ---
 
@@ -302,6 +369,8 @@ dans [SAUVEGARDES.md](SAUVEGARDES.md). À faire régulièrement une fois en lign
 | Un bien n'apparaît pas sur la carte | Vérifiez sa latitude et sa longitude. |
 | Un collaborateur ne voit pas un bien | Normal s'il n'en est pas le propriétaire : chacun ne voit que les siens. |
 | La vitrine affiche « site en travaux » | Le site est en maintenance. Pour le publier : [MISE-EN-LIGNE.md](MISE-EN-LIGNE.md). |
+| La description en anglais met du temps à s'afficher la première fois | Normal : elle est traduite à la demande, au premier visiteur anglophone. Les suivants l'obtiennent instantanément (mise en cache). |
+| Le bouton FR/EN reste bloqué sur une langue | Videz le cache du navigateur (Ctrl+F5) et réessayez ; si le problème persiste, signalez-le-moi avec une capture d'écran. |
 
 ---
 
