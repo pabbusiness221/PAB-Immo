@@ -427,6 +427,16 @@ def page_bien(b, photos, voisins=(), publiee=None):
     if b.get("salons"):      caracs.append(("Salons", b["salons"]))
     if b.get("salles_bain"): caracs.append(("Salles de bain", b["salles_bain"]))
     if b.get("cuisine"):     caracs.append(("Cuisine", b["cuisine"]))
+    if b.get("etage"):       caracs.append(("Étage", b["etage"]))
+    if b.get("annee_construction"): caracs.append(("Année de construction", b["annee_construction"]))
+    if b.get("meuble") is not None: caracs.append(("Meublé", "Oui" if b["meuble"] else "Non"))
+    if b.get("charges"):     caracs.append(("Charges", fcfa(b["charges"]) + "/mois"))
+    if b.get("caution"):     caracs.append(("Caution", fcfa(b["caution"])))
+
+    # Distinct du statut Disponible/Réservé : ceci dit à partir de quand un
+    # locataire peut effectivement emménager. Inutile de l'afficher si la
+    # date est déjà passée — le bien est alors simplement disponible.
+    disponible_futur = bool(b.get("date_disponibilite")) and b["date_disponibilite"] > date.today().isoformat()
 
     galerie = "".join(
         f'''
@@ -539,6 +549,8 @@ def page_bien(b, photos, voisins=(), publiee=None):
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;">
     <p class="etat" style="margin:0;background:{'rgba(47,122,78,.12);color:#2F7A4E' if b["status"] == "Disponible" else 'rgba(226,162,44,.15);color:#8F6414'}">{esc(b["status"])}</p>
     {f'<p class="etat" style="margin:0;background:rgba(37,99,235,.12);color:#2854A6;">{esc(b["statut_foncier"])}</p>' if b.get("statut_foncier") and b["statut_foncier"] != "Non renseigné" else ''}
+    {f'<p class="etat" style="margin:0;background:rgba(107,70,193,.12);color:#6B46C1;">{"Meublé" if b["meuble"] else "Non meublé"}</p>' if b.get("meuble") is not None else ''}
+    {f'<p class="etat" style="margin:0;background:rgba(180,83,9,.12);color:#B45309;">Disponible à partir du {esc(b["date_disponibilite"])}</p>' if disponible_futur else ''}
   </div>
 
   {'<h2>Photos</h2>' + galerie if photos else ''}

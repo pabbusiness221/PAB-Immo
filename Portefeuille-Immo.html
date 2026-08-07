@@ -692,6 +692,12 @@ function mapRow(r){
     availability_checked_at: r.availability_checked_at || null,
     sponsored_until: r.sponsored_until || null,
     statut_foncier: r.statut_foncier || 'Non renseigné',
+    meuble: r.meuble,
+    charges: r.charges != null ? Number(r.charges) : null,
+    caution: r.caution != null ? Number(r.caution) : null,
+    etage: r.etage || '',
+    annee_construction: r.annee_construction || null,
+    date_disponibilite: r.date_disponibilite || '',
     photos: r.property_photos || [],
     rooms: (r.chambres != null || (r.equipements && r.equipements.length)) ? { chambres:r.chambres, salons:r.salons, sdb:r.salles_bain, cuisine:r.cuisine, autres:r.equipements || [] } : null
   };
@@ -1320,10 +1326,51 @@ function renderRoomsSection(existingRooms){
           <option value="Simple" ${r.cuisine==='Simple'?'selected':''}>Simple</option>
         </select>
       </div>
+      ${(type === 'Appartement' || type === 'Studio') ? `
+      <div class="form-field"><label class="form-label">Étage</label><input class="form-input" id="f_etage" placeholder="RDC, 3e étage sur 5…" value="${esc(r.etage||'')}"/></div>` : ''}
+      <div class="form-field"><label class="form-label">Année de construction</label><input class="form-input" id="f_annee" type="number" min="1900" max="2100" value="${r.annee_construction??''}"/></div>
     </div>
     <div class="form-field full">
       <label class="form-label">Équipements ou Contenus (séparés par des virgules)</label>
       <input class="form-input" id="f_equip" value="${esc((r.autres||[]).join(', '))}" placeholder="Garage, Jardin clôturé"/>
+    </div>`;
+}
+
+// Meublé / charges / caution : des critères de décision de premier rang pour
+// un studio ou un appartement en location, absents jusqu'ici — leur absence
+// générait des appels qui n'auraient souvent servi qu'à les demander.
+// Section séparée de renderRoomsSection() : elle dépend de l'opération
+// (Vente/Location), pas seulement du type, et un changement d'opération ne
+// doit pas effacer les chambres/salons déjà saisis à côté.
+function renderLocationSection(p){
+  const el = document.getElementById('locationSection');
+  const type = document.getElementById('f_type').value;
+  const operation = document.getElementById('f_operation').value;
+  // Si la section existe déjà, on relit ce qui y est saisi plutôt que la
+  // valeur d'origine de p — sinon changer de type puis revenir en arrière
+  // effacerait silencieusement ce qui venait d'être tapé.
+  const dejaRendue = document.getElementById('f_meuble');
+  const meubleActuel = dejaRendue ? document.getElementById('f_meuble').value
+    : (p.meuble === true ? 'Meublé' : p.meuble === false ? 'Non meublé' : '');
+  const chargesActuel = dejaRendue ? document.getElementById('f_charges').value : (p.charges ?? '');
+  const cautionActuel = dejaRendue ? document.getElementById('f_caution').value : (p.caution ?? '');
+
+  if(operation !== 'Location' || type === 'Terrain' || type === 'Champ agricole'){
+    el.innerHTML = '';
+    return;
+  }
+  el.innerHTML = `
+    <div class="section-title">Conditions de location</div>
+    <div class="form-grid">
+      <div class="form-field"><label class="form-label">Meublé</label>
+        <select class="form-select" id="f_meuble">
+          <option value="">Non renseigné</option>
+          <option value="Meublé" ${meubleActuel==='Meublé'?'selected':''}>Meublé</option>
+          <option value="Non meublé" ${meubleActuel==='Non meublé'?'selected':''}>Non meublé</option>
+        </select>
+      </div>
+      <div class="form-field"><label class="form-label">Charges (FCFA/mois, optionnel)</label><input class="form-input" id="f_charges" type="number" min="0" value="${esc(String(chargesActuel))}"/></div>
+      <div class="form-field"><label class="form-label">Caution (FCFA, optionnel)</label><input class="form-input" id="f_caution" type="number" min="0" value="${esc(String(cautionActuel))}"/></div>
     </div>`;
 }
 
@@ -1639,6 +1686,7 @@ function openForm(existing){
         <div class="form-field"><label class="form-label">Longitude</label><input class="form-input" id="f_lng" type="number" step="any" value="${p.lng??''}"/></div>
         <div class="form-field"><label class="form-label" id="f_surfaceLabel">Superficie (${surfaceUnit(p.type)})</label><input class="form-input" id="f_surface" type="number" step="any" value="${p.surface??''}"/></div>
         <div class="form-field"><label class="form-label">Prix (FCFA)</label><input class="form-input" id="f_price" type="number" step="any" value="${p.price??''}"/></div>
+        <div class="form-field"><label class="form-label">Disponible à partir du (optionnel)</label><input class="form-input" id="f_date_dispo" type="date" value="${esc(p.date_disponibilite||'')}"/></div>
       </div>
 
       <div class="form-field full" style="margin-top:4px;">
@@ -1665,6 +1713,7 @@ function openForm(existing){
       </div>
 
       <div id="roomsSection"></div>
+      <div id="locationSection"></div>
 
       <div class="toggle-row">
         <input type="checkbox" id="f_published" ${p.is_published?'checked':''} />
@@ -1679,7 +1728,8 @@ function openForm(existing){
       <button class="btn btn-primary" id="formSave" style="width:100%;justify-content:center;margin-top:16px;">${isEdit ? 'Enregistrer les modifications' : 'Ajouter ce bien'}</button>
     </div>`;
 
-  renderRoomsSection(p.rooms);
+  renderRoomsSection(p.rooms ? { ...p.rooms, etage: p.etage, annee_construction: p.annee_construction } : { etage: p.etage, annee_construction: p.annee_construction });
+  renderLocationSection(p);
   renderPhotoGrid();
   initFormMap(parseFloat(p.lat), parseFloat(p.lng));
 
@@ -1702,9 +1752,11 @@ function openForm(existing){
   document.getElementById('f_operation').onchange = () => {
     const ops = STATUS_OPTIONS[document.getElementById('f_operation').value];
     document.getElementById('f_status').innerHTML = ops.map(s=>`<option value="${s}">${s}</option>`).join('');
+    renderLocationSection(p);
   };
   document.getElementById('f_type').onchange = () => {
     renderRoomsSection(null);
+    renderLocationSection(p);
     document.getElementById('f_surfaceLabel').textContent = `Superficie (${surfaceUnit(document.getElementById('f_type').value)})`;
     if(!existing){
       document.getElementById('f_ref').value = generatePropertyRef(document.getElementById('f_type').value);
@@ -1805,7 +1857,9 @@ async function saveProperty(existing){
     price: parseFloat(document.getElementById('f_price').value),
     description: document.getElementById('f_desc').value.trim() || null,
     is_published: document.getElementById('f_published').checked,
-    chambres: null, salons: null, salles_bain: null, cuisine: null, equipements: null
+    date_disponibilite: document.getElementById('f_date_dispo').value || null,
+    chambres: null, salons: null, salles_bain: null, cuisine: null, equipements: null,
+    etage: null, annee_construction: null, meuble: null, charges: null, caution: null
   };
   if(!existing){
     payload.date_acquisition = new Date().toISOString().slice(0, 10);
@@ -1824,11 +1878,23 @@ async function saveProperty(existing){
     payload.salons = salons ? parseInt(salons) : null;
     payload.salles_bain = sdb ? parseInt(sdb) : null;
     payload.cuisine = document.getElementById('f_cuisine').value;
+    const annee = document.getElementById('f_annee').value;
+    payload.annee_construction = annee ? parseInt(annee) : null;
+    const etageEl = document.getElementById('f_etage');
+    if(etageEl) payload.etage = etageEl.value.trim() || null;
   }
   const equipEl = document.getElementById('f_equip');
   if(equipEl){
     const equip = equipEl.value;
     payload.equipements = equip ? equip.split(',').map(e=>e.trim()).filter(Boolean) : null;
+  }
+  const meubleEl = document.getElementById('f_meuble');
+  if(meubleEl){
+    payload.meuble = meubleEl.value === 'Meublé' ? true : meubleEl.value === 'Non meublé' ? false : null;
+    const charges = document.getElementById('f_charges').value;
+    const caution = document.getElementById('f_caution').value;
+    payload.charges = charges ? parseFloat(charges) : null;
+    payload.caution = caution ? parseFloat(caution) : null;
   }
 
   const saveBtn = document.getElementById('formSave');

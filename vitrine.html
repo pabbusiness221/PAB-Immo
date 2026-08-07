@@ -1630,7 +1630,16 @@ function mapRow(r){
     // dépendre.
     sponsorisee: !!r.sponsorisee,
     created_at: r.created_at || '',
-    rooms: (r.chambres != null || (r.equipements && r.equipements.length)) ? { chambres:r.chambres, salons:r.salons, sdb:r.salles_bain, cuisine:r.cuisine, autres:r.equipements || [] } : null
+    rooms: (r.chambres != null || (r.equipements && r.equipements.length)) ? { chambres:r.chambres, salons:r.salons, sdb:r.salles_bain, cuisine:r.cuisine, autres:r.equipements || [] } : null,
+    // Meublé, charges et caution ne concernent que la location ; étage et
+    // année de construction ne concernent que les logements bâtis. Tous
+    // absents = non renseigné, jamais une valeur inventée.
+    meuble: r.meuble,
+    charges: r.charges != null ? Number(r.charges) : null,
+    caution: r.caution != null ? Number(r.caution) : null,
+    etage: r.etage || null,
+    anneeConstruction: r.annee_construction || null,
+    dateDisponibilite: r.date_disponibilite || null
   };
 }
 
@@ -1694,6 +1703,16 @@ function dispoLabel(p){
   if(j <= 0) return "aujourd'hui";
   if(j === 1) return 'hier';
   return `il y a ${j} jours`;
+}
+// Distinct de dispoFraiche/dispoLabel : ceci n'est pas la fraîcheur d'une
+// vérification, mais la date à partir de laquelle un locataire peut
+// effectivement emménager. Inutile de l'afficher si elle est déjà passée —
+// le bien est alors simplement disponible, ce que dit déjà son badge de statut.
+function emmenagementFutur(p){
+  return !!p.dateDisponibilite && p.dateDisponibilite > new Date().toISOString().slice(0,10);
+}
+function emmenagementLabel(p){
+  return new Date(p.dateDisponibilite + 'T00:00:00').toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' });
 }
 
 // Les photos sont stockées telles que téléversées : jusqu'à 2 Mo et
@@ -2667,12 +2686,22 @@ function openDrawer(p){
     <div class="drawer-content">
       <h2 id="drawerTitre" style="font-size:20px;margin:10px 0 2px;">${p.type} — ${esc(p.commune)}</h2>
       <div class="card-meta"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>${p.quartier ? esc(p.quartier)+', ' : ''}${esc(p.commune)}, région de ${esc(p.region)}</span></div>
-      ${(p.verified_at || p.availability_checked_at || p.agence_verifiee || p.statutFoncier) ? `
+      ${(p.verified_at || p.availability_checked_at || p.agence_verifiee || p.statutFoncier || p.meuble != null || emmenagementFutur(p)) ? `
       <div class="trust-panel">
         ${p.statutFoncier ? `
         <div class="trust-line">
           <span class="trust-ico ok"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 3v5h5M6 3h8l5 5v13a1 1 0 01-1 1H6a1 1 0 01-1-1V4a1 1 0 011-1z"/></svg></span>
           <div><strong>Statut foncier : ${esc(p.statutFoncier)}</strong><span>Statut juridique déclaré par l'agence</span></div>
+        </div>` : ''}
+        ${p.meuble != null ? `
+        <div class="trust-line">
+          <span class="trust-ico ok"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 7v11M21 7v11M3 11h18M6 11V8a2 2 0 012-2h8a2 2 0 012 2v3"/></svg></span>
+          <div><strong>${p.meuble ? 'Meublé' : 'Non meublé'}</strong></div>
+        </div>` : ''}
+        ${emmenagementFutur(p) ? `
+        <div class="trust-line">
+          <span class="trust-ico ok"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+          <div><strong>Disponible à partir du ${esc(emmenagementLabel(p))}</strong></div>
         </div>` : ''}
         ${p.agence_verifiee ? `
         <div class="trust-line">
@@ -2703,12 +2732,14 @@ function openDrawer(p){
       <div class="grid2">
         <div class="info-box"><div class="k">Superficie</div><div class="v mono">${p.surface} ${surfaceUnit(p.type)}</div></div>
         <div class="info-box"><div class="k">${p.operation}</div><div class="v mono" style="color:var(--gold)">${fcfa(p.price)}${p.operation==='Location'?'/mois':''}</div><div class="v-secondaire mono">${prixSecondaire(p.price)}${p.operation==='Location'?'/mois':''}</div></div>
+        ${p.charges != null ? `<div class="info-box"><div class="k">Charges</div><div class="v mono">${fcfa(p.charges)}/mois</div></div>` : ''}
+        ${p.caution != null ? `<div class="info-box"><div class="k">Caution</div><div class="v mono">${fcfa(p.caution)}</div></div>` : ''}
       </div>
       <div class="section-title">Localisation</div>
       <div class="detail-map" id="drawerMap"></div>
-      ${p.rooms ? `
+      ${(p.rooms || p.etage || p.anneeConstruction) ? `
       <div class="section-title">Caractéristiques</div>
-      ${p.rooms.chambres != null ? `
+      ${p.rooms && p.rooms.chambres != null ? `
       <div class="features">
         <div class="feature">
           <div class="fi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 18v-6a2 2 0 012-2h14a2 2 0 012 2v6"/><path d="M3 18h18"/><path d="M5 10V6a2 2 0 012-2h2a2 2 0 012 2v4"/></svg></div>
@@ -2727,7 +2758,20 @@ function openDrawer(p){
           <div class="fv" style="font-size:11.5px;">${esc(p.rooms.cuisine)}</div><div class="fl">Cuisine</div>
         </div>
       </div>` : ''}
-      ${p.rooms.autres && p.rooms.autres.length ? `<div class="tags" style="margin-top:10px;">${p.rooms.autres.map(a=>`<span class="tag">${esc(a)}</span>`).join('')}</div>` : ''}
+      ${(p.etage || p.anneeConstruction) ? `
+      <div class="features" style="margin-top:${p.rooms && p.rooms.chambres != null ? '10px' : '0'};">
+        ${p.etage ? `
+        <div class="feature">
+          <div class="fi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="1"/><path d="M8 8h.01M12 8h.01M16 8h.01M8 12h.01M12 12h.01M16 12h.01"/></svg></div>
+          <div class="fv" style="font-size:11.5px;">${esc(p.etage)}</div><div class="fl">Étage</div>
+        </div>` : ''}
+        ${p.anneeConstruction ? `
+        <div class="feature">
+          <div class="fi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+          <div class="fv">${p.anneeConstruction}</div><div class="fl">Construction</div>
+        </div>` : ''}
+      </div>` : ''}
+      ${p.rooms && p.rooms.autres && p.rooms.autres.length ? `<div class="tags" style="margin-top:10px;">${p.rooms.autres.map(a=>`<span class="tag">${esc(a)}</span>`).join('')}</div>` : ''}
       ` : ''}
       <div class="contact-box">
         <p>Intéressé(e) par ce bien&nbsp;? Réf. ${esc(p.ref)}</p>
