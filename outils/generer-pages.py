@@ -66,6 +66,7 @@ ACCUEIL = "vitrine.html" if EN_MAINTENANCE else "Biens-Immo.html"
 
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOSSIER = os.path.join(RACINE, "bien")
+DOSSIER_GUIDES = os.path.join(RACINE, "guides")
 
 # Mémoire du générateur, d'une exécution à l'autre : pour chaque bien, une
 # empreinte de ses données, la date où sa fiche est apparue et celle du dernier
@@ -766,6 +767,305 @@ def page_index(biens, par_bien):
 '''
 
 
+# --- Guides -------------------------------------------------------------
+# Pages de fond, généralistes, qui ne dépendent d'aucun bien : sans elles, le
+# site ne peut se positionner que sur des requêtes transactionnelles très
+# concurrentielles (« terrain à vendre Dakar »). Il reste absent des
+# requêtes à forte intention où une agence gagne la confiance en amont
+# (« comment vérifier un titre foncier au Sénégal ») — exactement les
+# questions qui précèdent un achat, et que se pose particulièrement la
+# diaspora.
+#
+# Contenu écrit à la main, comme le reste du site (pas de CMS). Chaque entrée
+# porte sa propre date de publication : contrairement aux fiches de biens,
+# rien ne change sous ces pages entre deux exécutions, inutile d'un mécanisme
+# d'empreinte pour détecter un changement.
+#
+# Un seul guide au lancement, volontairement : en écrire cinq ou dix d'un
+# coup aurait dilué le soin apporté à chacun, sur un sujet — le droit foncier
+# — où une imprécision coûte cher à la crédibilité qu'on cherche justement à
+# construire. Celui-ci reste général et renvoie vers un notaire pour tout ce
+# qui touche à une transaction réelle : ce n'est pas un avis juridique.
+GUIDES = [
+    {
+        "slug": "verifier-titre-foncier-senegal",
+        "titre": "Titre foncier, bail ou délibération : comment vérifier le statut d'un terrain au Sénégal",
+        "description": "Titre foncier, bail, délibération : ce que signifie chaque statut, "
+                        "pourquoi la différence compte avant d'acheter, et comment le vérifier "
+                        "concrètement. Guide à jour pour un achat de terrain au Sénégal.",
+        "date_publication": "2026-08-02",
+        "corps": """
+    <p>Avant le prix, avant la superficie, la première question à se poser devant un terrain
+    au Sénégal est juridique&nbsp;: <strong>sur quel statut foncier repose-t-il&nbsp;?</strong>
+    C'est elle qui détermine si vous achetez une propriété pleine et transmissible, ou un droit
+    plus fragile, parfois contestable. C'est aussi, de loin, la première source de litiges
+    immobiliers dans le pays.</p>
+
+    <h2>Les trois statuts que vous rencontrerez</h2>
+
+    <p><strong>Le titre foncier (TF)</strong> est le statut le plus sûr&nbsp;: la parcelle est
+    immatriculée au nom de son propriétaire à la Conservation de la Propriété Foncière. Ce
+    titre est opposable à tous, transmissible, et peut servir de garantie pour un prêt. C'est
+    l'équivalent d'un acte de propriété définitif.</p>
+
+    <p><strong>Le bail</strong> porte sur un terrain qui appartient à l'État ou à une commune,
+    et que son titulaire a le droit d'occuper et d'exploiter pour une durée déterminée — parfois
+    longue, mais jamais illimitée. Le bailleur reste juridiquement propriétaire du sol. Un bail
+    peut, sous certaines conditions, être transformé en titre foncier, mais ce n'en est pas un
+    tant que la conversion n'a pas eu lieu.</p>
+
+    <p><strong>La délibération</strong> est une décision d'affectation prise par un conseil
+    municipal, qui attribue une parcelle du domaine national à un particulier. C'est le statut
+    le plus courant sur les terrains ruraux ou communautaires, et souvent la première étape
+    avant une éventuelle immatriculation. Une délibération n'est <strong>pas</strong> un titre
+    de propriété&nbsp;: elle peut, dans certains cas, être remise en cause par la commune qui
+    l'a délivrée, en particulier si le terrain n'est pas mis en valeur dans les délais prévus.</p>
+
+    <h2>Pourquoi cette différence change tout pour un acheteur</h2>
+
+    <p>Acheter sur la base d'une délibération n'est pas nécessairement une erreur — une grande
+    partie du foncier rural sénégalais fonctionne ainsi, et beaucoup de délibérations sont
+    parfaitement régulières. Mais le risque n'est pas le même que pour un titre foncier&nbsp;:
+    il faut savoir <em>ce que l'on achète</em>, l'accepter en connaissance de cause, et adapter
+    sa prudence — et éventuellement son prix — en conséquence. Le problème n'est pas le statut
+    en lui-même&nbsp;: c'est de l'apprendre après la signature.</p>
+
+    <h2>Comment vérifier, concrètement</h2>
+
+    <ul>
+      <li><strong>Demandez le document original</strong> — titre foncier, bail ou délibération
+      — et le nom exact qui y figure. Un vendeur sérieux ne s'y refuse jamais.</li>
+      <li><strong>Vérifiez la correspondance</strong> entre la parcelle décrite sur le document
+      (numéro, superficie, limites) et le terrain réellement visité. Un bornage par un géomètre
+      agréé lève le doute.</li>
+      <li><strong>Faites confirmer l'inscription</strong> d'un titre foncier auprès de la
+      Conservation de la Propriété Foncière et des Droits Fonciers dont dépend la parcelle, et
+      l'absence d'hypothèque ou d'opposition en cours.</li>
+      <li><strong>Passez par un notaire</strong> pour l'acte de vente. Une vente « sous seing
+      privé » (un simple papier signé entre particuliers) sur un titre foncier n'a pas la même
+      valeur juridique qu'un acte notarié, et ne suffit pas à vous rendre propriétaire.</li>
+      <li><strong>Pour une délibération</strong>, vérifiez qu'elle a bien été délivrée par la
+      commune compétente sur ce terrain, et depuis quand — une délibération ancienne, mise en
+      valeur et non contestée, est un signal plus rassurant qu'une délibération toute récente.</li>
+    </ul>
+
+    <h2>Les signaux qui doivent alerter</h2>
+
+    <ul>
+      <li>Un vendeur qui presse la transaction ou refuse de montrer les documents originaux.</li>
+      <li>Un prix nettement inférieur à celui du marché environnant, sans explication claire.</li>
+      <li>Une superficie annoncée qui ne correspond pas à celle inscrite sur le document.</li>
+      <li>Plusieurs personnes différentes qui se présentent comme vendeur du même terrain.</li>
+    </ul>
+
+    <h2>Ce que PAB Immo vérifie avant de publier une annonce</h2>
+
+    <p>Chaque bien publié sur ce site porte un statut foncier déclaré, visible directement sur
+    sa fiche. Les annonces marquées « Annonce vérifiée » ont fait l'objet d'un contrôle des
+    documents et de l'existence réelle du bien avant publication. Ce badge ne remplace pas les
+    vérifications qui restent les vôtres au moment de l'achat — il réduit le nombre de biens sur
+    lesquels vous avez à les mener.</p>
+
+    <h2>Questions fréquentes</h2>
+
+    <p><strong>Un bail est-il moins bien qu'un titre foncier&nbsp;?</strong><br>
+    Ce n'est pas « moins bien », c'est différent&nbsp;: un bail donne un droit d'occupation et
+    d'exploitation limité dans le temps, pas une propriété pleine. Pour un usage personnel sur
+    une durée raisonnable, il peut parfaitement convenir&nbsp;; pour un investissement de long
+    terme destiné à être transmis, un titre foncier reste préférable.</p>
+
+    <p><strong>Peut-on transformer une délibération en titre foncier&nbsp;?</strong><br>
+    Oui, c'est une trajectoire courante, mais elle suit une procédure et des délais propres à
+    chaque situation. Elle n'est ni automatique ni garantie&nbsp;: à vérifier avec un notaire
+    ou directement auprès des services fonciers avant de compter dessus.</p>
+
+    <p><strong>Un acheteur vivant à l'étranger peut-il vérifier tout cela à distance&nbsp;?</strong><br>
+    En grande partie, oui, par procuration notariée confiée à une personne de confiance ou à un
+    notaire sur place. C'est justement dans ce cas — acheter sans pouvoir se déplacer — que les
+    vérifications ci-dessus comptent le plus&nbsp;: elles se font normalement en personne, et
+    leur absence est plus difficile à repérer à distance.</p>
+
+    <p class="avert">Cet article donne des repères généraux&nbsp;; ce n'est pas un avis
+    juridique et il ne remplace pas les vérifications d'un notaire pour une transaction réelle.
+    Le droit foncier sénégalais évolue&nbsp;; en cas de doute, consultez un professionnel avant
+    de vous engager.</p>
+""",
+    },
+]
+
+
+def page_guide(g):
+    """Rend une page de guide. Même habillage que les fiches (bandeau,
+    commun.css, pied de page) : un même site, pas deux."""
+    url = f"{SITE}/guides/{g['slug']}.html"
+    # json.dumps, pas esc() : esc() échappe pour du HTML (& -> &amp;), mais le
+    # contenu d'un <script> n'est jamais décodé comme le reste du HTML — un
+    # titre qui contiendrait un jour un « & » ou un guillemet se retrouverait
+    # donc mal encodé dans les données structurées sans que rien ne le signale.
+    ld = json.dumps({
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": g["titre"],
+        "description": g["description"],
+        "datePublished": g["date_publication"],
+        "author": {"@type": "Organization", "name": AGENCE},
+        "publisher": {"@type": "Organization", "name": AGENCE},
+        "mainEntityOfPage": url,
+    }, ensure_ascii=False, indent=2)
+    return f'''<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{esc(g["titre"])} | {AGENCE}</title>
+<meta name="description" content="{esc(g["description"])}" />
+<link rel="canonical" href="{url}" />
+{'<meta name="robots" content="noindex, follow" />' if EN_MAINTENANCE else '<meta name="robots" content="index, follow" />'}
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="{AGENCE}" />
+<meta property="og:locale" content="fr_FR" />
+<meta property="og:title" content="{esc(g["titre"])}" />
+<meta property="og:description" content="{esc(g["description"])}" />
+<meta property="og:url" content="{url}" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="{esc(g["titre"])}" />
+<meta name="twitter:description" content="{esc(g["description"])}" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../commun.css" />
+<style>
+  body{{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}}
+  .bandeau{{background:var(--night);padding:14px 20px;}}
+  .bandeau a{{color:#fff;text-decoration:none;font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;}}
+  .bandeau a span{{color:var(--accent);}}
+  main{{max-width:720px;margin:0 auto;padding:26px 20px 60px;}}
+  .fil{{font-size:12.5px;color:var(--ink-soft);margin:0 0 16px;}}
+  .fil a{{color:var(--ink-soft);}}
+  .eyebrow{{font-family:'Manrope',sans-serif;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin:0 0 8px;}}
+  h1{{font-family:'Manrope',sans-serif;font-size:clamp(24px,4.5vw,32px);font-weight:800;letter-spacing:-0.02em;line-height:1.15;margin:0 0 10px;}}
+  .date{{color:var(--ink-soft);font-size:13px;margin:0 0 26px;}}
+  main p{{font-size:15.5px;line-height:1.75;margin:0 0 18px;}}
+  main h2{{font-family:'Manrope',sans-serif;font-size:19px;font-weight:800;margin:34px 0 12px;}}
+  main ul{{margin:0 0 18px;padding-left:20px;}}
+  main ul li{{font-size:15.5px;line-height:1.7;margin-bottom:8px;}}
+  main strong{{font-weight:700;}}
+  .avert{{background:var(--surface-alt);border-left:3px solid var(--gold);border-radius:0 var(--radius-md) var(--radius-md) 0;padding:14px 16px;font-size:13.5px;color:var(--ink-soft);margin-top:30px;}}
+  .contact{{margin-top:36px;background:linear-gradient(140deg,var(--night),var(--night-2));border-radius:var(--radius-lg);padding:24px;}}
+  .contact p{{color:rgba(255,255,255,.74);font-size:14px;margin:0 0 16px;line-height:1.6;}}
+  .contact h2{{color:#fff;margin:0 0 6px;}}
+  .actions{{display:flex;gap:10px;flex-wrap:wrap;}}
+  .actions a{{flex:1 1 200px;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;border-radius:999px;font-weight:700;font-size:14px;text-decoration:none;}}
+  .wa{{background:#25D366;color:#fff;}} .tel{{background:var(--accent);color:#1E1607;}}
+  .retour{{display:inline-block;margin-top:30px;font-size:14px;font-weight:700;color:var(--gold);}}
+  footer{{background:var(--night);color:rgba(255,255,255,.5);font-size:12.5px;text-align:center;padding:26px 20px;line-height:1.9;}}
+  footer a{{color:rgba(255,255,255,.72);text-decoration:none;font-weight:600;}}
+  footer a:hover{{color:var(--gold);}}
+  footer .reg{{opacity:.65;font-size:11.5px;}}
+</style>
+<script type="application/ld+json">
+{ld}
+</script>
+</head>
+<body>
+<header class="bandeau"><a href="../{ACCUEIL}">PAB <span>Immo</span></a></header>
+
+<main>
+  <nav class="fil" aria-label="Fil d'Ariane">
+    <a href="./">Guides</a> › {esc(g["titre"])}
+  </nav>
+
+  <p class="eyebrow">Guide</p>
+  <h1>{esc(g["titre"])}</h1>
+  <p class="date">Publié le {esc(g["date_publication"])}</p>
+
+  {g["corps"]}
+
+  <section class="contact">
+    <h2>Une question sur un bien précis&nbsp;?</h2>
+    <p>Nous répondons rapidement, par WhatsApp ou par téléphone.</p>
+    <div class="actions">
+      <a class="wa" href="https://wa.me/{TEL.lstrip('+')}" target="_blank" rel="noopener">Écrire sur WhatsApp</a>
+      <a class="tel" href="tel:{TEL}">{TEL_AFFICHE}</a>
+    </div>
+  </section>
+
+  <a class="retour" href="./">← Tous les guides</a>
+  <a class="retour" href="../{ACCUEIL}" style="margin-left:18px;">Voir les biens disponibles</a>
+</main>
+
+<footer>
+  {AGENCE} — {TEL_AFFICHE} · {EMAIL} · visites sur rendez-vous<br>
+  <a href="../mentions-legales.html">Mentions légales</a> · <a href="../confidentialite.html">Politique de confidentialité</a><br>
+  <span class="reg">© {date.today().year} {AGENCE} · NINEA {NINEA} · RCCM {RCCM}</span>
+</footer>
+</body>
+</html>
+'''
+
+
+def page_guides_index(guides):
+    """Page d'index des guides — le point d'entrée lié depuis le pied de page
+    de la vitrine, et la seule page de ce dossier que Google découvre sans
+    passer par le sitemap."""
+    cartes = "".join(f'''
+    <a class="carte-guide" href="{g['slug']}.html">
+      <span class="eyebrow">Guide</span>
+      <h2>{esc(g["titre"])}</h2>
+      <p>{esc(g["description"])}</p>
+    </a>''' for g in guides)
+    return f'''<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Guides et conseils | {AGENCE}</title>
+<meta name="description" content="Conseils pratiques pour acheter, vendre ou louer un bien à Dakar et Thiès : statut foncier, démarches, achat à distance." />
+<link rel="canonical" href="{SITE}/guides/" />
+{'<meta name="robots" content="noindex, follow" />' if EN_MAINTENANCE else '<meta name="robots" content="index, follow" />'}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../commun.css" />
+<style>
+  body{{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}}
+  .bandeau{{background:var(--night);padding:14px 20px;}}
+  .bandeau a{{color:#fff;text-decoration:none;font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;}}
+  .bandeau a span{{color:var(--accent);}}
+  main{{max-width:900px;margin:0 auto;padding:34px 20px 60px;}}
+  h1{{font-family:'Manrope',sans-serif;font-size:clamp(24px,4.5vw,32px);font-weight:800;letter-spacing:-0.02em;margin:0 0 8px;}}
+  main > p{{color:var(--ink-soft);font-size:15px;margin:0 0 30px;}}
+  .grille-guides{{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;}}
+  .carte-guide{{display:block;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;text-decoration:none;color:inherit;transition:box-shadow .2s, transform .2s;}}
+  .carte-guide:hover{{box-shadow:var(--shadow-lg);transform:translateY(-2px);}}
+  .eyebrow{{font-family:'Manrope',sans-serif;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);}}
+  .carte-guide h2{{font-family:'Manrope',sans-serif;font-size:17px;font-weight:800;margin:8px 0 8px;line-height:1.3;}}
+  .carte-guide p{{font-size:13.5px;color:var(--ink-soft);line-height:1.6;margin:0;}}
+  .retour{{display:inline-block;margin-top:30px;font-size:14px;font-weight:700;color:var(--gold);}}
+  footer{{background:var(--night);color:rgba(255,255,255,.5);font-size:12.5px;text-align:center;padding:26px 20px;line-height:1.9;}}
+  footer a{{color:rgba(255,255,255,.72);text-decoration:none;font-weight:600;}}
+  footer .reg{{opacity:.65;font-size:11.5px;}}
+</style>
+</head>
+<body>
+<header class="bandeau"><a href="../{ACCUEIL}">PAB <span>Immo</span></a></header>
+
+<main>
+  <h1>Guides et conseils</h1>
+  <p>Ce qu'il est utile de savoir avant d'acheter, de vendre ou de louer à Dakar et à Thiès.</p>
+  <div class="grille-guides">{cartes}
+  </div>
+  <a class="retour" href="../{ACCUEIL}">← Voir les biens disponibles</a>
+</main>
+
+<footer>
+  {AGENCE} — {TEL_AFFICHE} · {EMAIL} · visites sur rendez-vous<br>
+  <a href="../mentions-legales.html">Mentions légales</a> · <a href="../confidentialite.html">Politique de confidentialité</a><br>
+  <span class="reg">© {date.today().year} {AGENCE} · NINEA {NINEA} · RCCM {RCCM}</span>
+</footer>
+</body>
+</html>
+'''
+
+
 # --- Programme --------------------------------------------------------------
 
 def main():
@@ -815,6 +1115,20 @@ def main():
         f.write(page_index(biens, par_bien))
     print("  bien/index.html : page d'index statique")
 
+    # --- guides/ --------------------------------------------------------------
+    # Contenu de fond, indépendant des biens : ne dépend d'aucune donnée de la
+    # base, donc jamais nettoyé au début de cette fonction comme bien/ — un
+    # guide qui disparaîtrait à chaque exécution serait absurde.
+    os.makedirs(DOSSIER_GUIDES, exist_ok=True)
+    urls_guides = []
+    for g in GUIDES:
+        with open(os.path.join(DOSSIER_GUIDES, f"{g['slug']}.html"), "w", encoding="utf-8") as f:
+            f.write(page_guide(g))
+        urls_guides.append((f"{SITE}/guides/{g['slug']}.html", g["date_publication"]))
+    with open(os.path.join(DOSSIER_GUIDES, "index.html"), "w", encoding="utf-8") as f:
+        f.write(page_guides_index(GUIDES))
+    print(f"  {len(GUIDES)} guide(s) écrit(s) dans guides/")
+
     # --- sitemap.xml --------------------------------------------------------
     # Chaque adresse porte la date de son dernier changement réel, pas celle du
     # jour. Un sitemap qui déclare tout modifié à chaque passage perd sa raison
@@ -832,6 +1146,13 @@ def main():
     lignes += [f"  <url><loc>{u}</loc><lastmod>{d}</lastmod>"
                f"<changefreq>weekly</changefreq><priority>0.8</priority></url>"
                for u, d in urls]
+    if urls_guides:
+        lignes.append(f"  <url><loc>{SITE}/guides/</loc>"
+                       f"<lastmod>{max(d for _, d in urls_guides)}</lastmod>"
+                       f"<changefreq>monthly</changefreq><priority>0.7</priority></url>")
+    lignes += [f"  <url><loc>{u}</loc><lastmod>{d}</lastmod>"
+               f"<changefreq>monthly</changefreq><priority>0.7</priority></url>"
+               for u, d in urls_guides]
     with open(os.path.join(RACINE, "sitemap.xml"), "w", encoding="utf-8") as f:
         f.write('<?xml version="1.0" encoding="UTF-8"?>\n'
                 '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
