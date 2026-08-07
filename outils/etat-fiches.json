@@ -1,92 +1,92 @@
 {
  "AP-2026-2278": {
-  "empreinte": "3688a1acd008a2489f7063d4c7a67c54109fcb52",
-  "modifie": "2026-08-02",
+  "empreinte": "56a6e49bff024d7929d9c124bfaa4fc5aa0c3732",
+  "modifie": "2026-08-07",
   "premiere": "2026-07-22"
  },
  "AP-2026-6664": {
-  "empreinte": "b79cea4942c4d4dcf3950a3df4d28a28deb9a92c",
-  "modifie": "2026-08-02",
+  "empreinte": "14482b23f7f5bb26797655ba96f1f9119834b098",
+  "modifie": "2026-08-07",
   "premiere": "2026-07-22"
  },
  "APT-2024-032": {
-  "empreinte": "7898d7b34e04728ede12f77684fce9e045187352",
-  "modifie": "2026-08-02",
+  "empreinte": "7f366c78f980553cafb45aafcab9be0ae10e13ff",
+  "modifie": "2026-08-07",
   "premiere": "2026-07-22"
  },
  "APT-2024-101": {
-  "empreinte": "bf8ec094e3a27c038dde830bb6fbd01333aef78d",
-  "modifie": "2026-08-02",
+  "empreinte": "b95dcf892ba8219abf13f7e8d15b8ad8c1dd6299",
+  "modifie": "2026-08-07",
   "premiere": "2026-07-22"
  },
  "CH-2026-1262": {
-  "empreinte": "7a194051f31ad2cc442ef26f43d7674875da5482",
-  "modifie": "2026-08-02",
+  "empreinte": "c0bb2d29fe81fad9dd3d3cc911d20d6b8eddf989",
+  "modifie": "2026-08-07",
   "premiere": "2026-08-02"
  },
  "CH-2026-3415": {
-  "empreinte": "26426b2c3dc8bbfe8a217ed6fc8781715ba3a48c",
-  "modifie": "2026-08-05",
+  "empreinte": "c12e0993a3c76547f5e698f98ed392c1fa862696",
+  "modifie": "2026-08-07",
   "premiere": "2026-08-05"
  },
  "CH-2026-5515": {
-  "empreinte": "5395eb1cd3dbaeb1b05618ee87e1ad457bf0173a",
-  "modifie": "2026-08-02",
+  "empreinte": "e97fc50c7bdf67464b9db3e0e05e4a77ce540fc4",
+  "modifie": "2026-08-07",
   "premiere": "2026-07-25"
  },
  "CH-2026-5713": {
-  "empreinte": "530e50dd7780aa0eaaf4218aab03d32a9f70c3d4",
-  "modifie": "2026-08-02",
+  "empreinte": "e440465c0570a5fa40c7d669b1480219ccc7c044",
+  "modifie": "2026-08-07",
   "premiere": "2026-07-22"
  },
  "CH-2026-8460": {
-  "empreinte": "771c6683582368bfbf3ef4b506a3409089531a0e",
-  "modifie": "2026-08-02",
+  "empreinte": "788a78271f5de5a77004d7aa5ef7cd1ba564db9e",
+  "modifie": "2026-08-07",
   "premiere": "2026-07-22"
  },
  "MA-2026-7029": {
-  "empreinte": "20793bc354160ce75955af9435e00489a1538fc3",
-  "modifie": "2026-08-02",
+  "empreinte": "297e0e4bd32f3e44eb4284b6597d209e40ac0069",
+  "modifie": "2026-08-07",
   "premiere": "2026-07-22"
  },
  "ST-2026-6396": {
-  "empreinte": "2d000c9fcd52509e4c2d9e6dcc376db22cb0b4a5",
-  "modifie": "2026-08-02",
+  "empreinte": "c1e0c47992d0b6371571ff7ccd781ce55a3047fc",
+  "modifie": "2026-08-07",
   "premiere": "2026-07-23"
  },
  "ST-2026-8903": {
-  "empreinte": "134edf17178ac8a695b9a0caa7c36e236e56e27f",
-  "modifie": "2026-08-02",
+  "empreinte": "26129596c5513bffa6cdadae22c5a38d8512b70b",
+  "modifie": "2026-08-07",
   "premiere": "2026-07-25"
  },
  "TF-2024-0847": {
-  "empreinte": "a3268205185b2be7f4be888496cd9a8d22dbc499",
-  "modifie": "2026-08-02",
+  "empreinte": "623537d5eb396513bb3f42662cea73222dc2ad5c",
+  "modifie": "2026-08-07",
   "premiere": "2026-07-22"
  },
  "TF-2024-0912": {
-  "empreinte": "d525068eb99a787ad67022e7b46412f44fe8032b",
-  "modifie": "2026-08-02",
+  "empreinte": "37460463d4c7ecedb899040541401323c07b901d",
+  "modifie": "2026-08-07",
   "premiere": "2026-07-22"
  },
  "TF-2026-2204": {
-  "empreinte": "d0923e9e91136964dccb1108f086742f0660e11c",
-  "modifie": "2026-08-02",
+  "empreinte": "86c38e989d3b5242bb25663ae429d0dd36fca85d",
+  "modifie": "2026-08-07",
   "premiere": "2026-07-22"
  },
  "TF-2026-3724": {
-  "empreinte": "f8f0e1de66ddcce27da8dee1c975cfd26dcb1f4a",
-  "modifie": "2026-08-02",
+  "empreinte": "a2db7ec3ee2676d53d17fde5cf853d0446572405",
+  "modifie": "2026-08-07",
   "premiere": "2026-07-22"
  },
  "TF-2026-5481": {
-  "empreinte": "820f61bf10bcdd194f03e60f9179ae3001a52701",
-  "modifie": "2026-08-02",
+  "empreinte": "9d648bbe0a2d6a75b02a1eb1b6641672fdddf729",
+  "modifie": "2026-08-07",
   "premiere": "2026-07-25"
  },
  "TF-2026-5797": {
-  "empreinte": "424a56340a8f3c704c7270670aff715c4fa68d8e",
-  "modifie": "2026-08-02",
+  "empreinte": "118ec190b0e2ec2c093474ca3e32715f262675db",
+  "modifie": "2026-08-07",
   "premiere": "2026-07-22"
  }
 }
