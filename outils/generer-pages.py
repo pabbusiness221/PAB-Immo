@@ -660,7 +660,11 @@ def page_bien(b, photos, voisins=(), publiee=None, lang="fr"):
   .contact h2{{color:#fff;margin:0 0 6px;}}
   .actions{{display:flex;gap:10px;flex-wrap:wrap;}}
   .actions a{{flex:1 1 200px;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;border-radius:999px;font-weight:700;font-size:14px;text-decoration:none;}}
-  .wa{{background:#25D366;color:#fff;}} .tel{{background:var(--accent);color:#1E1607;}}
+  /* Vert WhatsApp assombri : le #25D366 de la marque ne donne que 1,98:1 avec
+     du texte blanc, très en dessous du minimum AA de 4,5:1. Cette teinte reste
+     dans la famille des verts WhatsApp (proche du #128C7E de leur charte) et
+     passe à plus de 5:1. */
+  .wa{{background:#0E7A6B;color:#fff;}} .tel{{background:var(--accent);color:#1E1607;}}
   .contact-form{{margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.14);}}
   .contact-form label{{display:block;color:rgba(255,255,255,.82);font-size:12.5px;font-weight:700;margin:0 0 6px;}}
   .contact-form input,.contact-form textarea{{width:100%;box-sizing:border-box;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);border-radius:var(--radius-md);color:#fff;font:inherit;font-size:14px;padding:10px 12px;margin:0 0 12px;}}
@@ -678,7 +682,10 @@ def page_bien(b, photos, voisins=(), publiee=None, lang="fr"):
   footer{{background:var(--night);color:rgba(255,255,255,.5);font-size:12.5px;text-align:center;padding:26px 20px;line-height:1.9;}}
   footer a{{color:rgba(255,255,255,.72);text-decoration:none;font-weight:600;}}
   footer a:hover{{color:var(--gold);}}
-  footer .reg{{opacity:.65;font-size:11.5px;}}
+  /* Pas d'opacity : elle ramenait les mentions légales à 2,84:1 sur le bleu
+     nuit, très en dessous du minimum AA. La taille réduite suffit à les
+     distinguer du reste du pied de page. */
+  footer .reg{{font-size:11.5px;}}
 </style>
 <script type="application/ld+json">
 {donnees_structurees(b, photos, url, publiee or date.today().isoformat(), lang)}
@@ -700,7 +707,9 @@ def page_bien(b, photos, voisins=(), publiee=None, lang="fr"):
   <p class="prix">{prix}</p>
   <p class="prix-secondaire">{prix_secondaire(b["price"])}{suffixe_mois}</p>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;">
-    <p class="etat" style="margin:0;background:{'rgba(47,122,78,.12);color:#2F7A4E' if b["status"] == "Disponible" else 'rgba(226,162,44,.15);color:#8F6414'}">{esc(tr(b["status"], lang))}</p>
+    <!-- Vert assombri : #2F7A4E sur son propre fond à 12 % ne donnait que
+         4,28:1, sous le minimum AA pour un texte de 11,5 px. -->
+    <p class="etat" style="margin:0;background:{'rgba(47,122,78,.12);color:#26663F' if b["status"] == "Disponible" else 'rgba(226,162,44,.15);color:#8F6414'}">{esc(tr(b["status"], lang))}</p>
     {f'<p class="etat" style="margin:0;background:rgba(37,99,235,.12);color:#2854A6;">{esc(tr(b["statut_foncier"], lang))}</p>' if b.get("statut_foncier") and b["statut_foncier"] != "Non renseigné" else ''}
     {f'<p class="etat" style="margin:0;background:rgba(107,70,193,.12);color:#6B46C1;">{tr("Meublé" if b["meuble"] else "Non meublé", lang)}</p>' if b.get("meuble") is not None else ''}
     {f'<p class="etat" style="margin:0;background:rgba(180,83,9,.12);color:#B45309;">{tr("Disponible à partir du", lang)} {esc(b["date_disponibilite"])}</p>' if disponible_futur else ''}
@@ -941,7 +950,10 @@ def page_index(biens, par_bien, lang="fr"):
   footer{{background:var(--night);color:rgba(255,255,255,.5);font-size:12.5px;text-align:center;padding:26px 20px;line-height:1.9;}}
   footer a{{color:rgba(255,255,255,.72);text-decoration:none;font-weight:600;}}
   footer a:hover{{color:var(--gold);}}
-  footer .reg{{opacity:.65;font-size:11.5px;}}
+  /* Pas d'opacity : elle ramenait les mentions légales à 2,84:1 sur le bleu
+     nuit, très en dessous du minimum AA. La taille réduite suffit à les
+     distinguer du reste du pied de page. */
+  footer .reg{{font-size:11.5px;}}
 </style>
 <script type="application/ld+json">
 {ld}
@@ -1382,6 +1394,903 @@ GUIDES = [
     relevant Senegalese consulate before committing.</p>
 """,
     },
+    {
+        "slug": "frais-achat-immobilier-senegal",
+        "titre": "Ce que coûte vraiment un achat immobilier au Sénégal, au-delà du prix affiché",
+        "description": "Droits d'enregistrement, émoluments du notaire, publicité foncière, "
+                        "bornage : le détail des frais qui s'ajoutent au prix de vente d'un "
+                        "terrain ou d'une maison au Sénégal, et comment les chiffrer à l'avance.",
+        "date_publication": "2026-08-09",
+        "corps": """
+    <p>Un acheteur qui a mis de côté le montant exact d'une annonce se trouve rarement au bout de
+    son budget. Le prix de vente ne représente qu'une partie de la dépense. S'y ajoutent des frais
+    obligatoires, prélevés par l'État et par le notaire, qui se règlent au moment de la signature
+    et non pas plus tard. Les découvrir à ce moment-là oblige à emprunter dans l'urgence ou à
+    renoncer. Voici de quoi ils se composent.</p>
+
+    <h2>Les quatre postes à prévoir</h2>
+
+    <p><strong>Les droits d'enregistrement</strong> sont un impôt sur la mutation, versé à
+    l'administration fiscale pour que la vente soit officiellement enregistrée. C'est
+    généralement le poste le plus lourd après le prix lui-même. Le taux dépend de la nature du
+    bien et de l'opération, et il évolue avec les lois de finances. Aucun chiffre trouvé sur
+    internet ne remplace le taux applicable le jour de votre acte&nbsp;: demandez-le au notaire
+    ou aux services fiscaux.</p>
+
+    <p><strong>Les émoluments du notaire</strong> rémunèrent son travail de vérification et de
+    rédaction. Ils suivent un barème réglementé, calculé sur le prix de vente, auquel s'ajoutent
+    des débours (les sommes qu'il avance pour votre compte). Un notaire vous communique ce
+    montant avant la signature si vous le lui demandez.</p>
+
+    <p><strong>Les frais de publicité foncière</strong> couvrent l'inscription de votre nom à la
+    Conservation de la Propriété Foncière. Sans cette formalité, la vente existe entre vous et le
+    vendeur mais reste invisible pour les tiers, ce qui vous laisse exposé.</p>
+
+    <p><strong>Le bornage</strong> par un géomètre agréé n'est pas systématiquement obligatoire,
+    mais il devient vite indispensable sur un terrain dont les limites ne sont pas matérialisées.
+    Son coût est sans commune mesure avec celui d'un litige de voisinage quelques années plus
+    tard.</p>
+
+    <h2>Comment chiffrer avant de s'engager</h2>
+
+    <p>La méthode fiable tient en une phrase&nbsp;: demandez un devis écrit au notaire, sur la
+    base du prix convenu, avant de verser quoi que ce soit. Un notaire établit ce décompte
+    couramment. Il y fera figurer les droits, ses émoluments, les débours et la publicité
+    foncière, ligne par ligne.</p>
+
+    <p>Prévoyez cette enveloppe en plus du prix, jamais dedans. Un budget total de vingt millions
+    consacré entièrement au prix de vente laisse zéro pour les frais, et la transaction se bloque
+    au dernier moment.</p>
+
+    <h2>Les frais côté vendeur</h2>
+
+    <p>Le vendeur n'est pas exempté. Selon sa situation et la durée de détention du bien, une
+    imposition sur la plus-value peut s'appliquer, et certains documents fiscaux lui sont
+    demandés avant la vente. Un vendeur qui découvre cela au moment de signer retarde toute la
+    transaction. Si vous vendez, anticipez ce point avec votre notaire dès la mise en vente.</p>
+
+    <h2>Les erreurs qui coûtent cher</h2>
+
+    <ul>
+      <li><strong>Payer avant l'acte notarié.</strong> Une somme versée de la main à la main,
+      sans acte, ne vous rend propriétaire de rien.</li>
+      <li><strong>Sous-déclarer le prix</strong> pour réduire les droits. La pratique existe,
+      elle est illégale, et elle se retourne contre l'acheteur le jour où il revend&nbsp;: sa
+      plus-value apparente devient énorme.</li>
+      <li><strong>Oublier la publicité foncière</strong> une fois l'acte signé, en pensant que
+      tout est réglé.</li>
+      <li><strong>Confondre l'acompte et les frais.</strong> L'acompte s'impute sur le prix, les
+      frais s'y ajoutent.</li>
+    </ul>
+
+    <h2>Questions fréquentes</h2>
+
+    <p><strong>Peut-on négocier les frais de notaire&nbsp;?</strong><br>
+    Les émoluments suivent un barème, ils ne se négocient donc pas librement. Le prix de vente,
+    lui, se négocie, et il fait mécaniquement baisser les frais calculés dessus.</p>
+
+    <p><strong>Qui paie les frais, l'acheteur ou le vendeur&nbsp;?</strong><br>
+    L'usage veut que l'acheteur supporte les droits d'enregistrement et les frais d'acte. Cet
+    usage peut être aménagé par accord entre les parties, à condition que ce soit écrit dans le
+    compromis et non convenu oralement.</p>
+
+    <p><strong>Faut-il ces frais aussi pour un terrain sous délibération&nbsp;?</strong><br>
+    Les formalités diffèrent de celles d'un titre foncier, et leur coût aussi. Le
+    <a href="verifier-titre-foncier-senegal.html">statut foncier du terrain</a> détermine la
+    procédure applicable, donc la facture. Vérifiez-le avant de bâtir votre budget.</p>
+
+    <p class="avert">Cet article décrit la structure des frais, pas leur montant&nbsp;: les taux
+    et barèmes changent, et seul un notaire peut vous donner le chiffre applicable à votre
+    transaction. Ce n'est pas un conseil fiscal.</p>
+""",
+        "titre_en": "What a Property Purchase in Senegal Really Costs, Beyond the Asking Price",
+        "description_en": "Registration duties, notary fees, land registration, surveying: the "
+                          "costs that come on top of the sale price of land or a house in "
+                          "Senegal, and how to budget for them in advance.",
+        "corps_en": """
+    <p>A buyer who has set aside exactly the amount shown in a listing is rarely at the end of
+    their spending. The sale price covers only part of the outlay. Mandatory charges come on top,
+    collected by the State and by the notary, and they fall due at signature rather than later.
+    Discovering them at that point forces you to borrow in a hurry or walk away. Here is what
+    they consist of.</p>
+
+    <h2>Four items to budget for</h2>
+
+    <p><strong>Registration duties</strong> are a transfer tax paid to the revenue authorities so
+    that the sale is officially recorded. This is usually the heaviest item after the price
+    itself. The rate depends on the type of property and transaction, and it changes with each
+    finance act. No figure found online replaces the rate that applies on the day of your deed:
+    ask the notary or the tax office.</p>
+
+    <p><strong>The notary's fees</strong> pay for the verification and drafting work. They follow
+    a regulated scale based on the sale price, plus disbursements (sums the notary advances on
+    your behalf). Any notary will give you that figure before signature if you ask.</p>
+
+    <p><strong>Land registration costs</strong> cover entering your name at the Land Registry.
+    Without that formality the sale exists between you and the seller but stays invisible to
+    third parties, which leaves you exposed.</p>
+
+    <p><strong>Surveying</strong> by a licensed surveyor is not always compulsory. It becomes
+    close to essential on a plot whose boundaries are not physically marked. What it costs bears
+    no comparison with a boundary dispute a few years later.</p>
+
+    <h2>How to budget before committing</h2>
+
+    <p>The reliable method fits in one sentence: ask the notary for a written estimate, based on
+    the agreed price, before paying anything. Notaries prepare these routinely. The estimate will
+    set out duties, fees, disbursements and registration costs, line by line.</p>
+
+    <p>Plan that envelope on top of the price, never inside it. A total budget of twenty million
+    spent entirely on the sale price leaves nothing for the costs, and the transaction stalls at
+    the last moment.</p>
+
+    <h2>Costs on the seller's side</h2>
+
+    <p>Sellers are not exempt. Depending on their situation and how long they have held the
+    property, capital gains tax may apply, and certain tax documents will be required before the
+    sale. A seller who discovers this at signature delays the whole transaction. If you are
+    selling, raise the point with your notary as soon as you list.</p>
+
+    <h2>Expensive mistakes</h2>
+
+    <ul>
+      <li><strong>Paying before the notarized deed.</strong> Money handed over without a deed
+      makes you the owner of nothing.</li>
+      <li><strong>Under-declaring the price</strong> to reduce duties. The practice exists, it is
+      illegal, and it rebounds on the buyer at resale: their apparent gain becomes enormous.</li>
+      <li><strong>Forgetting land registration</strong> once the deed is signed, assuming
+      everything is settled.</li>
+      <li><strong>Confusing the deposit with the costs.</strong> A deposit counts towards the
+      price; the costs come on top of it.</li>
+    </ul>
+
+    <h2>Frequently asked questions</h2>
+
+    <p><strong>Can notary fees be negotiated?</strong><br>
+    The fees follow a scale, so they cannot be freely negotiated. The sale price can be, and
+    lowering it mechanically lowers the fees calculated on it.</p>
+
+    <p><strong>Who pays, the buyer or the seller?</strong><br>
+    By custom the buyer bears the registration duties and the cost of the deed. That custom can
+    be varied by agreement, provided it is written into the preliminary contract rather than
+    agreed verbally.</p>
+
+    <p><strong>Do these costs apply to land held under a deliberation?</strong><br>
+    The formalities differ from those for freehold title, and so does their cost. The
+    <a href="verifier-titre-foncier-senegal.html">land title status</a> determines the procedure
+    and therefore the bill. Check it before you build your budget.</p>
+
+    <p class="avert">This article describes the structure of the costs, not their amount: rates
+    and scales change, and only a notary can give you the figure that applies to your
+    transaction. It is not tax advice.</p>
+""",
+    },
+    {
+        "slug": "louer-logement-dakar-bail-caution",
+        "titre": "Louer un logement à Dakar : bail, caution, avance de loyers et état des lieux",
+        "description": "Ce que contient un bail au Sénégal, ce qu'on peut vous demander comme "
+                        "caution et avance, comment se passe l'état des lieux et comment "
+                        "récupérer son dépôt. Repères pratiques pour louer à Dakar et Thiès.",
+        "date_publication": "2026-08-09",
+        "corps": """
+    <p>La plupart des litiges entre bailleur et locataire à Dakar ne portent pas sur le loyer.
+    Ils portent sur ce qui n'a pas été écrit au départ&nbsp;: le montant réellement versé à
+    l'entrée, l'état du logement, qui paie quelles réparations. Une location se joue en grande
+    partie le jour de la signature. Voici ce qu'il faut y regarder.</p>
+
+    <h2>Le bail écrit, même entre gens de confiance</h2>
+
+    <p>Un bail verbal existe juridiquement, mais il ne prouve rien. Sans écrit, il n'y a plus de
+    trace du montant convenu, de la durée, ni de ce que couvrent les charges. Exigez un document
+    signé par les deux parties, en deux exemplaires, et gardez le vôtre.</p>
+
+    <p>Il doit au minimum mentionner l'identité du bailleur et du locataire, l'adresse et la
+    description du logement, le montant du loyer et sa date de paiement, la durée, le montant du
+    dépôt de garantie, et ce que recouvrent les charges. Une clause floue sur les charges se
+    transforme presque toujours en désaccord au bout de quelques mois.</p>
+
+    <h2>Caution, avance, dépôt&nbsp;: trois choses différentes</h2>
+
+    <p>Le vocabulaire courant les mélange, alors que les sommes n'ont pas la même nature.</p>
+
+    <ul>
+      <li><strong>Le dépôt de garantie</strong> (souvent appelé caution) est une somme immobilisée
+      pendant toute la location, destinée à couvrir d'éventuels dégâts ou impayés. Elle vous est
+      rendue à la sortie si le logement est en bon état.</li>
+      <li><strong>L'avance de loyers</strong> correspond à des mois payés d'avance. Cette somme
+      n'est pas une garantie&nbsp;: elle s'impute sur vos loyers. La pratique de demander
+      plusieurs mois d'avance est répandue à Dakar. Faites préciser par écrit combien de mois
+      sont couverts et lesquels.</li>
+      <li><strong>La commission d'agence</strong>, quand il y en a une, rémunère l'intermédiaire.
+      Elle ne se récupère pas.</li>
+    </ul>
+
+    <p>Additionnez les trois avant de vous engager. Le vrai coût d'entrée dans un logement est
+    souvent bien supérieur à un mois de loyer, et c'est là que les budgets se cassent.</p>
+
+    <h2>L'état des lieux, votre meilleure protection</h2>
+
+    <p>Faites le tour du logement avec le bailleur avant d'emménager, et notez tout&nbsp;: fissures,
+    robinetterie, prises, état des peintures, fonctionnement des serrures. Photographiez, datez,
+    faites signer le document par les deux parties. Cela prend une heure.</p>
+
+    <p>Sans état des lieux d'entrée, un bailleur de mauvaise foi peut vous imputer à la sortie des
+    dégradations antérieures à votre arrivée, et vous n'aurez rien à opposer. Refaites le même
+    exercice au départ.</p>
+
+    <h2>Récupérer son dépôt de garantie</h2>
+
+    <p>Prévenez votre départ dans les formes et les délais prévus au bail. Rendez le logement
+    propre, dans l'état de l'entrée, usure normale mise à part. Présentez-vous à l'état des lieux
+    de sortie plutôt que de laisser les clés à un tiers. Demandez un reçu de restitution des
+    clés.</p>
+
+    <p>Si une retenue vous est annoncée, demandez qu'elle soit justifiée par écrit, avec les
+    devis ou factures correspondants. Une retenue sans justificatif se conteste.</p>
+
+    <h2>Les signaux qui doivent alerter</h2>
+
+    <ul>
+      <li>On vous demande de l'argent pour <em>visiter</em> un logement.</li>
+      <li>Le bailleur refuse tout document écrit, ou promet de « régulariser plus tard ».</li>
+      <li>La personne qui vous fait visiter ne prouve ni qu'elle est propriétaire, ni qu'elle est
+      mandatée.</li>
+      <li>Le montant demandé à l'entrée change entre la visite et la signature.</li>
+      <li>Un loyer nettement sous le marché du quartier, avec une pression pour payer vite.</li>
+    </ul>
+
+    <h2>Questions fréquentes</h2>
+
+    <p><strong>Combien de mois d'avance peut-on me demander&nbsp;?</strong><br>
+    Les usages varient selon le quartier et le type de bien, et un encadrement légal existe.
+    Plutôt que de vous fier à ce qui se pratique autour de vous, faites écrire le détail dans le
+    bail et renseignez-vous sur la règle en vigueur avant de payer.</p>
+
+    <p><strong>Le bailleur peut-il augmenter le loyer en cours de bail&nbsp;?</strong><br>
+    Pas librement. Une augmentation en cours de bail suppose une clause prévue au contrat ou un
+    accord entre les parties. Un bail écrit, là encore, est votre protection.</p>
+
+    <p><strong>Qui paie les réparations&nbsp;?</strong><br>
+    L'entretien courant revient en général au locataire, les grosses réparations et le clos et
+    couvert au propriétaire. La frontière se discute&nbsp;: plus le bail est précis sur ce point,
+    moins vous aurez à en débattre.</p>
+
+    <p class="avert">Cet article donne des repères pratiques et ne constitue pas un avis
+    juridique. La réglementation des loyers au Sénégal évolue&nbsp;; en cas de désaccord sérieux,
+    rapprochez-vous d'un professionnel du droit.</p>
+""",
+        "titre_en": "Renting a Home in Dakar: Lease, Deposit, Advance Rent and Inventory",
+        "description_en": "What a lease should contain in Senegal, what you can be asked for as "
+                          "a deposit and advance rent, how the inventory works and how to get "
+                          "your deposit back. Practical guidance for Dakar and Thiès.",
+        "corps_en": """
+    <p>Most disputes between landlord and tenant in Dakar are not about the rent. They are about
+    what nobody wrote down at the start: how much was actually paid on entry, the condition of
+    the property, who pays for which repairs. A tenancy is largely decided on the day you sign.
+    Here is what to look at.</p>
+
+    <h2>A written lease, even between people who trust each other</h2>
+
+    <p>A verbal lease exists in law, but it proves nothing. With nothing in writing, there is no
+    record of the agreed amount, the term, or what the charges cover. Insist on a document signed
+    by both parties, in two copies, and keep yours.</p>
+
+    <p>At a minimum it should state the identity of landlord and tenant, the address and
+    description of the property, the rent and its due date, the term, the security deposit, and
+    what the charges include. A vague clause about charges nearly always turns into a
+    disagreement a few months in.</p>
+
+    <h2>Deposit, advance rent and commission are three different things</h2>
+
+    <p>Everyday language blurs them, yet the sums are not of the same nature.</p>
+
+    <ul>
+      <li><strong>The security deposit</strong> is money held for the length of the tenancy to
+      cover possible damage or arrears. You get it back when you leave if the property is in good
+      order.</li>
+      <li><strong>Advance rent</strong> is months paid up front. It is not a guarantee: it counts
+      against your rent. Asking for several months in advance is widespread in Dakar. Have it put
+      in writing how many months are covered, and which ones.</li>
+      <li><strong>Agency commission</strong>, where there is one, pays the intermediary. You do
+      not get it back.</li>
+    </ul>
+
+    <p>Add all three together before committing. The real cost of moving in is often well above a
+    single month's rent, and that is where budgets break.</p>
+
+    <h2>The inventory is your best protection</h2>
+
+    <p>Walk through the property with the landlord before moving in and note everything: cracks,
+    taps, sockets, paintwork, whether the locks work. Photograph it, date it, have both parties
+    sign. It takes an hour.</p>
+
+    <p>Without an entry inventory, a landlord acting in bad faith can charge you on the way out
+    for damage that predates your arrival, and you will have nothing to point to. Repeat the same
+    exercise when you leave.</p>
+
+    <h2>Getting your deposit back</h2>
+
+    <p>Give notice in the manner and within the time the lease requires. Return the property
+    clean and in its entry condition, fair wear and tear aside. Attend the exit inventory rather
+    than leaving the keys with a third party. Ask for a receipt for the keys.</p>
+
+    <p>If a deduction is announced, ask for it to be justified in writing, with the matching
+    quotes or invoices. A deduction with no supporting document can be challenged.</p>
+
+    <h2>Warning signs</h2>
+
+    <ul>
+      <li>You are asked for money simply to <em>view</em> a property.</li>
+      <li>The landlord refuses anything in writing, or promises to "sort it out later".</li>
+      <li>The person showing you round proves neither ownership nor authority to act.</li>
+      <li>The amount required on entry changes between the viewing and the signature.</li>
+      <li>A rent noticeably below the local market, with pressure to pay quickly.</li>
+    </ul>
+
+    <h2>Frequently asked questions</h2>
+
+    <p><strong>How many months in advance can I be asked for?</strong><br>
+    Practice varies by neighbourhood and property type, and legal limits do exist. Rather than
+    relying on what people around you do, have the detail written into the lease and check the
+    rule in force before paying.</p>
+
+    <p><strong>Can the landlord raise the rent during the lease?</strong><br>
+    Not freely. An increase mid-term requires a clause in the contract or an agreement between
+    the parties. Once again, a written lease is your protection.</p>
+
+    <p><strong>Who pays for repairs?</strong><br>
+    Day-to-day upkeep generally falls to the tenant, major repairs and the structure to the
+    owner. The line between them is arguable, and the more precise the lease is on this point,
+    the less you will have to argue.</p>
+
+    <p class="avert">This article offers practical guidance and is not legal advice. Rental
+    regulation in Senegal changes; if a serious disagreement arises, consult a legal
+    professional.</p>
+""",
+    },
+    {
+        "slug": "vendre-son-bien-senegal",
+        "titre": "Vendre un terrain ou une maison au Sénégal : documents, prix, délais",
+        "description": "Les documents à réunir avant de mettre en vente, comment fixer un prix "
+                        "défendable, le rôle du notaire et les délais réalistes d'une vente "
+                        "immobilière au Sénégal.",
+        "date_publication": "2026-08-09",
+        "corps": """
+    <p>Une vente qui traîne coûte de l'argent au vendeur, et pas seulement en temps. Un bien resté
+    trop longtemps en ligne finit par inquiéter les acheteurs, qui supposent un problème caché et
+    négocient en conséquence. La plupart des ventes lentes le sont pour une raison simple&nbsp;:
+    le dossier n'était pas prêt au moment de la mise en vente.</p>
+
+    <h2>Réunir les documents avant de publier</h2>
+
+    <p>Rassemblez tout avant la première visite, pas au moment où un acheteur se décide. Un
+    acheteur sérieux qui attend trois semaines un document se met à douter, ou trouve autre
+    chose.</p>
+
+    <ul>
+      <li><strong>Le document de propriété</strong>&nbsp;: titre foncier, bail ou délibération,
+      dans sa version originale. Le <a href="verifier-titre-foncier-senegal.html">statut
+      foncier</a> conditionne toute la suite de la procédure.</li>
+      <li><strong>Votre pièce d'identité</strong>, et le nom exact tel qu'il figure sur le titre.
+      Une différence d'orthographe entre les deux se règle, mais cela prend du temps.</li>
+      <li><strong>Le plan et le bornage</strong> s'il s'agit d'un terrain.</li>
+      <li><strong>Les justificatifs fiscaux</strong> demandés au vendeur. Votre notaire vous dira
+      lesquels s'appliquent à votre situation.</li>
+      <li><strong>L'accord des co-indivisaires</strong> en cas de succession ou de propriété
+      partagée. C'est de loin la première cause de vente bloquée.</li>
+    </ul>
+
+    <h2>Fixer un prix qui tienne</h2>
+
+    <p>Un prix trop haut ne se corrige pas tout seul&nbsp;: il fait fuir les acheteurs pendant des
+    mois, puis oblige à baisser sous la valeur réelle pour rattraper le retard. Un prix trop bas
+    se remarque aussi, et fait naître le soupçon d'un vice.</p>
+
+    <p>Appuyez-vous sur des ventes comparables&nbsp;: même commune, même type de bien, surface
+    proche, transactions récentes. La vitrine propose une
+    <a href="../vitrine.html#estimation">estimation indicative</a> à partir de notre propre
+    historique. Elle donne un ordre de grandeur, jamais une valeur contractuelle. L'état du bien,
+    son emplacement exact et le moment du marché font le reste.</p>
+
+    <h2>Ce qui fait vendre, concrètement</h2>
+
+    <p>Des photos nettes, prises de jour, en montrant les pièces vides ou rangées. Une annonce qui
+    dit la surface, le nombre de pièces, le statut foncier et le quartier précis. Une adresse
+    joignable, et une réponse dans la journée.</p>
+
+    <p>Le statut foncier affiché dès l'annonce fait gagner du temps à tout le monde. Les acheteurs
+    que ce statut ne convient pas ne se déplacent pas, et ceux qui viennent savent déjà à quoi
+    s'attendre.</p>
+
+    <h2>Le rôle du notaire, côté vendeur</h2>
+
+    <p>Le notaire ne travaille pas seulement pour l'acheteur. Il vérifie que vous pouvez
+    juridiquement vendre, rédige l'acte, calcule les sommes dues et sécurise le paiement. Une
+    vente réglée directement entre particuliers, sans acte notarié, expose autant le vendeur que
+    l'acheteur&nbsp;: elle peut être remise en cause des années plus tard.</p>
+
+    <h2>Des délais réalistes</h2>
+
+    <p>Entre l'accord sur le prix et la signature définitive, comptez en semaines plutôt qu'en
+    jours. Les vérifications du notaire, l'obtention des pièces administratives et, souvent, le
+    financement de l'acheteur, prennent chacun leur temps. Un acheteur qui promet de signer sous
+    huit jours annonce rarement une réalité.</p>
+
+    <p>Un dossier complet dès le départ reste le seul levier qui raccourcisse vraiment ces
+    délais.</p>
+
+    <h2>Questions fréquentes</h2>
+
+    <p><strong>Puis-je vendre un terrain sous délibération&nbsp;?</strong><br>
+    Oui, mais la procédure et les garanties offertes à l'acheteur diffèrent de celles d'un titre
+    foncier, et cela se reflète dans le prix. Annoncez le statut clairement dès le début.</p>
+
+    <p><strong>Dois-je payer un impôt sur la vente&nbsp;?</strong><br>
+    Une imposition sur la plus-value peut s'appliquer selon votre situation et la durée de
+    détention. Posez la question à votre notaire au moment de la mise en vente, pas à la
+    signature.</p>
+
+    <p><strong>Puis-je vendre depuis l'étranger&nbsp;?</strong><br>
+    Oui, par procuration notariée, selon le même mécanisme que pour un achat. Notre guide sur
+    <a href="acheter-terrain-senegal-depuis-etranger.html">l'achat depuis l'étranger</a> décrit
+    la procédure&nbsp;; elle se transpose à la vente.</p>
+
+    <p class="avert">Cet article donne des repères généraux et ne constitue ni un avis juridique
+    ni un conseil fiscal. Les règles applicables dépendent de votre situation&nbsp;: consultez un
+    notaire avant de vous engager.</p>
+""",
+        "titre_en": "Selling Land or a House in Senegal: Documents, Price, Timelines",
+        "description_en": "The documents to gather before listing, how to set a price that "
+                          "holds, the notary's role on the seller's side, and realistic "
+                          "timelines for a property sale in Senegal.",
+        "corps_en": """
+    <p>A sale that drags costs the seller money, not just time. A property listed for too long
+    starts to worry buyers, who assume a hidden problem and negotiate accordingly. Most slow
+    sales are slow for one plain reason: the file was not ready when the property went on the
+    market.</p>
+
+    <h2>Gather the documents before you list</h2>
+
+    <p>Put everything together before the first viewing, not when a buyer commits. A serious
+    buyer left waiting three weeks for a document starts to doubt, or finds something else.</p>
+
+    <ul>
+      <li><strong>The ownership document</strong>: freehold title, lease or deliberation, in its
+      original form. The <a href="verifier-titre-foncier-senegal.html">land title status</a>
+      governs everything that follows.</li>
+      <li><strong>Your identity document</strong>, and the exact name as it appears on the title.
+      A spelling difference between the two can be resolved, but it takes time.</li>
+      <li><strong>The plan and survey</strong> if you are selling land.</li>
+      <li><strong>Tax documents</strong> required of sellers. Your notary will say which ones
+      apply to your situation.</li>
+      <li><strong>The agreement of co-owners</strong> where the property comes from an estate or
+      is jointly held. This is by far the leading cause of a blocked sale.</li>
+    </ul>
+
+    <h2>Setting a price that holds</h2>
+
+    <p>An inflated price does not correct itself. It keeps buyers away for months, then forces a
+    cut below true value to make up lost ground. A price set too low draws attention too, and
+    raises the suspicion of a defect.</p>
+
+    <p>Work from comparable sales: same municipality, same property type, similar size, recent
+    transactions. Our site offers an
+    <a href="../../vitrine.html#estimation">indicative estimate</a> drawn from our own records.
+    It gives an order of magnitude, never a contractual value. Condition, exact location and
+    market timing account for the rest.</p>
+
+    <h2>What actually sells a property</h2>
+
+    <p>Sharp photographs taken in daylight, with rooms empty or tidy. A listing that states the
+    size, the number of rooms, the land title status and the precise neighbourhood. A contact who
+    answers the same day.</p>
+
+    <p>Showing the land title status in the listing saves everyone time. Buyers for whom that
+    status does not work never make the trip, and those who do come already know what to
+    expect.</p>
+
+    <h2>The notary's role for a seller</h2>
+
+    <p>Notaries do not work for the buyer alone. They confirm that you are legally able to sell,
+    draft the deed, calculate what is owed and secure the payment. A sale settled directly
+    between individuals, with no notarized deed, exposes the seller as much as the buyer: it can
+    be challenged years later.</p>
+
+    <h2>Realistic timelines</h2>
+
+    <p>Between agreeing a price and the final signature, count in weeks rather than days. The
+    notary's checks, obtaining administrative papers and, often, the buyer's financing each take
+    their own time. A buyer who promises to sign within a week is rarely describing reality.</p>
+
+    <p>A complete file from the outset remains the only lever that genuinely shortens those
+    timelines.</p>
+
+    <h2>Frequently asked questions</h2>
+
+    <p><strong>Can I sell land held under a deliberation?</strong><br>
+    Yes, though the procedure and the guarantees offered to the buyer differ from those of
+    freehold title, and the price reflects that. State the status clearly from the start.</p>
+
+    <p><strong>Will I owe tax on the sale?</strong><br>
+    Capital gains tax may apply depending on your situation and how long you have held the
+    property. Ask your notary when you list, not at signature.</p>
+
+    <p><strong>Can I sell from abroad?</strong><br>
+    Yes, through a notarized power of attorney, by the same mechanism as a purchase. Our guide on
+    <a href="acheter-terrain-senegal-depuis-etranger.html">buying from abroad</a> sets out the
+    procedure; it transposes to a sale.</p>
+
+    <p class="avert">This article gives general guidance and is neither legal nor tax advice. The
+    rules that apply depend on your situation: consult a notary before committing.</p>
+""",
+    },
+    {
+        "slug": "construire-terrain-senegal-permis",
+        "titre": "Construire sur son terrain au Sénégal : viabilisation, permis de construire, délais",
+        "description": "Avant de poser la première pierre : vérifier le statut du terrain, "
+                        "évaluer la viabilisation, obtenir le permis de construire et anticiper "
+                        "les délais et surcoûts d'un chantier au Sénégal.",
+        "date_publication": "2026-08-09",
+        "corps": """
+    <p>Un terrain acheté n'est pas un terrain constructible. Entre l'acte de vente et les
+    fondations, plusieurs étapes peuvent allonger le calendrier de plusieurs mois, ou renchérir le
+    projet bien au-delà du prix du foncier. Les connaître avant d'acheter change souvent le choix
+    de la parcelle.</p>
+
+    <h2>Première question&nbsp;: le statut du terrain permet-il de construire&nbsp;?</h2>
+
+    <p>Tout part de là. Un terrain sous
+    <a href="verifier-titre-foncier-senegal.html">délibération</a> n'ouvre pas les mêmes droits
+    qu'un titre foncier, et certaines délibérations imposent justement une mise en valeur dans un
+    délai donné, sous peine de retrait. Un bail comporte ses propres conditions d'exploitation.</p>
+
+    <p>Vérifiez aussi la vocation de la zone. Une parcelle située en zone agricole, inondable ou
+    frappée d'une servitude ne se construit pas librement, quel que soit son titre. Ces
+    informations se demandent auprès de la commune avant l'achat, pas après.</p>
+
+    <h2>La viabilisation, le poste que l'on sous-estime</h2>
+
+    <p>Un terrain viabilisé est raccordé, ou raccordable à faible coût, à l'eau, à l'électricité et
+    à une voie d'accès praticable. Un terrain qui ne l'est pas se paie moins cher à l'achat, puis
+    beaucoup plus cher ensuite.</p>
+
+    <ul>
+      <li><strong>L'eau et l'électricité</strong>&nbsp;: mesurez la distance réelle au réseau
+      existant. Le coût d'un raccordement croît vite avec les mètres.</li>
+      <li><strong>L'accès</strong>&nbsp;: une parcelle desservie par une piste impraticable en
+      hivernage renchérit chaque livraison de matériaux pendant tout le chantier.</li>
+      <li><strong>L'assainissement</strong>&nbsp;: en l'absence de réseau, prévoyez une fosse et
+      son entretien.</li>
+      <li><strong>La nature du sol</strong>&nbsp;: un sol meuble ou une nappe haute imposent des
+      fondations plus lourdes. Une étude de sol coûte peu au regard de ce qu'elle évite.</li>
+    </ul>
+
+    <h2>Le permis de construire</h2>
+
+    <p>La construction est soumise à autorisation, délivrée par la commune. Le dossier comprend
+    généralement la preuve de vos droits sur le terrain, un plan de situation et les plans du
+    projet établis par un professionnel habilité.</p>
+
+    <p>Déposez la demande avant d'engager les travaux. Construire sans permis expose à des
+    sanctions et complique durablement toute revente&nbsp;: un acheteur averti, ou son notaire,
+    demandera l'autorisation, et son absence fait chuter le prix ou annule la transaction.</p>
+
+    <p>Les délais d'instruction varient d'une commune à l'autre. Renseignez-vous directement
+    auprès de la mairie concernée plutôt que de vous fier à une moyenne.</p>
+
+    <h2>Choisir qui construit</h2>
+
+    <p>Demandez plusieurs devis détaillés, poste par poste, plutôt qu'un prix global. Un devis qui
+    tient en trois lignes ne permet aucune comparaison et laisse toute latitude pour des
+    suppléments.</p>
+
+    <p>Visitez des chantiers déjà livrés par l'entreprise. Prévoyez un paiement échelonné suivant
+    l'avancement réel, jamais la totalité d'avance. Mettez par écrit le délai, le prix et ce qui
+    se passe en cas de retard.</p>
+
+    <h2>Anticiper les surcoûts habituels</h2>
+
+    <p>Les postes qui débordent le plus souvent sont les fondations lorsque le sol réserve une
+    surprise, les raccordements, et les modifications demandées en cours de chantier. Gardez une
+    réserve budgétaire plutôt que de compter au plus juste.</p>
+
+    <p>Pour un propriétaire vivant à l'étranger, désignez sur place une personne de confiance
+    chargée de constater l'avancement, distincte de l'entreprise qui construit. Les visites
+    photographiques régulières valent mieux qu'un rapport en fin de chantier.</p>
+
+    <h2>Questions fréquentes</h2>
+
+    <p><strong>Puis-je construire sur un terrain sous délibération&nbsp;?</strong><br>
+    Souvent oui, et la mise en valeur est parfois même attendue. Les droits attachés restent
+    toutefois moins solides qu'avec un titre foncier. Vérifiez les conditions exactes auprès de la
+    commune qui a délivré la délibération.</p>
+
+    <p><strong>Faut-il un architecte&nbsp;?</strong><br>
+    Cela dépend de la nature et de la taille du projet. Le dossier de permis exige en tout état de
+    cause des plans établis par un professionnel habilité.</p>
+
+    <p><strong>Combien de temps dure une construction&nbsp;?</strong><br>
+    Trop de facteurs entrent en jeu pour donner un chiffre utile&nbsp;: taille, financement,
+    saison, disponibilité des matériaux. Faites inscrire un délai contractuel dans le devis et
+    prévoyez une marge.</p>
+
+    <p class="avert">Cet article donne des repères généraux et ne remplace pas les règles
+    d'urbanisme applicables à votre commune, qui priment&nbsp;: renseignez-vous auprès de la
+    mairie et d'un professionnel avant d'engager un projet.</p>
+""",
+        "titre_en": "Building on Your Land in Senegal: Services, Building Permit, Timelines",
+        "description_en": "Before laying the first stone: check the land's status, assess the "
+                          "cost of connecting services, obtain the building permit and plan for "
+                          "the delays and overruns of a construction project in Senegal.",
+        "corps_en": """
+    <p>Buying land is not the same as owning buildable land. Between the deed of sale and the
+    foundations, several steps can stretch the schedule by months, or push the cost well beyond
+    the price of the plot. Knowing them before you buy often changes which plot you choose.</p>
+
+    <h2>First question: does the land's status allow building?</h2>
+
+    <p>Everything starts there. Land held under a
+    <a href="verifier-titre-foncier-senegal.html">deliberation</a> does not carry the same rights
+    as freehold title, and some deliberations specifically require development within a set
+    period, failing which they can be withdrawn. A lease comes with its own conditions of use.</p>
+
+    <p>Check the zoning as well. A plot in an agricultural zone, a flood-prone area or one subject
+    to an easement cannot be built on freely, whatever its title. Ask the municipality for this
+    before buying, not after.</p>
+
+    <h2>Connecting services, the item people underestimate</h2>
+
+    <p>Serviced land is connected, or cheaply connectable, to water, electricity and a usable
+    access road. Land that is not costs less to buy and a great deal more afterwards.</p>
+
+    <ul>
+      <li><strong>Water and electricity</strong>: measure the real distance to the existing
+      network. Connection costs rise quickly with every metre.</li>
+      <li><strong>Access</strong>: a plot served by a track that floods in the rainy season adds
+      cost to every delivery of materials for the whole build.</li>
+      <li><strong>Drainage</strong>: with no mains network, budget for a septic tank and its
+      upkeep.</li>
+      <li><strong>Ground conditions</strong>: soft ground or a high water table call for heavier
+      foundations. A soil survey costs little against what it prevents.</li>
+    </ul>
+
+    <h2>The building permit</h2>
+
+    <p>Construction requires authorization from the municipality. The application generally
+    includes proof of your rights over the land, a location plan and project drawings prepared by
+    a qualified professional.</p>
+
+    <p>File before starting work. Building without a permit carries penalties and complicates any
+    resale for good: an informed buyer, or their notary, will ask for the authorization, and its
+    absence either cuts the price or kills the deal.</p>
+
+    <p>Processing times vary between municipalities. Ask the relevant town hall directly rather
+    than relying on an average.</p>
+
+    <h2>Choosing who builds</h2>
+
+    <p>Ask for several itemized quotes, trade by trade, rather than a single lump sum. A quote
+    that fits in three lines allows no comparison and leaves every door open for extras.</p>
+
+    <p>Visit projects the firm has already completed. Arrange staged payments against real
+    progress, never everything up front. Put the timeline, the price and what happens in case of
+    delay in writing.</p>
+
+    <h2>Planning for the usual overruns</h2>
+
+    <p>The items that most often exceed budget are foundations when the ground springs a surprise,
+    service connections, and changes requested mid-build. Keep a contingency rather than costing
+    everything to the last franc.</p>
+
+    <p>If you own from abroad, appoint someone you trust on the ground to verify progress, someone
+    other than the firm doing the work. Regular photo visits beat a single report at the end.</p>
+
+    <h2>Frequently asked questions</h2>
+
+    <p><strong>Can I build on land held under a deliberation?</strong><br>
+    Often yes, and development is sometimes expected. The attached rights remain less solid than
+    with freehold title, though. Check the exact conditions with the municipality that issued the
+    deliberation.</p>
+
+    <p><strong>Do I need an architect?</strong><br>
+    It depends on the nature and size of the project. In any case the permit application requires
+    drawings prepared by a qualified professional.</p>
+
+    <p><strong>How long does construction take?</strong><br>
+    Too many factors are involved to give a useful figure: size, financing, season, availability
+    of materials. Have a contractual deadline written into the quote and allow a margin.</p>
+
+    <p class="avert">This article gives general guidance and does not replace the planning rules
+    that apply in your municipality, which take precedence: check with the town hall and a
+    professional before starting a project.</p>
+""",
+    },
+    {
+        "slug": "questions-frequentes",
+        "titre": "Questions fréquentes sur l'achat, la vente et la location avec PAB Immo",
+        "description": "Visites, annonces vérifiées, statut foncier, achat depuis l'étranger, "
+                        "estimation d'un bien, alertes : les réponses aux questions que les "
+                        "visiteurs nous posent le plus souvent à Dakar et à Thiès.",
+        "date_publication": "2026-08-09",
+        "corps": """
+    <p>Cette page rassemble les questions qui reviennent le plus souvent, sur le fonctionnement de
+    l'agence comme sur les démarches elles-mêmes. Les sujets qui demandent plus de place ont leur
+    propre guide, vers lequel chaque réponse renvoie.</p>
+
+    <p>Une question qui ne figure pas ici&nbsp;? Écrivez-nous sur WhatsApp, la réponse arrive
+    généralement dans la journée.</p>
+""",
+        "faq": [
+            {
+                "q": "Dans quelles zones intervenez-vous ?",
+                "r": "<p>Les régions de Dakar et de Thiès. Chaque annonce indique la commune et, "
+                     "lorsqu'il est connu, le quartier précis. La vitrine permet aussi de "
+                     "chercher autour d'un point sur la carte, ce qui est plus parlant qu'un nom "
+                     "de commune quand on ne connaît pas encore la ville.</p>",
+                "q_en": "Which areas do you cover?",
+                "r_en": "<p>The Dakar and Thiès regions. Every listing gives the municipality "
+                        "and, where known, the specific neighbourhood. You can also search around "
+                        "a point on the map, which is often clearer than a place name when you "
+                        "don't know the city yet.</p>",
+            },
+            {
+                "q": "Comment organiser une visite ?",
+                "r": "<p>Les visites se font sur rendez-vous. Depuis la fiche d'un bien, vous "
+                     "pouvez envoyer un message ou demander directement un créneau. Le bouton "
+                     "WhatsApp ouvre une conversation avec la référence du bien déjà remplie, "
+                     "ce qui évite d'avoir à la recopier.</p>",
+                "q_en": "How do I arrange a viewing?",
+                "r_en": "<p>Viewings are by appointment. From a property page you can send a "
+                        "message or request a slot directly. The WhatsApp button opens a "
+                        "conversation with the property reference already filled in, so you "
+                        "don't have to copy it out.</p>",
+            },
+            {
+                "q": "Que signifie le badge « Annonce vérifiée » ?",
+                "r": "<p>Il indique que les documents du bien et son existence réelle ont été "
+                     "contrôlés avant la publication. Ce badge ne vous dispense d'aucune "
+                     "vérification au moment d'acheter&nbsp;: il réduit seulement le nombre de "
+                     "biens sur lesquels vous aurez à les mener. Le détail de ces vérifications "
+                     "figure dans notre "
+                     "<a href=\"verifier-titre-foncier-senegal.html\">guide sur le statut "
+                     "foncier</a>.</p>",
+                "q_en": "What does the \"Verified listing\" badge mean?",
+                "r_en": "<p>It means the property's documents and its actual existence were "
+                        "checked before publication. The badge excuses you from no verification "
+                        "when you buy; it only reduces the number of properties you will need to "
+                        "run those checks on. Our "
+                        "<a href=\"verifier-titre-foncier-senegal.html\">guide to land title "
+                        "status</a> sets out what those checks involve.</p>",
+            },
+            {
+                "q": "Pourquoi le statut foncier est-il affiché sur les annonces ?",
+                "r": "<p>Parce qu'il détermine ce que vous achetez réellement. Un titre foncier, "
+                     "un bail et une délibération n'offrent pas les mêmes garanties. L'afficher "
+                     "dès l'annonce fait gagner du temps à tout le monde&nbsp;: vous savez avant "
+                     "de vous déplacer si le statut vous convient. Vous pouvez d'ailleurs filtrer "
+                     "les biens par statut foncier depuis la recherche avancée.</p>",
+                "q_en": "Why is the land title status shown on listings?",
+                "r_en": "<p>Because it determines what you are actually buying. Freehold title, a "
+                        "lease and a council deliberation do not offer the same guarantees. "
+                        "Showing it in the listing saves everyone time: you know before "
+                        "travelling whether the status suits you. You can also filter properties "
+                        "by land title status in the advanced search.</p>",
+            },
+            {
+                "q": "Comment savoir si un bien est encore disponible ?",
+                "r": "<p>Le statut figure sur chaque fiche, et un badge de disponibilité daté "
+                     "indique quand elle a été confirmée pour la dernière fois. Passé un mois "
+                     "sans confirmation, ce badge disparaît de lui-même plutôt que d'afficher une "
+                     "date périmée. Dans le doute, demandez-nous&nbsp;: un bien peut être réservé "
+                     "entre deux mises à jour.</p>",
+                "q_en": "How do I know whether a property is still available?",
+                "r_en": "<p>The status appears on every listing, and a dated availability badge "
+                        "shows when it was last confirmed. After a month without confirmation "
+                        "the badge disappears on its own rather than showing a stale date. When "
+                        "in doubt, ask us: a property can be reserved between two updates.</p>",
+            },
+            {
+                "q": "Puis-je acheter depuis l'étranger ?",
+                "r": "<p>Oui. L'achat à distance passe par une procuration notariée et par un "
+                     "notaire au Sénégal, qui reste compétent pour l'acte. Notre "
+                     "<a href=\"acheter-terrain-senegal-depuis-etranger.html\">guide dédié</a> "
+                     "détaille la procédure, les vérifications à ne pas sauter et les précautions "
+                     "propres à un achat qu'on ne peut pas superviser sur place.</p>",
+                "q_en": "Can I buy from abroad?",
+                "r_en": "<p>Yes. A remote purchase goes through a notarized power of attorney and "
+                        "a notary in Senegal, who alone has authority over the deed. Our "
+                        "<a href=\"acheter-terrain-senegal-depuis-etranger.html\">dedicated "
+                        "guide</a> covers the procedure, the checks not to skip and the "
+                        "precautions specific to a purchase you cannot supervise in person.</p>",
+            },
+            {
+                "q": "Quels frais s'ajoutent au prix affiché ?",
+                "r": "<p>Droits d'enregistrement, émoluments du notaire, publicité foncière et, "
+                     "sur un terrain, souvent un bornage. Ces montants se règlent à la signature "
+                     "et s'ajoutent au prix, jamais l'inverse. Les taux évoluent, aussi la seule "
+                     "méthode fiable reste de demander un devis écrit au notaire avant de "
+                     "s'engager. Le détail figure dans notre guide sur "
+                     "<a href=\"frais-achat-immobilier-senegal.html\">le coût réel d'un "
+                     "achat</a>.</p>",
+                "q_en": "What costs come on top of the advertised price?",
+                "r_en": "<p>Registration duties, the notary's fees, land registration and, on a "
+                        "plot of land, often a survey. These fall due at signature and come on "
+                        "top of the price, never inside it. Rates change, so the only reliable "
+                        "method is to ask the notary for a written estimate before committing. "
+                        "Our guide on <a href=\"frais-achat-immobilier-senegal.html\">what a "
+                        "purchase really costs</a> goes through each item.</p>",
+            },
+            {
+                "q": "Je veux vendre : comment estimer mon bien ?",
+                "r": "<p>La vitrine propose une "
+                     "<a href=\"../vitrine.html#estimation\">estimation indicative</a> calculée "
+                     "à partir de biens comparables de notre historique, dans la même commune et "
+                     "du même type. Elle donne un ordre de grandeur, jamais une valeur "
+                     "contractuelle&nbsp;: l'état du bien, son emplacement exact et le moment du "
+                     "marché font le reste. Notre "
+                     "<a href=\"vendre-son-bien-senegal.html\">guide de la vente</a> décrit les "
+                     "documents à réunir et les délais réalistes.</p>",
+                "q_en": "I want to sell: how do I value my property?",
+                "r_en": "<p>The site offers an "
+                        "<a href=\"../../vitrine.html#estimation\">indicative estimate</a> "
+                        "based on comparable properties from our own records, in the same "
+                        "municipality and of the same type. It gives an order of magnitude, never "
+                        "a contractual value: condition, exact location and market timing account "
+                        "for the rest. Our <a href=\"vendre-son-bien-senegal.html\">selling "
+                        "guide</a> covers the documents to gather and realistic timelines.</p>",
+            },
+            {
+                "q": "Puis-je être prévenu quand un bien correspond à ma recherche ?",
+                "r": "<p>Oui. Laissez votre email et vos critères depuis la vitrine (type, "
+                     "opération, région, budget). Dès qu'un bien correspondant est publié, vous "
+                     "recevez un message. Vous pouvez aussi enregistrer une recherche pour la "
+                     "retrouver telle quelle à votre prochaine visite.</p>",
+                "q_en": "Can I be notified when a property matches what I'm looking for?",
+                "r_en": "<p>Yes. Leave your email and your criteria on the site (type, "
+                        "transaction, region, budget). As soon as a matching property is "
+                        "published, you get a message. You can also save a search and find it "
+                        "unchanged on your next visit.</p>",
+            },
+            {
+                "q": "Le site existe-t-il en anglais ?",
+                "r": "<p>Oui. Le bouton en haut de page bascule toute la vitrine entre français "
+                     "et anglais, y compris les descriptions de biens et les fiches détaillées. "
+                     "Les guides sont rédigés séparément dans les deux langues plutôt que "
+                     "traduits automatiquement, parce qu'ils touchent à des questions "
+                     "juridiques.</p>",
+                "q_en": "Is the site available in English?",
+                "r_en": "<p>Yes. The button at the top of the page switches the whole site "
+                        "between French and English, including property descriptions and "
+                        "individual listing pages. The guides are written separately in each "
+                        "language rather than machine-translated, because they deal with legal "
+                        "matters.</p>",
+            },
+            {
+                "q": "Êtes-vous une agence, et travaillez-vous avec d'autres agences ?",
+                "r": "<p>PAB Immo publie ses propres biens et accueille des agences partenaires. "
+                     "Les annonces publiées par une agence dont l'identité a été contrôlée "
+                     "portent le badge « Agence vérifiée ». Une agence qui souhaite rejoindre le "
+                     "portefeuille peut postuler depuis le formulaire en bas de la vitrine.</p>",
+                "q_en": "Are you an agency, and do you work with other agencies?",
+                "r_en": "<p>PAB Immo lists its own properties and hosts partner agencies. "
+                        "Listings published by an agency whose identity has been checked carry "
+                        "the \"Verified agency\" badge. An agency wishing to join can apply "
+                        "through the form at the bottom of the site.</p>",
+            },
+        ],
+        "titre_en": "Frequently Asked Questions About Buying, Selling and Renting with PAB Immo",
+        "description_en": "Viewings, verified listings, land title status, buying from abroad, "
+                          "valuing a property, alerts: answers to the questions visitors ask us "
+                          "most often in Dakar and Thiès.",
+        "corps_en": """
+    <p>This page brings together the questions that come up most often, both about how the agency
+    works and about the procedures themselves. Topics that need more room have their own guide,
+    which each answer links to.</p>
+
+    <p>A question that isn't here? Message us on WhatsApp; an answer usually comes the same
+    day.</p>
+""",
+    },
 ]
 
 
@@ -1410,8 +2319,7 @@ def page_guide(g, lang="fr"):
     # contenu d'un <script> n'est jamais décodé comme le reste du HTML — un
     # titre qui contiendrait un jour un « & » ou un guillemet se retrouverait
     # donc mal encodé dans les données structurées sans que rien ne le signale.
-    ld = json.dumps({
-        "@context": "https://schema.org",
+    article = {
         "@type": "Article",
         "headline": titre,
         "description": description,
@@ -1420,7 +2328,46 @@ def page_guide(g, lang="fr"):
         "author": {"@type": "Organization", "name": AGENCE},
         "publisher": {"@type": "Organization", "name": AGENCE},
         "mainEntityOfPage": url,
-    }, ensure_ascii=False, indent=2)
+    }
+
+    # Un guide peut porter une FAQ structurée. Les questions visibles ET le
+    # balisage FAQPage sont alors produits par la MÊME source : Google exige
+    # que le balisage corresponde à ce que voit le visiteur, et deux listes
+    # tenues séparément finiraient par diverger sans que rien ne le signale.
+    faq = g.get("faq") or []
+    if faq:
+        blocs = "".join(
+            f'''
+    <details class="faq">
+      <summary>{esc(f["q_en"] if en else f["q"])}</summary>
+      {f["r_en"] if en else f["r"]}
+    </details>''' for f in faq)
+        corps = corps + f'''
+    <h2>{"Frequently asked questions" if en else "Questions fréquentes"}</h2>
+    {blocs}
+'''
+        ld = json.dumps({
+            "@context": "https://schema.org",
+            "@graph": [article, {
+                "@type": "FAQPage",
+                "inLanguage": "en" if en else "fr",
+                "mainEntity": [
+                    {"@type": "Question",
+                     "name": f["q_en"] if en else f["q"],
+                     "acceptedAnswer": {
+                         "@type": "Answer",
+                         # Le balisage veut du texte, pas du HTML.
+                         "text": re.sub(r"\s+", " ",
+                                        re.sub(r"<[^>]+>", " ",
+                                               f["r_en"] if en else f["r"])).strip(),
+                     }}
+                    for f in faq
+                ],
+            }],
+        }, ensure_ascii=False, indent=2)
+    else:
+        ld = json.dumps({"@context": "https://schema.org", **article},
+                        ensure_ascii=False, indent=2)
     return f'''<!DOCTYPE html>
 <html lang="{"en" if en else "fr"}">
 <head>
@@ -1463,17 +2410,33 @@ def page_guide(g, lang="fr"):
   main ul li{{font-size:15.5px;line-height:1.7;margin-bottom:8px;}}
   main strong{{font-weight:700;}}
   .avert{{background:var(--surface-alt);border-left:3px solid var(--gold);border-radius:0 var(--radius-md) var(--radius-md) 0;padding:14px 16px;font-size:13.5px;color:var(--ink-soft);margin-top:30px;}}
+  /* FAQ dépliante. <details> natif : fonctionne sans JavaScript, se déplie à
+     l'impression et reste accessible au clavier sans qu'on ait rien à câbler. */
+  .faq{{border:1px solid var(--border);border-radius:var(--radius-md);margin:0 0 10px;background:var(--surface);}}
+  .faq summary{{cursor:pointer;padding:14px 16px;font-weight:700;font-size:15px;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px;}}
+  .faq summary::-webkit-details-marker{{display:none;}}
+  .faq summary::after{{content:'+';font-family:'Manrope',sans-serif;font-weight:800;color:var(--gold);font-size:19px;line-height:1;flex-shrink:0;}}
+  .faq[open] summary::after{{content:'\\2212';}}
+  .faq summary:focus-visible{{outline:2px solid var(--gold);outline-offset:-2px;border-radius:var(--radius-md);}}
+  .faq > p{{margin:0;padding:0 16px 15px;font-size:14.5px;color:var(--ink-soft);}}
   .contact{{margin-top:36px;background:linear-gradient(140deg,var(--night),var(--night-2));border-radius:var(--radius-lg);padding:24px;}}
   .contact p{{color:rgba(255,255,255,.74);font-size:14px;margin:0 0 16px;line-height:1.6;}}
   .contact h2{{color:#fff;margin:0 0 6px;}}
   .actions{{display:flex;gap:10px;flex-wrap:wrap;}}
   .actions a{{flex:1 1 200px;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;border-radius:999px;font-weight:700;font-size:14px;text-decoration:none;}}
-  .wa{{background:#25D366;color:#fff;}} .tel{{background:var(--accent);color:#1E1607;}}
+  /* Vert WhatsApp assombri : le #25D366 de la marque ne donne que 1,98:1 avec
+     du texte blanc, très en dessous du minimum AA de 4,5:1. Cette teinte reste
+     dans la famille des verts WhatsApp (proche du #128C7E de leur charte) et
+     passe à plus de 5:1. */
+  .wa{{background:#0E7A6B;color:#fff;}} .tel{{background:var(--accent);color:#1E1607;}}
   .retour{{display:inline-block;margin-top:30px;font-size:14px;font-weight:700;color:var(--gold);}}
   footer{{background:var(--night);color:rgba(255,255,255,.5);font-size:12.5px;text-align:center;padding:26px 20px;line-height:1.9;}}
   footer a{{color:rgba(255,255,255,.72);text-decoration:none;font-weight:600;}}
   footer a:hover{{color:var(--gold);}}
-  footer .reg{{opacity:.65;font-size:11.5px;}}
+  /* Pas d'opacity : elle ramenait les mentions légales à 2,84:1 sur le bleu
+     nuit, très en dessous du minimum AA. La taille réduite suffit à les
+     distinguer du reste du pied de page. */
+  footer .reg{{font-size:11.5px;}}
 </style>
 <script type="application/ld+json">
 {ld}
@@ -1572,7 +2535,10 @@ def page_guides_index(guides, lang="fr"):
   .retour{{display:inline-block;margin-top:30px;font-size:14px;font-weight:700;color:var(--gold);}}
   footer{{background:var(--night);color:rgba(255,255,255,.5);font-size:12.5px;text-align:center;padding:26px 20px;line-height:1.9;}}
   footer a{{color:rgba(255,255,255,.72);text-decoration:none;font-weight:600;}}
-  footer .reg{{opacity:.65;font-size:11.5px;}}
+  /* Pas d'opacity : elle ramenait les mentions légales à 2,84:1 sur le bleu
+     nuit, très en dessous du minimum AA. La taille réduite suffit à les
+     distinguer du reste du pied de page. */
+  footer .reg{{font-size:11.5px;}}
 </style>
 </head>
 <body>

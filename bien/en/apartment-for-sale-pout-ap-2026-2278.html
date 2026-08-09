@@ -61,7 +61,11 @@
   .contact h2{color:#fff;margin:0 0 6px;}
   .actions{display:flex;gap:10px;flex-wrap:wrap;}
   .actions a{flex:1 1 200px;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;border-radius:999px;font-weight:700;font-size:14px;text-decoration:none;}
-  .wa{background:#25D366;color:#fff;} .tel{background:var(--accent);color:#1E1607;}
+  /* Vert WhatsApp assombri : le #25D366 de la marque ne donne que 1,98:1 avec
+     du texte blanc, très en dessous du minimum AA de 4,5:1. Cette teinte reste
+     dans la famille des verts WhatsApp (proche du #128C7E de leur charte) et
+     passe à plus de 5:1. */
+  .wa{background:#0E7A6B;color:#fff;} .tel{background:var(--accent);color:#1E1607;}
   .contact-form{margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.14);}
   .contact-form label{display:block;color:rgba(255,255,255,.82);font-size:12.5px;font-weight:700;margin:0 0 6px;}
   .contact-form input,.contact-form textarea{width:100%;box-sizing:border-box;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);border-radius:var(--radius-md);color:#fff;font:inherit;font-size:14px;padding:10px 12px;margin:0 0 12px;}
@@ -88,7 +92,10 @@
   footer{background:var(--night);color:rgba(255,255,255,.5);font-size:12.5px;text-align:center;padding:26px 20px;line-height:1.9;}
   footer a{color:rgba(255,255,255,.72);text-decoration:none;font-weight:600;}
   footer a:hover{color:var(--gold);}
-  footer .reg{opacity:.65;font-size:11.5px;}
+  /* Pas d'opacity : elle ramenait les mentions légales à 2,84:1 sur le bleu
+     nuit, très en dessous du minimum AA. La taille réduite suffit à les
+     distinguer du reste du pied de page. */
+  footer .reg{font-size:11.5px;}
 </style>
 <script type="application/ld+json">
 {
@@ -147,7 +154,9 @@
   <p class="prix">45 000 FCFA</p>
   <p class="prix-secondaire">≈ 69 € · 75 $US</p>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;">
-    <p class="etat" style="margin:0;background:rgba(47,122,78,.12);color:#2F7A4E">Available</p>
+    <!-- Vert assombri : #2F7A4E sur son propre fond à 12 % ne donnait que
+         4,28:1, sous le minimum AA pour un texte de 11,5 px. -->
+    <p class="etat" style="margin:0;background:rgba(47,122,78,.12);color:#26663F">Available</p>
     
     
     

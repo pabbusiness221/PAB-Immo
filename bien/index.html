@@ -46,7 +46,10 @@
   footer{background:var(--night);color:rgba(255,255,255,.5);font-size:12.5px;text-align:center;padding:26px 20px;line-height:1.9;}
   footer a{color:rgba(255,255,255,.72);text-decoration:none;font-weight:600;}
   footer a:hover{color:var(--gold);}
-  footer .reg{opacity:.65;font-size:11.5px;}
+  /* Pas d'opacity : elle ramenait les mentions légales à 2,84:1 sur le bleu
+     nuit, très en dessous du minimum AA. La taille réduite suffit à les
+     distinguer du reste du pied de page. */
+  footer .reg{font-size:11.5px;}
 </style>
 <script type="application/ld+json">
 {
