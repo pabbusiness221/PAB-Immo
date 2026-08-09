@@ -50,7 +50,6 @@ select * from site_visits;
 select * from property_views;
 select * from favorite_events;
 select * from activity_logs;
-select * from seller_estimates;       -- DONNÉES PERSONNELLES (estimation vendeurs)
 ```
 
 Ranger les fichiers dans un dossier daté, **hors du dépôt** : `sauvegardes/2026-07-21/`.
@@ -186,14 +185,15 @@ Une sauvegarde jamais restaurée n'est pas une sauvegarde. Le test se fait sur u
 > index et quatre politiques. Les **avis clients** (25 juillet) ajoutent la table
 > `reviews`, la vue `public_reviews`, la vue `public_stats`, deux déclencheurs
 > (limite anti-spam + horodatage de modération) et leurs politiques.
-> **L'estimation vendeurs** (7 août) ajoute la table `seller_estimates`, la
-> fonction `estimer_bien()`, deux déclencheurs (limite anti-spam + rattachement
-> au prospect, réutilisés tels quels depuis le pipeline existant) et étend la
-> vue `leads_enrichis`. **La description anglaise** (7 août) ajoute la colonne
-> `description_en` sur `properties`. Le pipeline de prospects et les avis
-> clients ont été vérifiés syntaxiquement hors ligne (pglast) ; l'estimation
-> vendeurs et la description anglaise ont, elles, été jouées directement sur le
-> projet Supabase de production lors de leur mise au point — une exécution
+> **La description anglaise** (7 août) ajoute la colonne `description_en` sur
+> `properties`. **L'estimation vendeurs**, ajoutée le 7 août, a été
+> entièrement retirée le 9 août (voir
+> `2026-08-09-retirer-estimation-vendeurs.sql`) : ni la table
+> `seller_estimates` ni la fonction `estimer_bien()` n'existent plus, et
+> `leads_enrichis` est revenue à sa forme sans colonnes d'estimation. Le
+> pipeline de prospects et les avis clients ont été vérifiés syntaxiquement
+> hors ligne (pglast) ; la description anglaise a, elle, été jouée directement
+> sur le projet Supabase de production lors de sa mise au point — une exécution
 > réelle, pas seulement une analyse de syntaxe. Aucun de ces ajouts n'a en
 > revanche été **rejoué sur une base vierge** : le tableau ci-dessus reste le
 > constat du 21 juillet, il n'a pas été réécrit après coup.

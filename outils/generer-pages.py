@@ -1787,10 +1787,10 @@ GUIDES = [
     se remarque aussi, et fait naître le soupçon d'un vice.</p>
 
     <p>Appuyez-vous sur des ventes comparables&nbsp;: même commune, même type de bien, surface
-    proche, transactions récentes. La vitrine propose une
-    <a href="../vitrine.html#estimation">estimation indicative</a> à partir de notre propre
-    historique. Elle donne un ordre de grandeur, jamais une valeur contractuelle. L'état du bien,
-    son emplacement exact et le moment du marché font le reste.</p>
+    proche, transactions récentes. Les annonces en ligne donnent un premier ordre de grandeur, à
+    condition de comparer ce qui l'est vraiment. L'état du bien, son emplacement exact et le
+    moment du marché font le reste. Écrivez-nous pour une évaluation de votre bien&nbsp;: nous
+    connaissons les prix pratiqués dans nos communes.</p>
 
     <h2>Ce qui fait vendre, concrètement</h2>
 
@@ -1874,10 +1874,9 @@ GUIDES = [
     raises the suspicion of a defect.</p>
 
     <p>Work from comparable sales: same municipality, same property type, similar size, recent
-    transactions. Our site offers an
-    <a href="../../vitrine.html#estimation">indicative estimate</a> drawn from our own records.
-    It gives an order of magnitude, never a contractual value. Condition, exact location and
-    market timing account for the rest.</p>
+    transactions. Online listings give a first order of magnitude, provided you compare like with
+    like. Condition, exact location and market timing account for the rest. Write to us for a
+    valuation of your property: we know the prices being paid in the areas we cover.</p>
 
     <h2>What actually sells a property</h2>
 
@@ -2222,22 +2221,17 @@ GUIDES = [
             },
             {
                 "q": "Je veux vendre : comment estimer mon bien ?",
-                "r": "<p>La vitrine propose une "
-                     "<a href=\"../vitrine.html#estimation\">estimation indicative</a> calculée "
-                     "à partir de biens comparables de notre historique, dans la même commune et "
-                     "du même type. Elle donne un ordre de grandeur, jamais une valeur "
-                     "contractuelle&nbsp;: l'état du bien, son emplacement exact et le moment du "
-                     "marché font le reste. Notre "
-                     "<a href=\"vendre-son-bien-senegal.html\">guide de la vente</a> décrit les "
-                     "documents à réunir et les délais réalistes.</p>",
+                "r": "<p>Écrivez-nous en indiquant le type de bien, la commune et la superficie. "
+                     "Nous connaissons les prix pratiqués dans nos communes et vous répondons "
+                     "avec une fourchette argumentée. Notre "
+                     "<a href=\"vendre-son-bien-senegal.html\">guide de la vente</a> décrit par "
+                     "ailleurs les documents à réunir et les délais réalistes.</p>",
                 "q_en": "I want to sell: how do I value my property?",
-                "r_en": "<p>The site offers an "
-                        "<a href=\"../../vitrine.html#estimation\">indicative estimate</a> "
-                        "based on comparable properties from our own records, in the same "
-                        "municipality and of the same type. It gives an order of magnitude, never "
-                        "a contractual value: condition, exact location and market timing account "
-                        "for the rest. Our <a href=\"vendre-son-bien-senegal.html\">selling "
-                        "guide</a> covers the documents to gather and realistic timelines.</p>",
+                "r_en": "<p>Write to us with the property type, the municipality and the size. We "
+                        "know the prices being paid in the areas we cover and will come back to "
+                        "you with a reasoned range. Our "
+                        "<a href=\"vendre-son-bien-senegal.html\">selling guide</a> also sets out "
+                        "the documents to gather and realistic timelines.</p>",
             },
             {
                 "q": "Puis-je être prévenu quand un bien correspond à ma recherche ?",

@@ -30,10 +30,10 @@ CE QU'IL GARANTIT
    entre automatiquement dans le test. Il n'y a rien à penser à mettre à jour —
    c'est précisément l'oubli qui a produit C1.
 
-3. `estimer_bien()` ne doit jamais voir plus de biens que le catalogue public
-   n'en contient. Invariant vérifiable sans aucun secret : on compte les biens
-   comparables dans `public_properties`, et la fonction ne doit pas en
-   annoncer davantage. C'est exactement ce qui trahissait C2.
+3. Le contrôle qui visait `estimer_bien()` a été retiré le 9 août 2026, en
+   même temps que l'estimation vendeurs : la fonction n'existe plus. Un test
+   qui interroge une fonction absente passe à vide et rassure à tort, ce qui
+   est pire que pas de test du tout.
 
 CE QU'IL NE COUVRE PAS
 ----------------------
@@ -131,69 +131,6 @@ def interroger(url, cle, relation):
         return -2, str(e)[:60]
 
 
-def appeler_rpc(url, cle, nom, arguments):
-    requete = urllib.request.Request(
-        f"{url}/rest/v1/rpc/{nom}",
-        data=json.dumps(arguments).encode("utf-8"),
-        headers={"apikey": cle, "Content-Type": "application/json"},
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(requete, timeout=20) as reponse:
-            return json.loads(reponse.read().decode("utf-8"))
-    except Exception:
-        return None
-
-
-def controle_estimation(url, cle):
-    """estimer_bien ne doit pas voir plus de biens que le catalogue public.
-
-    Reproduit exactement la faille C2 : on compare ce que la fonction annonce
-    à ce qu'un visiteur peut réellement dénombrer dans public_properties.
-    """
-    requete = urllib.request.Request(
-        f"{url}/rest/v1/public_properties?select=type,operation,commune,surface,price",
-        headers={"apikey": cle, "Accept": "application/json"},
-    )
-    try:
-        with urllib.request.urlopen(requete, timeout=20) as reponse:
-            biens = json.loads(reponse.read().decode("utf-8"))
-    except Exception as e:
-        return [f"catalogue public illisible ({str(e)[:50]})"]
-
-    def normaliser(nom):
-        nom = (nom or "").strip().lower()
-        for a, b in zip("àáâãäåèéêëìíîïòóôõöùúûüçñÿ", "aaaaaaeeeeiiiiooooouuuucny"):
-            nom = nom.replace(a, b)
-        nom = re.sub(
-            r"^(commune|communaute rurale|communaute|region|ville|departement|arrondissement)\s+(de|du|d')\s*",
-            "", nom)
-        return re.sub(r"\s+", " ", nom).strip()
-
-    publics = {}
-    for b in biens:
-        if (b.get("surface") or 0) > 0 and (b.get("price") or 0) > 0:
-            cle_groupe = (b["type"], b["operation"], normaliser(b.get("commune")))
-            publics[cle_groupe] = publics.get(cle_groupe, 0) + 1
-
-    anomalies = []
-    for (type_, operation, commune), nb_public in sorted(publics.items()):
-        resultat = appeler_rpc(url, cle, "estimer_bien", {
-            "p_type": type_, "p_operation": operation,
-            "p_commune": commune, "p_surface": 1,
-        })
-        if not resultat:
-            continue
-        annonce = (resultat[0] if isinstance(resultat, list) else resultat).get("nb_comparables", 0)
-        if annonce > nb_public:
-            anomalies.append(
-                f"estimer_bien annonce {annonce} biens pour "
-                f"{type_}/{operation}/{commune} alors que le catalogue public "
-                f"n'en montre que {nb_public} — des biens non publiés sont visibles"
-            )
-    return anomalies
-
-
 def main():
     url, cle = cle_et_url()
     relations = relations_du_depot()
@@ -220,15 +157,11 @@ def main():
     if injoignables:
         print(f"[!]   {len(injoignables)} injoignables : {', '.join(injoignables)}")
 
-    anomalies_estimation = controle_estimation(url, cle)
-    if not anomalies_estimation:
-        print("[OK]  estimer_bien ne voit aucun bien hors catalogue public")
-
-    if fuites or anomalies_estimation:
+    if fuites:
         print("\n" + "=" * 68)
         print("FUITE DE DONNÉES — un visiteur anonyme lit ce qu'il ne devrait pas")
         print("=" * 68)
-        for f in fuites + anomalies_estimation:
+        for f in fuites:
             print(f"  x {f}")
         print(
             "\nSi cette exposition est volontaire, il faut l'inscrire dans "

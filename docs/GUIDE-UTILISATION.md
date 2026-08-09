@@ -197,13 +197,6 @@ depuis combien de jours chacun n'a pas donné signe de vie, pour savoir qui
 relancer. Le **taux de conversion** en haut se calcule sur les dossiers tranchés
 (conclus + perdus), pas sur le total — il ne chute pas à chaque nouveau contact.
 
-> **Les prospects « Vendeur »** apparaissent dans la même liste. Ce sont des
-> personnes qui ont utilisé l'estimation indicative de la vitrine (§11) puis
-> laissé leur contact — elles n'ont donc **pas encore de bien au catalogue**.
-> La fiche affiche « Vendeur » suivi du type de bien, de la commune et de la
-> surface qu'elles ont indiqués, pour que vous sachiez de quoi leur parler au
-> premier appel.
-
 ### Modérer les avis clients
 
 Un visiteur peut laisser un **avis** (une note sur 5 étoiles + un commentaire) en
@@ -302,13 +295,6 @@ Pour vous mettre à leur place, ouvrez la vitrine par le bouton **Vitrine**.
   Ils n'apparaissent qu'après votre validation (voir §7, *Modérer les avis*).
 - **Partage** : le bouton *Partager* envoie un lien qui, sur WhatsApp ou
   Facebook, affiche la photo et le prix du bien.
-- **Estimation indicative (« Obtenez une estimation »)** : un vendeur potentiel
-  indique le type de bien, la commune et la surface ; le site calcule une
-  fourchette de prix à partir de vos propres biens comparables déjà en base,
-  et l'affiche avec un avertissement explicite (« indicative, non
-  contractuelle »). S'il laisse ensuite son contact, il devient un prospect
-  **Vendeur** dans votre pipeline (voir §7). C'est un deuxième point d'entrée,
-  pour les personnes qui veulent vendre ou louer plutôt qu'acheter.
 - **Devenir collaborateur** : en bas de page, le formulaire par lequel les
   agences vous postulent (voir §8).
 - **Bas de page** : réseaux sociaux, coordonnées, et les pages **Mentions

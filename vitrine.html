@@ -595,12 +595,6 @@
     .collab-toggle{width:100%;justify-content:center;}
   }
 
-  /* ---------- Estimation vendeurs ---------- */
-  .estim-suite.hidden{display:none;}
-  .estim-resultat.hidden{display:none;}
-  .estim-resultat{background:var(--accent-soft);border-radius:var(--radius-md);padding:16px 18px;}
-  .estim-resultat .er-montant{font-family:'Manrope',sans-serif;font-size:22px;font-weight:800;color:var(--gold);margin:0 0 4px;}
-  .estim-resultat .er-detail{margin:0;font-size:12.5px;color:var(--ink-soft);line-height:1.5;}
 
   /* ---------- Avis des clients ---------- */
   .avis-band{max-width:1280px;margin:0 auto;padding:8px 24px 40px;}
@@ -1528,81 +1522,6 @@
   </form>
 </section>
 
-<!-- Estimation vendeurs : deuxième porte non-acheteuse, groupée avec l'appel
-     aux agences juste avant le pied de page pour la même raison — elle ne
-     doit pas concurrencer les annonces auprès des acheteurs. La fourchette
-     est calculée côté serveur (estimer_bien) à partir de l'historique réel
-     de l'agence, jamais inventée côté client. -->
-<section class="collab-band reveal-band" id="estimation" aria-labelledby="estimTitre">
-  <div class="collab-inner">
-    <div class="collab-txt">
-      <p class="collab-eyebrow">Vous voulez vendre ou louer&nbsp;?</p>
-      <h2 id="estimTitre">Obtenez une estimation indicative.</h2>
-      <p>À partir de l'historique réel de nos biens comparables — type, commune et superficie. Une indication pour vous situer, pas une évaluation contractuelle.</p>
-    </div>
-    <button type="button" class="btn btn-primary collab-toggle" id="estimToggleBtn"
-            aria-expanded="false" aria-controls="estimForm">Estimer mon bien</button>
-  </div>
-
-  <form class="collab-form hidden" id="estimForm" novalidate>
-    <div class="collab-grid">
-      <div class="form-field">
-        <label class="sf-label" for="estim_type">Type de bien</label>
-        <select class="sf-select" id="estim_type" style="margin-bottom:0;">
-          <option value="Terrain">Terrain</option>
-          <option value="Maison">Maison</option>
-          <option value="Appartement">Appartement</option>
-          <option value="Studio">Studio</option>
-          <option value="Champ agricole">Champ agricole</option>
-        </select>
-      </div>
-      <div class="form-field">
-        <label class="sf-label" for="estim_operation">Vente ou location</label>
-        <select class="sf-select" id="estim_operation" style="margin-bottom:0;">
-          <option value="Vente">Vente</option>
-          <option value="Location">Location</option>
-        </select>
-      </div>
-      <div class="form-field">
-        <label class="sf-label" for="estim_commune">Commune</label>
-        <input class="sf-input" id="estim_commune" list="estim_commune_list" style="margin-bottom:0;" placeholder="ex : Sacré-Cœur" autocomplete="off" />
-        <datalist id="estim_commune_list"></datalist>
-      </div>
-      <div class="form-field">
-        <label class="sf-label" for="estim_surface" id="estim_surface_label">Superficie (m²)</label>
-        <input class="sf-input" id="estim_surface" type="number" min="1" step="any" style="margin-bottom:0;" />
-      </div>
-      <div class="form-field full">
-        <button type="button" class="btn btn-primary" id="estimCalculerBtn" style="width:100%;justify-content:center;">Voir l'estimation</button>
-        <p class="sf-error" role="alert" id="estimCalculerError"></p>
-      </div>
-      <!-- role="status" : l'estimation arrive après un appel réseau. Sans
-           annonce, un lecteur d'écran ne signale rien au clic sur « Voir
-           l'estimation » — le résultat apparaît en silence. Poli (et non
-           « alert ») : c'est une réponse attendue, pas une erreur. -->
-      <div class="form-field full estim-resultat hidden" id="estimResultat" role="status"></div>
-
-      <div class="form-field estim-suite hidden" id="estim_champ_nom">
-        <label class="sf-label" for="estim_nom">Votre nom</label>
-        <input class="sf-input" id="estim_nom" style="margin-bottom:0;" autocomplete="name" />
-      </div>
-      <div class="form-field estim-suite hidden" id="estim_champ_contact">
-        <label class="sf-label" for="estim_contact">Téléphone ou email</label>
-        <input class="sf-input" id="estim_contact" style="margin-bottom:0;" placeholder="Pour vous répondre" />
-      </div>
-      <!-- Piège à robots : invisible et hors du parcours clavier. -->
-      <div class="hp-field" aria-hidden="true">
-        <label for="estim_website">Site web</label>
-        <input type="text" id="estim_website" name="website" tabindex="-1" autocomplete="off" />
-      </div>
-      <div class="form-field full estim-suite hidden" id="estim_champ_submit">
-        <button type="submit" class="btn btn-primary" id="estimSubmitBtn" style="width:100%;justify-content:center;">Être recontacté(e) par l'agence</button>
-        <p class="sf-error" role="alert" id="estimError"></p>
-      </div>
-    </div>
-  </form>
-</section>
-
 <footer>
   <div class="footer-inner">
     <div class="footer-brand">
@@ -1784,14 +1703,6 @@ const I18N_EN = {
   'Retirer du comparateur':'Remove from comparison',
   // Partage
   'Lien copié ✓':'Link copied ✓',
-  // Estimation vendeurs — le résultat est injecté après un appel réseau, donc
-  // hors de portée du passage générique lui aussi.
-  'Pas assez de biens comparables dans notre historique pour cette commune et ce type de bien — contactez-nous directement, nous établirons une évaluation personnalisée.':
-    'Not enough comparable properties in our records for this municipality and property type — contact us directly and we will prepare a tailored valuation.',
-  'Estimation indicative, non contractuelle, basée sur':'Indicative estimate, non-binding, based on',
-  'biens comparables de notre historique':'comparable properties from our records',
-  "Le prix réel dépend de l'état, de l'emplacement précis et du marché au moment de la transaction.":
-    'The actual price depends on condition, exact location and market conditions at the time of sale.',
 };
 
 // L'ORIGINAL FRANÇAIS est mémorisé sur chaque nœud au premier passage
@@ -2149,8 +2060,6 @@ async function loadProperties(){
   renderFeatured();
   tryRenderStatsBand();
   initAdvancedSearch();
-  document.getElementById('estim_commune_list').innerHTML =
-    uniqueSorted('commune').map(c=>`<option value="${esc(c)}">`).join('');
   render();
   openPropertyFromURL();
   checkPhotoResize();
@@ -3767,119 +3676,6 @@ document.getElementById('collabForm').onsubmit = async (e) => {
     '<p class="sf-success" style="margin:0;text-align:center;">Candidature envoyée. Nous revenons vers vous rapidement.</p>';
 };
 
-// ---- Estimation vendeurs ----------------------------------------------------
-// En deux temps : d'abord une fourchette calculée côté serveur (jamais
-// inventée ici), puis seulement si la personne veut aller plus loin, ses
-// coordonnées. Poser les deux d'un coup aurait fait payer le prix d'un
-// formulaire complet avant même d'avoir vu le moindre chiffre.
-document.getElementById('estimToggleBtn').onclick = () => {
-  const form = document.getElementById('estimForm');
-  const btn = document.getElementById('estimToggleBtn');
-  const ouvert = form.classList.toggle('hidden') === false;
-  btn.setAttribute('aria-expanded', String(ouvert));
-  if(ouvert){
-    form.scrollIntoView({ behavior:'smooth', block:'nearest' });
-    document.getElementById('estim_commune').focus();
-  }
-};
-
-document.getElementById('estim_type').onchange = () => {
-  document.getElementById('estim_surface_label').textContent =
-    `Superficie (${surfaceUnit(document.getElementById('estim_type').value)})`;
-};
-
-let derniereEstimation = null;
-document.getElementById('estimCalculerBtn').onclick = async () => {
-  const btn = document.getElementById('estimCalculerBtn');
-  const errEl = document.getElementById('estimCalculerError');
-  const resultat = document.getElementById('estimResultat');
-  errEl.textContent = '';
-  resultat.classList.add('hidden');
-  document.querySelectorAll('.estim-suite').forEach(el => el.classList.add('hidden'));
-
-  const type = document.getElementById('estim_type').value;
-  const operation = document.getElementById('estim_operation').value;
-  const commune = document.getElementById('estim_commune').value.trim();
-  const surface = parseFloat(document.getElementById('estim_surface').value);
-
-  if(!commune || !surface || surface <= 0){
-    errEl.textContent = 'Merci de renseigner la commune et la superficie.';
-    return;
-  }
-
-  btn.disabled = true; btn.textContent = 'Calcul…';
-  const { data, error } = await db.rpc('estimer_bien', {
-    p_type: type, p_operation: operation, p_commune: commune, p_surface: surface
-  });
-  btn.disabled = false; btn.textContent = "Voir l'estimation";
-
-  if(error){
-    errEl.textContent = messageErreurEnvoi(error, 'Échec du calcul :');
-    return;
-  }
-
-  const ligne = Array.isArray(data) ? data[0] : data;
-  derniereEstimation = { ...ligne, type, operation, commune, surface };
-
-  // Deux comparables minimum : en dessous, une fourchette donnerait une
-  // fausse précision plutôt qu'une vraie indication.
-  if(!ligne || ligne.nb_comparables < 2){
-    resultat.innerHTML = `<p class="er-detail">${t('Pas assez de biens comparables dans notre historique pour cette commune et ce type de bien — contactez-nous directement, nous établirons une évaluation personnalisée.')}</p>`;
-  } else {
-    resultat.innerHTML = `
-      <p class="er-montant">${fcfa(ligne.estimation_basse)} — ${fcfa(ligne.estimation_haute)}${operation==='Location'?' /'+t('mois'):''}</p>
-      <p class="er-detail">${t('Estimation indicative, non contractuelle, basée sur')} ${ligne.nb_comparables} ${t('biens comparables de notre historique')} (${esc(t(type))}, ${esc(commune)}). ${t("Le prix réel dépend de l'état, de l'emplacement précis et du marché au moment de la transaction.")}</p>`;
-  }
-  resultat.classList.remove('hidden');
-  document.querySelectorAll('.estim-suite').forEach(el => el.classList.remove('hidden'));
-};
-
-document.getElementById('estimForm').onsubmit = async (e) => {
-  e.preventDefault();
-  const val = id => document.getElementById(id).value.trim();
-  const errEl = document.getElementById('estimError');
-  const btn = document.getElementById('estimSubmitBtn');
-  errEl.textContent = '';
-
-  // Champ piège rempli : robot. On feint d'accepter.
-  if(document.getElementById('estim_website').value){
-    document.getElementById('estimForm').innerHTML =
-      '<p class="sf-success" style="margin:0;text-align:center;">Demande envoyée. Nous revenons vers vous.</p>';
-    return;
-  }
-
-  const nom = val('estim_nom'), contact = val('estim_contact');
-  if(!nom || !contact){
-    errEl.textContent = 'Votre nom et un moyen de vous joindre sont nécessaires.';
-    return;
-  }
-  if(!derniereEstimation){
-    errEl.textContent = "Calculez d'abord l'estimation avant d'envoyer votre demande.";
-    return;
-  }
-
-  btn.disabled = true; btn.textContent = 'Envoi…';
-  // Pas de .select() après l'insertion : une demande est lisible par le seul
-  // administrateur, et PostgreSQL refuse de renvoyer une ligne que l'auteur
-  // n'a pas le droit de relire.
-  const { error } = await db.from('seller_estimates').insert({
-    name: nom, contact,
-    type: derniereEstimation.type,
-    operation: derniereEstimation.operation,
-    commune: derniereEstimation.commune,
-    surface: derniereEstimation.surface,
-    estimation_basse: derniereEstimation.estimation_basse ?? null,
-    estimation_haute: derniereEstimation.estimation_haute ?? null,
-    nb_comparables: derniereEstimation.nb_comparables ?? 0
-  });
-  if(error){
-    errEl.textContent = messageErreurEnvoi(error, "Échec de l'envoi :");
-    btn.disabled = false; btn.textContent = "Être recontacté(e) par l'agence";
-    return;
-  }
-  document.getElementById('estimForm').innerHTML =
-    '<p class="sf-success" style="margin:0;text-align:center;">Demande envoyée. Nous revenons vers vous rapidement.</p>';
-};
 
 // ---- Avis des clients ------------------------------------------------------
 // Les avis sont modérés : le formulaire dépose un avis « En attente », qui
