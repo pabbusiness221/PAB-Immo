@@ -86,6 +86,14 @@ create trigger trg_estimates_lead
 -- opération, même commune) sur tout l'historique, multiplié par la surface
 -- demandée. Simple et honnête : avec le peu de biens d'une agence de cette
 -- taille, une moyenne ± une marge inventée serait une fausse précision.
+--
+-- ⚠️ VERSION CORRIGÉE LE 9 AOÛT 2026 — voir
+-- 2026-08-09-estimer-bien-exclure-brouillons.sql, qui remplace cette
+-- définition. Telle qu'écrite ici, la fonction n'appliquait AUCUN filtre de
+-- visibilité : étant SECURITY DEFINER et ouverte à `anon`, elle laissait
+-- interroger de l'extérieur le prix au m² de biens jamais publiés. La version
+-- ci-dessous est conservée pour l'historique ; c'est la migration du 9 août
+-- qui fait foi.
 create or replace function public.estimer_bien(
   p_type property_type,
   p_operation operation_type,
@@ -116,7 +124,17 @@ grant execute on function public.estimer_bien(property_type, operation_type, tex
 -- (déjà rencontré avec statut_foncier). La sous-requête latérale évite le
 -- doublon de ligne qu'un simple LEFT JOIN produirait si un même contact avait
 -- demandé plusieurs estimations : seule la plus récente est montrée.
-create or replace view public.leads_enrichis as
+--
+-- ⚠️ NE JAMAIS OMETTRE `with (security_invoker = true)` ICI.
+-- CREATE OR REPLACE VIEW sans clause WITH ne conserve pas les options
+-- existantes : il les réinitialise. La version initiale de cette migration
+-- l'avait omise, ce qui a fait relire la vue avec les droits de son
+-- propriétaire, contourner le RLS de `leads` et exposer tous les prospects
+-- (nom, contact, notes) à n'importe quel visiteur anonyme via l'API REST
+-- publique. Corrigé le 9 août 2026 ; voir
+-- 2026-08-09-retablir-security-invoker-leads-enrichis.sql.
+create or replace view public.leads_enrichis
+with (security_invoker = true) as
 select l.id,
     l.contact_key,
     l.name,

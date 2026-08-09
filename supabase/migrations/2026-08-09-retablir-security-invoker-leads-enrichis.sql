@@ -1,0 +1,37 @@
+-- ============================================================================
+-- CORRECTIF DE SÉCURITÉ — rétablir security_invoker sur leads_enrichis
+-- ============================================================================
+-- Faille : la vue `leads_enrichis` était lue avec les droits de son
+-- PROPRIÉTAIRE au lieu de ceux de l'appelant. Le RLS de `leads` était donc
+-- contourné, et l'intégralité du fichier prospects — nom, contact
+-- (téléphone/email), notes commerciales privées, étape du pipeline — était
+-- lisible par n'importe qui via l'API REST publique, avec la seule clé
+-- « publishable » présente dans commun.js.
+--
+-- Vérifié le 9 août 2026 avant correctif :
+--   GET /rest/v1/leads_enrichis?select=stage  →  HTTP 200, 5 lignes (anon)
+-- Après correctif :
+--   GET /rest/v1/leads_enrichis?select=stage  →  HTTP 200, []
+-- L'admin continue de voir les 5 fiches (contrôlé en simulant ses claims JWT).
+--
+-- Cause : 2026-08-07-estimation-vendeurs.sql étendait la vue avec un
+-- CREATE OR REPLACE VIEW dépourvu de clause WITH. Contrairement à ce qu'on
+-- pourrait attendre, cette forme ne conserve pas les options de la vue
+-- existante : elle les REMET À ZÉRO. La protection posée par
+-- 2026-08-01-durcissement-securite-et-perf.sql (et documentée dans
+-- schema.sql) a donc été retirée silencieusement — sans erreur, sans avertis-
+-- sement, et sans qu'aucun contrôle automatisé ne le détecte.
+--
+-- Portée : ce fichier suffit pour une base DÉJÀ migrée. Pour une restauration
+-- complète, la clause a également été rajoutée dans la migration du 7 août,
+-- afin qu'un rejeu dans l'ordre des dates ne recrée jamais la faille.
+--
+-- Leçon durable : tout CREATE OR REPLACE VIEW sur une vue portant des options
+-- doit les redéclarer explicitement. Le seul garde-fou fiable est un test de
+-- non-régression qui interroge chaque vue en tant qu'`anon` et échoue si une
+-- ligne en sort.
+--
+-- Idempotent : rejouable sans erreur.
+-- ============================================================================
+
+alter view public.leads_enrichis set (security_invoker = true);
