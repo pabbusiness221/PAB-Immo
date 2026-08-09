@@ -116,6 +116,20 @@ python outils/verifier-mise-en-ligne.py
 Le script contrôle qu'il ne reste aucun `noindex`, que le sitemap correspond
 aux fiches réellement présentes, et qu'aucun lien interne n'est mort.
 
+Puis, tout aussi important — vérifier qu'aucune donnée privée n'est lisible
+depuis l'extérieur :
+
+```bash
+python outils/verifier-rls.py
+```
+
+Il interroge le site comme un inconnu et échoue si autre chose que le
+catalogue public lui répond : prospects, messages, rendez-vous, biens non
+publiés. Il tourne aussi tout seul en intégration continue à chaque
+modification de `supabase/`, et une fois par semaine — mais **avant une
+ouverture au public, on le lance à la main** : c'est le moment où une erreur
+coûte le plus cher.
+
 ### 6. Search Console
 
 Dans [Search Console](https://search.google.com/search-console) :

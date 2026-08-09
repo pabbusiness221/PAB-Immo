@@ -1,6 +1,6 @@
 # Sauvegardes et restauration — PAB Immo
 
-Dernier test de restauration complet : **21 juillet 2026** · schéma revalidé (syntaxe) : **25 juillet 2026**
+Dernier test de restauration complet : **21 juillet 2026** · schéma revalidé (syntaxe) : **25 juillet 2026** · contrôle d'étanchéité ajouté : **9 août 2026**
 Projet Supabase : `avanktgaxepzpqmsiauz` (région eu-west-1)
 
 ---
@@ -13,7 +13,7 @@ Le site n'est pas un bloc unique. Cinq choses distinctes doivent survivre à une
 |---|---|---|
 | Les deux pages HTML | dépôt GitHub | ✅ oui |
 | Structure de la base (tables, vues, règles de sécurité) | base Supabase | ✅ `supabase/schema.sql` |
-| Code des 3 fonctions Edge | Supabase | ✅ `supabase/functions/` |
+| Code des 6 fonctions Edge | Supabase | ✅ `supabase/functions/` |
 | **Les données** (biens, prospects, RDV) | base Supabase | ❌ **jamais** — voir §2 |
 | **Les photos** des biens | bucket `property-photos` | ❌ non |
 | **Les secrets** (clé Resend, etc.) | secrets Supabase | ❌ non |
@@ -71,7 +71,14 @@ Ces valeurs ne sont **nulle part** dans le dépôt et ne doivent pas y être. À
 | `NOTIFY_EMAIL` | notify-lead (destinataire des alertes internes) |
 | `NOTIFY_FROM` | les deux (expéditeur, optionnel) |
 | `ALERT_LISTING_URL` | notify-alert-matches, share-preview |
-| `SUPABASE_SERVICE_ROLE_KEY` | les trois fonctions |
+| `GROQ_API_KEY` | generer-description, traduire-description |
+| `GROQ_MODEL` | les deux (optionnel — défaut `llama-3.3-70b-versatile`) |
+| `SUPABASE_SERVICE_ROLE_KEY` | les six fonctions |
+
+Sans `GROQ_API_KEY`, les deux fonctions d'IA répondent une erreur explicite
+plutôt qu'un texte : rien ne casse côté visiteur, mais les descriptions ne se
+génèrent ni ne se traduisent plus. Clé gratuite sur
+[console.groq.com](https://console.groq.com).
 
 ---
 
@@ -101,7 +108,7 @@ L'ordre n'est pas négociable : chaque étape dépend de la précédente.
    ```
 5. **Réimporter les données** dans l'ordre des dépendances : `properties` → puis toutes les autres.
 6. **Recréer le bucket** `property-photos` en accès public et y reverser les fichiers.
-7. **Redéployer les 3 fonctions Edge** depuis `supabase/functions/`, puis reconfigurer leurs secrets (§2.4).
+7. **Redéployer les 6 fonctions Edge** depuis `supabase/functions/`, puis reconfigurer leurs secrets (§2.4).
 8. **Mettre à jour `SUPABASE_URL` et la clé publique** dans les deux fichiers HTML si le projet a changé d'identifiant.
 9. **Corriger les URL codées en dur dans les fonctions SQL.** `notify_lead_webhook()` et `notify_alert_matches()` appellent `https://avanktgaxepzpqmsiauz.supabase.co/functions/v1/...`. Sur un nouveau projet, ces adresses ne répondent plus.
 
@@ -126,6 +133,28 @@ L'ordre n'est pas négociable : chaque étape dépend de la précédente.
   alter table public.appointments     enable trigger trg_rdv_lead;
   ```
   Si `leads` n'a pas été sauvegardé, laisser les déclencheurs faire : les fiches se recréent avec les bons noms et les bons biens, seules les étapes de suivi sont perdues.
+
+---
+
+### 3.3 Contrôler après restauration
+
+Une base restaurée peut être complète et **mal fermée** : les données sont là,
+mais une policy ou une option de vue manque, et le public voit ce qu'il ne
+devrait pas. Ce contrôle prend dix secondes :
+
+```bash
+python outils/verifier-rls.py
+```
+
+Il interroge le site comme le ferait un inconnu et échoue si autre chose que
+le catalogue public lui répond. Il n'utilise aucun secret — seulement la clé
+publique de `commun.js`. À lancer **avant** de rouvrir le site.
+
+> Ce script existe parce qu'une fuite réelle est passée inaperçue le 7 août
+> 2026 : la vue `leads_enrichis` exposait tout le fichier prospects après
+> qu'une migration eut silencieusement retiré sa clause
+> `with (security_invoker = true)`. Une restauration mal jouée reproduirait
+> exactement ce défaut.
 
 ---
 
