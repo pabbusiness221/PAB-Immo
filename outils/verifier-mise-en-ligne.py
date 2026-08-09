@@ -97,8 +97,26 @@ def main():
     print(f"{len(fiches)} fiches dans bien/")
     controle(bool(fiches), "Aucune fiche générée : le catalogue serait invisible.")
 
-    for f in fiches + (["index.html"] if os.path.exists(os.path.join(DOSSIER, "index.html")) else []):
-        html = lire(os.path.join(DOSSIER, f))
+    # Depuis les fiches bilingues, bien/en/ contient un exemplaire anglais de
+    # chaque fiche. Les mêmes contrôles s'y appliquent : une page anglaise mal
+    # formée est aussi invisible qu'une page française mal formée.
+    dossier_en = os.path.join(DOSSIER, "en")
+    fiches_en = sorted(f for f in os.listdir(dossier_en)
+                       if f.endswith(".html") and f != "index.html") \
+        if os.path.isdir(dossier_en) else []
+    print(f"{len(fiches_en)} fiches dans bien/en/")
+    controle(len(fiches_en) == len(fiches),
+             f"bien/en/ contient {len(fiches_en)} fiches pour {len(fiches)} en "
+             f"français : chaque bien doit exister dans les deux langues.")
+
+    a_controler = [(DOSSIER, "bien", f) for f in fiches] \
+        + [(dossier_en, "bien/en", f) for f in fiches_en]
+    for d in (DOSSIER, dossier_en):
+        if os.path.exists(os.path.join(d, "index.html")):
+            a_controler.append((d, "bien" if d == DOSSIER else "bien/en", "index.html"))
+
+    for dossier, prefixe, f in a_controler:
+        html = lire(os.path.join(dossier, f))
         robots = re.search(r'<meta name="robots" content="([^"]+)"', html)
         valeur = robots.group(1) if robots else ""
         # Chercher « index, follow » dans la valeur serait un piège : cette
@@ -107,12 +125,16 @@ def main():
         # portaient exactement l'interdiction qu'il devait détecter. On teste
         # la présence de « noindex », qui elle est sans ambiguïté.
         controle(robots and ("noindex" in valeur) == maintenance,
-                 f"bien/{f} : balise robots « {valeur or 'absente'} », attendu "
+                 f"{prefixe}/{f} : balise robots « {valeur or 'absente'} », attendu "
                  f"« {'noindex' if maintenance else 'index'} ». Relancer generer-pages.py.")
         controle('<link rel="canonical"' in html,
-                 f"bien/{f} : pas d'adresse canonique.")
+                 f"{prefixe}/{f} : pas d'adresse canonique.")
         controle('application/ld+json' in html,
-                 f"bien/{f} : pas de données structurées.")
+                 f"{prefixe}/{f} : pas de données structurées.")
+        # Sans hreflang, Google traite les deux versions comme du contenu
+        # dupliqué au lieu de deux traductions d'une même page.
+        controle('hreflang="fr"' in html and 'hreflang="en"' in html,
+                 f"{prefixe}/{f} : liens hreflang incomplets entre les deux langues.")
 
     controle(os.path.exists(os.path.join(DOSSIER, "index.html")),
              "bien/index.html est absent. C'est la seule page en HTML pur qui "
@@ -120,24 +142,34 @@ def main():
              "d'exploration vers le catalogue.")
 
     # --- 3. Liens internes --------------------------------------------------
+    # Chaque langue forme un réseau clos : les vignettes d'une fiche anglaise
+    # pointent vers d'autres fiches anglaises, dans le même dossier.
     presentes = set(fiches)
+    presentes_en = set(fiches_en)
     morts = []
-    for f in os.listdir(DOSSIER):
-        if not f.endswith(".html"):
+    for dossier, prefixe, connues in ((DOSSIER, "bien", presentes),
+                                      (dossier_en, "bien/en", presentes_en)):
+        if not os.path.isdir(dossier):
             continue
-        html = lire(os.path.join(DOSSIER, f))
-        for cible in re.findall(r'class="voisin" href="([^"]+)"', html):
-            if cible not in presentes:
-                morts.append(f"bien/{f} → bien/{cible}")
+        for f in os.listdir(dossier):
+            if not f.endswith(".html"):
+                continue
+            html = lire(os.path.join(dossier, f))
+            for cible in re.findall(r'class="voisin" href="([^"]+)"', html):
+                if cible not in connues:
+                    morts.append(f"{prefixe}/{f} → {prefixe}/{cible}")
     controle(not morts, "Liens internes morts :\n      " + "\n      ".join(morts[:10]))
 
-    if fiches:
-        cibles = {c for f in os.listdir(DOSSIER) if f.endswith(".html")
+    for dossier, prefixe, connues in ((DOSSIER, "bien", presentes),
+                                      (dossier_en, "bien/en", presentes_en)):
+        if not connues or not os.path.isdir(dossier):
+            continue
+        cibles = {c for f in os.listdir(dossier) if f.endswith(".html")
                   for c in re.findall(r'class="voisin" href="([^"]+)"',
-                                      lire(os.path.join(DOSSIER, f)))}
-        orphelines = presentes - cibles
+                                      lire(os.path.join(dossier, f)))}
+        orphelines = connues - cibles
         controle(not orphelines,
-                 f"{len(orphelines)} fiche(s) qu'aucun lien n'atteint : "
+                 f"{prefixe} : {len(orphelines)} fiche(s) qu'aucun lien n'atteint : "
                  + ", ".join(sorted(orphelines)[:5]))
 
     # --- 4. Manifeste -------------------------------------------------------
@@ -145,7 +177,19 @@ def main():
     if controle(os.path.exists(chemin_manifeste),
                 "bien/index.json est absent : la vitrine ne pourra ouvrir aucune fiche."):
         manifeste = json.loads(lire(chemin_manifeste))
-        absentes = [v for v in manifeste.values() if v not in presentes]
+        # Une entrée vaut {"fr": …, "en": …}. L'ancienne forme (un simple nom
+        # de fichier français) reste acceptée : un index publié avant la
+        # génération bilingue ne doit pas faire échouer le contrôle.
+        absentes = []
+        for ref, v in manifeste.items():
+            if isinstance(v, str):
+                if v not in presentes:
+                    absentes.append(f"{ref} → {v}")
+                continue
+            if v.get("fr") not in presentes:
+                absentes.append(f"{ref} → bien/{v.get('fr')}")
+            if v.get("en") not in presentes_en:
+                absentes.append(f"{ref} → bien/en/{v.get('en')}")
         controle(not absentes,
                  f"bien/index.json annonce {len(absentes)} fiche(s) qui n'existent "
                  f"pas : {absentes[:5]}")
@@ -163,20 +207,30 @@ def main():
 
         # L'adresse de la page d'index se termine par « /bien/ » : la découper
         # donne une chaîne vide, qu'il ne faut pas confondre avec une fiche.
+        # Les fiches anglaises vivent sous /bien/en/ : les séparer avant de
+        # comparer, sinon « en/land-for-sale-….html » serait cherché parmi les
+        # fiches françaises et déclaré absent du disque.
+        declarees_en = {a.rsplit("/bien/en/", 1)[1] for a in adresses
+                        if "/bien/en/" in a and not a.endswith("/bien/en/")}
         declarees = {a.rsplit("/bien/", 1)[1] for a in adresses
-                     if "/bien/" in a and not a.endswith("/bien/")}
-        controle(declarees <= presentes,
-                 f"Le sitemap annonce des fiches absentes du disque : "
-                 f"{sorted(declarees - presentes)[:5]}. C'est le symptôme d'un "
-                 f"generer-pages.py non relancé, ou d'un git add qui n'a pas "
-                 f"enregistré les suppressions.")
-        controle(presentes <= declarees,
-                 f"Des fiches ne sont pas dans le sitemap : "
-                 f"{sorted(presentes - declarees)[:5]}")
+                     if "/bien/" in a and "/bien/en/" not in a
+                     and not a.endswith("/bien/")}
+        for etiquette, decl, sur_disque in (("bien", declarees, presentes),
+                                            ("bien/en", declarees_en, presentes_en)):
+            controle(decl <= sur_disque,
+                     f"Le sitemap annonce des fiches {etiquette} absentes du disque : "
+                     f"{sorted(decl - sur_disque)[:5]}. C'est le symptôme d'un "
+                     f"generer-pages.py non relancé, ou d'un git add qui n'a pas "
+                     f"enregistré les suppressions.")
+            controle(sur_disque <= decl,
+                     f"Des fiches {etiquette} ne sont pas dans le sitemap : "
+                     f"{sorted(sur_disque - decl)[:5]}")
         controle(any(a.endswith(f"/{accueil}") for a in adresses),
                  f"{accueil} n'est pas dans le sitemap.")
         controle(any(a.endswith("/bien/") for a in adresses),
                  "La page d'index bien/ n'est pas dans le sitemap.")
+        controle(any(a.endswith("/bien/en/") for a in adresses),
+                 "La page d'index bien/en/ n'est pas dans le sitemap.")
 
     return rendre_verdict()
 

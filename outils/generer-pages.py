@@ -66,7 +66,84 @@ ACCUEIL = "vitrine.html" if EN_MAINTENANCE else "Biens-Immo.html"
 
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DOSSIER = os.path.join(RACINE, "bien")
+DOSSIER_EN = os.path.join(DOSSIER, "en")
 DOSSIER_GUIDES = os.path.join(RACINE, "guides")
+
+# Nombre de descriptions traduites par exécution (voir prechauffer_traductions).
+# Le plafond de la fonction Edge est de 10 par heure et par adresse IP ; on
+# reste dessous. L'action tournant tous les quarts d'heure, un catalogue de
+# vingt biens est entièrement traduit en moins de deux heures.
+TRADUCTIONS_PAR_PASSAGE = 8
+
+
+# --- Vocabulaire anglais ------------------------------------------------------
+# Les fiches existent en deux langues. Le français reste la langue source :
+# c'est lui qui sert de clé, exactement comme le dictionnaire de la vitrine.
+# Seul le texte du GÉNÉRATEUR est ici — la description d'un bien, elle, est
+# rédigée par l'agence et traduite par l'IA (colonne description_en).
+
+EN = {
+    # Types de biens et opérations
+    "Terrain": "Land", "Maison": "House", "Appartement": "Apartment",
+    "Studio": "Studio", "Champ agricole": "Farmland",
+    "Vente": "Sale", "Location": "Rental",
+    "à vendre": "for sale", "à louer": "for rent",
+    # Statuts
+    "Disponible": "Available", "Réservé": "Under offer",
+    "Titre foncier": "Freehold title", "Bail": "Lease",
+    "Délibération": "Council deliberation",
+    "Meublé": "Furnished", "Non meublé": "Unfurnished",
+    # Le champ « cuisine » est saisi librement dans le portefeuille : on couvre
+    # les valeurs réellement présentes en base. Une valeur inconnue traverse
+    # telle quelle plutôt que de vider la ligne.
+    "Équipée": "Equipped", "Simple": "Basic",
+    "Américaine": "American style", "Kitchenette": "Kitchenette",
+    "Oui": "Yes", "Non": "No",
+    # Caractéristiques
+    "Chambres": "Bedrooms", "Salons": "Living rooms",
+    "Salles de bain": "Bathrooms", "Cuisine": "Kitchen",
+    "Étage": "Floor", "Année de construction": "Year built",
+    "Charges": "Utility fees", "Caution": "Security deposit",
+    "Type": "Type", "Superficie": "Size", "Référence": "Reference",
+    "Statut foncier": "Land title status",
+    # Chrome de la page
+    "Tous les biens": "All properties",
+    "Fil d'Ariane": "Breadcrumb",
+    "Photos": "Photos",
+    "Caractéristiques": "Features",
+    "Description": "Description",
+    "Intéressé par ce bien ?": "Interested in this property?",
+    "Écrire sur WhatsApp": "Message on WhatsApp",
+    "Nom": "Name",
+    "Votre nom": "Your name",
+    "Téléphone ou email": "Phone or email",
+    "Pour vous répondre": "So we can reply",
+    "Message": "Message",
+    "Votre question sur ce bien…": "Your question about this property…",
+    "Site web": "Website",
+    "Envoyer le message": "Send message",
+    "Envoi…": "Sending…",
+    "Autres biens qui pourraient vous intéresser": "Other properties you may like",
+    "Mentions légales": "Legal notice",
+    "Politique de confidentialité": "Privacy policy",
+    "visites sur rendez-vous": "visits by appointment",
+    "Disponible à partir du": "Available from",
+    # Messages du formulaire
+    "Message envoyé ! On vous recontacte rapidement.":
+        "Message sent! We will get back to you shortly.",
+    "Merci de remplir tous les champs.": "Please fill in every field.",
+    "Échec de l'envoi. Réessayez, ou écrivez-nous directement sur WhatsApp.":
+        "Sending failed. Please try again, or message us on WhatsApp.",
+    "Échec de l'envoi. Vérifiez votre connexion, ou écrivez-nous sur WhatsApp.":
+        "Sending failed. Check your connection, or message us on WhatsApp.",
+}
+
+
+def tr(texte, lang):
+    """Traduit une clé française. Renvoie le français tel quel en français, et
+    aussi en anglais si la clé manque — une page dans une langue approximative
+    vaut mieux qu'une page cassée."""
+    return EN.get(texte, texte) if lang == "en" else texte
 
 # Mémoire du générateur, d'une exécution à l'autre : pour chaque bien, une
 # empreinte de ses données, la date où sa fiche est apparue et celle du dernier
@@ -150,12 +227,29 @@ def lieu_court(nom):
     return nom
 
 
-def nom_fichier(b):
+def nom_fichier(b, lang="fr"):
     """Nom de la page d'un bien. Une seule définition, appelée aussi bien pour
     écrire le fichier que pour tisser les liens entre pages : deux formules
-    parallèles finiraient par diverger et produire des liens morts."""
+    parallèles finiraient par diverger et produire des liens morts.
+
+    L'adresse anglaise porte des mots anglais — « land-for-sale-keur-moussa »
+    et non « terrain-a-vendre-keur-moussa ». C'est là que se joue une partie du
+    référencement : l'adresse d'une page est un des rares endroits où Google
+    lit encore les mots-clés. Ces pages étant nouvelles, aucun lien existant
+    n'est cassé au passage.
+    """
+    if lang == "en":
+        action = "for-sale" if b["operation"] == "Vente" else "for-rent"
+        type_en = EN.get(b["type"], b["type"])
+        return f"{slug(type_en)}-{action}-{slug(lieu_court(b['commune']))}-{slug(b['ref'])}.html"
     action = "a-vendre" if b["operation"] == "Vente" else "a-louer"
     return f"{slug(b['type'])}-{action}-{slug(lieu_court(b['commune']))}-{slug(b['ref'])}.html"
+
+
+def url_fiche(b, lang):
+    """Adresse absolue d'une fiche, dans la langue demandée."""
+    dossier = "bien/en" if lang == "en" else "bien"
+    return f"{SITE}/{dossier}/{nom_fichier(b, lang)}"
 
 
 def empreinte(b, photos):
@@ -284,11 +378,10 @@ def lire(chemin_api):
 # doivent contenir les mots qu'une personne tape réellement : « terrain à
 # vendre », la commune, la région.
 
-def titre_bien(b):
+def titre_bien(b, lang="fr"):
     """Le titre est ce que Google affiche en bleu dans ses résultats. Il doit
     contenir les mots réellement tapés, sans répéter deux fois le même lieu :
     « Appartement à louer à Almadies — Almadies, Dakar » sonne faux."""
-    action = "à vendre" if b["operation"] == "Vente" else "à louer"
     commune = lieu_court(b["commune"])
     quartier = lieu_court(b.get("quartier") or "")
     region = lieu_court(b["region"])
@@ -298,30 +391,61 @@ def titre_bien(b):
     # vendre à Gueule Tapée, Dakar (Dakar) » n'aide personne.
     if slug(region) not in {slug(m) for m in (commune, quartier) if m}:
         lieu += f" ({region})"
+
+    if lang == "en":
+        action = tr("à vendre" if b["operation"] == "Vente" else "à louer", "en")
+        return f'{tr(b["type"], "en")} {action} in {lieu}'
+    action = "à vendre" if b["operation"] == "Vente" else "à louer"
     return f'{b["type"]} {action} à {lieu}'
 
 
-def description_bien(b):
-    action = "à vendre" if b["operation"] == "Vente" else "à louer"
-    prix = fcfa(b["price"]) + ("/mois" if b["operation"] == "Location" else "")
-    bout = [f'{b["type"]} {action} à {lieu_court(b["commune"])} ({lieu_court(b["region"])})',
-            surface(b), prix]
-    if b.get("chambres"):
-        bout.append(f'{b["chambres"]} chambre' + ("s" if b["chambres"] > 1 else ""))
-    txt = " · ".join(bout) + f". Réf. {b['ref']}, {AGENCE}."
-    if b.get("description"):
-        txt += " " + " ".join(str(b["description"]).split())
+def texte_description(b, lang):
+    """La description rédigée par l'agence, dans la langue demandée.
+
+    En anglais : la traduction mise en cache par la fonction Edge
+    (description_en). Si elle manque encore — un bien ajouté depuis le dernier
+    passage, par exemple — on ne renvoie RIEN plutôt que le texte français :
+    un paragraphe en français au milieu d'une page anglaise dessert la page
+    autant qu'il dessert le lecteur. Le prochain passage la trouvera traduite
+    (voir prechauffer_traductions).
+    """
+    if lang == "en":
+        return (b.get("description_en") or "").strip() or None
+    return (b.get("description") or "").strip() or None
+
+
+def description_bien(b, lang="fr"):
+    prix = fcfa(b["price"]) + (("/mo" if lang == "en" else "/mois")
+                               if b["operation"] == "Location" else "")
+    if lang == "en":
+        action = tr("à vendre" if b["operation"] == "Vente" else "à louer", "en")
+        bout = [f'{tr(b["type"], "en")} {action} in {lieu_court(b["commune"])}'
+                f' ({lieu_court(b["region"])})', surface(b), prix]
+        if b.get("chambres"):
+            bout.append(f'{b["chambres"]} bedroom' + ("s" if b["chambres"] > 1 else ""))
+        txt = " · ".join(bout) + f". Ref. {b['ref']}, {AGENCE}."
+    else:
+        action = "à vendre" if b["operation"] == "Vente" else "à louer"
+        bout = [f'{b["type"]} {action} à {lieu_court(b["commune"])} ({lieu_court(b["region"])})',
+                surface(b), prix]
+        if b.get("chambres"):
+            bout.append(f'{b["chambres"]} chambre' + ("s" if b["chambres"] > 1 else ""))
+        txt = " · ".join(bout) + f". Réf. {b['ref']}, {AGENCE}."
+    corps = texte_description(b, lang)
+    if corps:
+        txt += " " + " ".join(corps.split())
     return txt[:300]
 
 
-def donnees_structurees(b, photos, url, publiee):
+def donnees_structurees(b, photos, url, publiee, lang="fr"):
     """Schema.org. RealEstateListing est le type que Google attend pour une
     annonce immobilière ; l'offre porte le prix et la disponibilité."""
     d = {
         "@context": "https://schema.org",
         "@type": "RealEstateListing",
-        "name": titre_bien(b),
-        "description": description_bien(b),
+        "name": titre_bien(b, lang),
+        "description": description_bien(b, lang),
+        "inLanguage": "en" if lang == "en" else "fr",
         "url": url,
         # Date où la fiche est apparue sur le site, et non date du jour : dire
         # que les vingt-quatre biens ont été publiés ce matin serait faux, et
@@ -363,7 +487,7 @@ def donnees_structurees(b, photos, url, publiee):
 
 # --- Gabarit de page --------------------------------------------------------
 
-def vignette(b, photos):
+def vignette(b, photos, lang="fr"):
     """La carte d'un bien, utilisée par les fiches et par la page d'index.
 
     Près de la moitié des biens n'ont aucune photo. Un rectangle gris pour la
@@ -377,13 +501,14 @@ def vignette(b, photos):
         marque = ""
     else:
         fond = f"background:linear-gradient(135deg,{couleur},#161B22)"
-        marque = f'<span class="voisin-type">{esc(b["type"])}</span>'
+        marque = f'<span class="voisin-type">{esc(tr(b["type"], lang))}</span>'
+    suffixe = ('/mo' if lang == "en" else '/mois') if b["operation"] == "Location" else ''
     return f'''
-      <a class="voisin" href="{nom_fichier(b)}">
+      <a class="voisin" href="{nom_fichier(b, lang)}">
         <span class="voisin-photo" style="{fond}">{marque}</span>
         <span class="voisin-txt">
-          <b>{esc(titre_bien(b))}</b>
-          <em>{fcfa(b["price"])}{'/mois' if b["operation"] == "Location" else ''} · {esc(surface(b))}</em>
+          <b>{esc(titre_bien(b, lang))}</b>
+          <em>{fcfa(b["price"])}{suffixe} · {esc(surface(b))}</em>
         </span>
       </a>'''
 
@@ -401,12 +526,21 @@ STYLE_VIGNETTES = """
 """
 
 
-def page_bien(b, photos, voisins=(), publiee=None):
-    nom = nom_fichier(b)
-    url = f"{SITE}/bien/{nom}"
-    titre = titre_bien(b)
-    desc = description_bien(b)
-    prix = fcfa(b["price"]) + ("<span> /mois</span>" if b["operation"] == "Location" else "")
+def page_bien(b, photos, voisins=(), publiee=None, lang="fr"):
+    nom = nom_fichier(b, lang)
+    url = url_fiche(b, lang)
+    url_fr, url_en = url_fiche(b, "fr"), url_fiche(b, "en")
+    # Depuis bien/en/, tout ce qui est à la racine est deux crans plus haut.
+    prefixe = "../.." if lang == "en" else ".."
+    # Lien vers l'autre langue : les deux fiches sont dans des dossiers
+    # différents, un simple nom de fichier ne suffit donc pas.
+    autre_lang = "fr" if lang == "en" else "en"
+    lien_autre = (f"../{nom_fichier(b, 'fr')}" if lang == "en"
+                  else f"en/{nom_fichier(b, 'en')}")
+    titre = titre_bien(b, lang)
+    desc = description_bien(b, lang)
+    suffixe_mois = ('/mo' if lang == "en" else '/mois') if b["operation"] == "Location" else ''
+    prix = fcfa(b["price"]) + (f"<span> {suffixe_mois}</span>" if suffixe_mois else "")
     # Image d'aperçu au partage : la photo du bien recadrée en 1200x630, ou
     # l'image générique (celle du héros de la vitrine) faute de photo. On
     # garde ses dimensions pour les déclarer, ce qui fiabilise l'aperçu sur
@@ -418,19 +552,27 @@ def page_bien(b, photos, voisins=(), publiee=None):
         couverture = f"{SITE}/assets/dakar-panorama.jpg"
         og_w, og_h = 1536, 1024
 
-    # Message WhatsApp pré-rempli : le visiteur n'a rien à retaper.
-    wa = f"https://wa.me/{TEL.lstrip('+')}?text=" + urllib.parse.quote(
-        f"Bonjour, je suis intéressé(e) par le bien {b['ref']} — {b['type']} à {lieu_court(b['commune'])}.")
+    # Message WhatsApp pré-rempli : le visiteur n'a rien à retaper. Le message
+    # part dans SA langue — c'est lui qui l'envoie, et l'agence lit les deux.
+    if lang == "en":
+        texte_wa = (f"Hello, I am interested in property {b['ref']} — "
+                    f"{tr(b['type'], 'en')} in {lieu_court(b['commune'])}.")
+    else:
+        texte_wa = (f"Bonjour, je suis intéressé(e) par le bien {b['ref']} — "
+                    f"{b['type']} à {lieu_court(b['commune'])}.")
+    wa = f"https://wa.me/{TEL.lstrip('+')}?text=" + urllib.parse.quote(texte_wa)
 
     caracs = []
     if b.get("chambres"):    caracs.append(("Chambres", b["chambres"]))
     if b.get("salons"):      caracs.append(("Salons", b["salons"]))
     if b.get("salles_bain"): caracs.append(("Salles de bain", b["salles_bain"]))
-    if b.get("cuisine"):     caracs.append(("Cuisine", b["cuisine"]))
+    if b.get("cuisine"):     caracs.append(("Cuisine", tr(b["cuisine"], lang)))
     if b.get("etage"):       caracs.append(("Étage", b["etage"]))
     if b.get("annee_construction"): caracs.append(("Année de construction", b["annee_construction"]))
-    if b.get("meuble") is not None: caracs.append(("Meublé", "Oui" if b["meuble"] else "Non"))
-    if b.get("charges"):     caracs.append(("Charges", fcfa(b["charges"]) + "/mois"))
+    if b.get("meuble") is not None: caracs.append(("Meublé", tr("Oui" if b["meuble"] else "Non", lang)))
+    # Les charges sont mensuelles par nature : leur suffixe ne dépend pas de
+    # l'opération, contrairement à celui du prix.
+    if b.get("charges"):     caracs.append(("Charges", fcfa(b["charges"]) + ("/mo" if lang == "en" else "/mois")))
     if b.get("caution"):     caracs.append(("Caution", fcfa(b["caution"])))
 
     # Distinct du statut Disponible/Réservé : ceci dit à partir de quand un
@@ -445,28 +587,32 @@ def page_bien(b, photos, voisins=(), publiee=None):
              srcset="{photo_url(p["storage_path"], 480)} 480w, {photo_url(p["storage_path"], 900)} 900w, {photo_url(p["storage_path"], 1400)} 1400w"
              sizes="(max-width: 700px) 100vw, 700px"
              width="900" height="600"
-             alt="{esc(b["type"])} {esc("à vendre" if b["operation"] == "Vente" else "à louer")} à {esc(b["commune"])} — photo {i + 1}"
+             alt="{esc(tr(b["type"], lang))} {esc(tr("à vendre" if b["operation"] == "Vente" else "à louer", lang))} {'in' if lang == 'en' else 'à'} {esc(b["commune"])} — photo {i + 1}"
              loading="{'eager' if i == 0 else 'lazy'}" decoding="async" fetchpriority="{'high' if i == 0 else 'auto'}" />
       </figure>''' for i, p in enumerate(photos))
 
     voisins_html = ""
     if voisins:
-        cartes = "".join(vignette(v, vp) for v, vp in voisins)
-        voisins_html = f'<h2>Autres biens qui pourraient vous intéresser</h2>\n  <div class="voisins">{cartes}\n  </div>'
+        cartes = "".join(vignette(v, vp, lang) for v, vp in voisins)
+        voisins_html = (f'<h2>{tr("Autres biens qui pourraient vous intéresser", lang)}</h2>'
+                        f'\n  <div class="voisins">{cartes}\n  </div>')
 
     return nom, f'''<!DOCTYPE html>
-<html lang="fr">
+<html lang="{'en' if lang == 'en' else 'fr'}">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>{esc(titre)} | {AGENCE}</title>
 <meta name="description" content="{esc(desc)}" />
 <link rel="canonical" href="{url}" />
+<link rel="alternate" hreflang="fr" href="{url_fr}" />
+<link rel="alternate" hreflang="en" href="{url_en}" />
+<link rel="alternate" hreflang="x-default" href="{url_fr}" />
 {f'<meta name="google-site-verification" content="{GOOGLE_VERIFICATION}" />' if GOOGLE_VERIFICATION else ''}
 {'<meta name="robots" content="noindex, follow" />' if EN_MAINTENANCE else '<meta name="robots" content="index, follow, max-image-preview:large" />'}
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="{AGENCE}" />
-<meta property="og:locale" content="fr_FR" />
+<meta property="og:locale" content="{'en_GB' if lang == 'en' else 'fr_FR'}" />
 <meta property="og:title" content="{esc(titre)}" />
 <meta property="og:description" content="{esc(desc)}" />
 <meta property="og:image" content="{esc(couverture)}" />
@@ -481,11 +627,15 @@ def page_bien(b, photos, voisins=(), publiee=None):
 <meta name="twitter:description" content="{esc(desc)}" />
 <meta name="twitter:image" content="{esc(couverture)}" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="{SUPABASE_URL}">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../commun.css" />
+<link rel="stylesheet" href="{prefixe}/commun.css" />
 <style>
   body{{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}}
-  .bandeau{{background:var(--night);padding:14px 20px;}}
+  .bandeau{{background:var(--night);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;}}
+  .bandeau .lang{{color:rgba(255,255,255,.75);font-size:12.5px;font-weight:700;letter-spacing:.04em;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:4px 11px;}}
+  .bandeau .lang:hover{{color:var(--gold);border-color:var(--gold);}}
   .bandeau a{{color:#fff;text-decoration:none;font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;}}
   .bandeau a span{{color:var(--accent);}}
   main{{max-width:760px;margin:0 auto;padding:26px 20px 60px;}}
@@ -531,73 +681,76 @@ def page_bien(b, photos, voisins=(), publiee=None):
   footer .reg{{opacity:.65;font-size:11.5px;}}
 </style>
 <script type="application/ld+json">
-{donnees_structurees(b, photos, url, publiee or date.today().isoformat())}
+{donnees_structurees(b, photos, url, publiee or date.today().isoformat(), lang)}
 </script>
 </head>
 <body>
-<header class="bandeau"><a href="../{ACCUEIL}">PAB <span>Immo</span></a></header>
+<header class="bandeau">
+  <a href="{prefixe}/{ACCUEIL}">PAB <span>Immo</span></a>
+  <a class="lang" href="{lien_autre}" hreflang="{autre_lang}" lang="{autre_lang}">{'Français' if lang == 'en' else 'English'}</a>
+</header>
 
 <main>
-  <nav class="fil" aria-label="Fil d'Ariane">
-    <a href="./">Tous les biens</a> › {esc(b["type"])} › {esc(lieu_court(b["commune"]))}
+  <nav class="fil" aria-label="{tr("Fil d'Ariane", lang)}">
+    <a href="./">{tr("Tous les biens", lang)}</a> › {esc(tr(b["type"], lang))} › {esc(lieu_court(b["commune"]))}
   </nav>
 
   <h1>{esc(titre)}</h1>
-  <p class="lieu">{esc((lieu_court(b["quartier"]) + ", ") if b.get("quartier") else "")}{esc(lieu_court(b["commune"]))}, région de {esc(lieu_court(b["region"]))}</p>
+  <p class="lieu">{esc((lieu_court(b["quartier"]) + ", ") if b.get("quartier") else "")}{esc(lieu_court(b["commune"]))}, {'region of' if lang == 'en' else 'région de'} {esc(lieu_court(b["region"]))}</p>
   <p class="prix">{prix}</p>
-  <p class="prix-secondaire">{prix_secondaire(b["price"])}{'/mois' if b["operation"] == "Location" else ''}</p>
+  <p class="prix-secondaire">{prix_secondaire(b["price"])}{suffixe_mois}</p>
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;">
-    <p class="etat" style="margin:0;background:{'rgba(47,122,78,.12);color:#2F7A4E' if b["status"] == "Disponible" else 'rgba(226,162,44,.15);color:#8F6414'}">{esc(b["status"])}</p>
-    {f'<p class="etat" style="margin:0;background:rgba(37,99,235,.12);color:#2854A6;">{esc(b["statut_foncier"])}</p>' if b.get("statut_foncier") and b["statut_foncier"] != "Non renseigné" else ''}
-    {f'<p class="etat" style="margin:0;background:rgba(107,70,193,.12);color:#6B46C1;">{"Meublé" if b["meuble"] else "Non meublé"}</p>' if b.get("meuble") is not None else ''}
-    {f'<p class="etat" style="margin:0;background:rgba(180,83,9,.12);color:#B45309;">Disponible à partir du {esc(b["date_disponibilite"])}</p>' if disponible_futur else ''}
+    <p class="etat" style="margin:0;background:{'rgba(47,122,78,.12);color:#2F7A4E' if b["status"] == "Disponible" else 'rgba(226,162,44,.15);color:#8F6414'}">{esc(tr(b["status"], lang))}</p>
+    {f'<p class="etat" style="margin:0;background:rgba(37,99,235,.12);color:#2854A6;">{esc(tr(b["statut_foncier"], lang))}</p>' if b.get("statut_foncier") and b["statut_foncier"] != "Non renseigné" else ''}
+    {f'<p class="etat" style="margin:0;background:rgba(107,70,193,.12);color:#6B46C1;">{tr("Meublé" if b["meuble"] else "Non meublé", lang)}</p>' if b.get("meuble") is not None else ''}
+    {f'<p class="etat" style="margin:0;background:rgba(180,83,9,.12);color:#B45309;">{tr("Disponible à partir du", lang)} {esc(b["date_disponibilite"])}</p>' if disponible_futur else ''}
   </div>
 
-  {'<h2>Photos</h2>' + galerie if photos else ''}
+  {f'<h2>{tr("Photos", lang)}</h2>' + galerie if photos else ''}
 
-  <h2>Caractéristiques</h2>
+  <h2>{tr("Caractéristiques", lang)}</h2>
   <ul class="faits">
-    <li><b>Type</b><span>{esc(b["type"])}</span></li>
-    <li><b>{esc(b["operation"])}</b><span>{fcfa(b["price"])}{'/mois' if b["operation"] == "Location" else ''}</span></li>
-    <li><b>Superficie</b><span>{esc(surface(b))}</span></li>
-    <li><b>Référence</b><span>{esc(b["ref"])}</span></li>
-    {f'<li><b>Statut foncier</b><span>{esc(b["statut_foncier"])}</span></li>' if b.get("statut_foncier") and b["statut_foncier"] != "Non renseigné" else ''}
-    {"".join(f'<li><b>{esc(k)}</b><span>{esc(v)}</span></li>' for k, v in caracs)}
+    <li><b>{tr("Type", lang)}</b><span>{esc(tr(b["type"], lang))}</span></li>
+    <li><b>{esc(tr(b["operation"], lang))}</b><span>{fcfa(b["price"])}{suffixe_mois}</span></li>
+    <li><b>{tr("Superficie", lang)}</b><span>{esc(surface(b))}</span></li>
+    <li><b>{tr("Référence", lang)}</b><span>{esc(b["ref"])}</span></li>
+    {f'<li><b>{tr("Statut foncier", lang)}</b><span>{esc(tr(b["statut_foncier"], lang))}</span></li>' if b.get("statut_foncier") and b["statut_foncier"] != "Non renseigné" else ''}
+    {"".join(f'<li><b>{esc(tr(k, lang))}</b><span>{esc(v)}</span></li>' for k, v in caracs)}
   </ul>
 
-  {'<h2>Description</h2><p class="texte">' + esc(b["description"]) + '</p>' if b.get("description") else ''}
+  {f'<h2>{tr("Description", lang)}</h2><p class="texte">' + esc(texte_description(b, lang)) + '</p>' if texte_description(b, lang) else ''}
 
   <section class="contact">
-    <h2>Intéressé par ce bien ?</h2>
-    <p>Référence {esc(b["ref"])} — visites sur rendez-vous à {esc(lieu_court(b["commune"]))}. Nous répondons rapidement.</p>
+    <h2>{tr("Intéressé par ce bien ?", lang)}</h2>
+    <p>{f'Reference {esc(b["ref"])} — visits by appointment in {esc(lieu_court(b["commune"]))}. We reply quickly.' if lang == 'en' else f'Référence {esc(b["ref"])} — visites sur rendez-vous à {esc(lieu_court(b["commune"]))}. Nous répondons rapidement.'}</p>
     <div class="actions">
-      <a class="wa" href="{esc(wa)}" target="_blank" rel="noopener">Écrire sur WhatsApp</a>
+      <a class="wa" href="{esc(wa)}" target="_blank" rel="noopener">{tr("Écrire sur WhatsApp", lang)}</a>
       <a class="tel" href="tel:{TEL}">{TEL_AFFICHE}</a>
     </div>
 
     <form class="contact-form" id="cf" novalidate>
-      <label for="cf_name">Nom</label>
-      <input id="cf_name" placeholder="Votre nom" autocomplete="name" required/>
-      <label for="cf_contact">Téléphone ou email</label>
-      <input id="cf_contact" placeholder="Pour vous répondre" autocomplete="tel" required/>
-      <label for="cf_message">Message</label>
-      <textarea id="cf_message" placeholder="Votre question sur ce bien…" required></textarea>
-      <div class="hp-field" aria-hidden="true"><label for="cf_website">Site web</label><input type="text" id="cf_website" name="website" tabindex="-1" autocomplete="off"/></div>
-      <button type="submit" id="cfBtn">Envoyer le message</button>
-      <p class="cf-msg" id="cfMsg" role="status"></p>
+      <label for="cf_name">{tr("Nom", lang)}</label>
+      <input id="cf_name" placeholder="{tr("Votre nom", lang)}" autocomplete="name" required/>
+      <label for="cf_contact">{tr("Téléphone ou email", lang)}</label>
+      <input id="cf_contact" placeholder="{tr("Pour vous répondre", lang)}" autocomplete="tel" required/>
+      <label for="cf_message">{tr("Message", lang)}</label>
+      <textarea id="cf_message" placeholder="{tr("Votre question sur ce bien…", lang)}" required></textarea>
+      <div class="hp-field" aria-hidden="true"><label for="cf_website">{tr("Site web", lang)}</label><input type="text" id="cf_website" name="website" tabindex="-1" autocomplete="off"/></div>
+      <button type="submit" id="cfBtn">{tr("Envoyer le message", lang)}</button>
+      <p class="cf-msg" id="cfMsg" role="alert"></p>
     </form>
   </section>
 
   {voisins_html}
 
-  <a class="retour" href="./">← Voir tous nos biens à Dakar et Thiès</a>
-  <a class="retour" href="../{ACCUEIL}" style="margin-left:18px;">Rechercher sur la carte</a>
+  <a class="retour" href="./">{'← See all our properties in Dakar and Thiès' if lang == 'en' else '← Voir tous nos biens à Dakar et Thiès'}</a>
+  <a class="retour" href="{prefixe}/{ACCUEIL}" style="margin-left:18px;">{'Search on the map' if lang == 'en' else 'Rechercher sur la carte'}</a>
 </main>
 
 <footer>
-  {AGENCE} — terrains, maisons, appartements et champs agricoles à Dakar &amp; Thiès<br>
-  {TEL_AFFICHE} · {EMAIL} · visites sur rendez-vous<br>
-  <a href="../mentions-legales.html">Mentions légales</a> · <a href="../confidentialite.html">Politique de confidentialité</a><br>
+  {AGENCE} — {'land, houses, apartments and farmland in Dakar &amp; Thiès' if lang == 'en' else 'terrains, maisons, appartements et champs agricoles à Dakar &amp; Thiès'}<br>
+  {TEL_AFFICHE} · {EMAIL} · {tr("visites sur rendez-vous", lang)}<br>
+  <a href="{prefixe}/mentions-legales.html">{tr("Mentions légales", lang)}</a> · <a href="{prefixe}/confidentialite.html">{tr("Politique de confidentialité", lang)}</a><br>
   <span class="reg">© {date.today().year} {AGENCE} · NINEA {NINEA} · RCCM {RCCM}</span>
 </footer>
 <script>
@@ -621,7 +774,7 @@ def page_bien(b, photos, voisins=(), publiee=None):
     // simule un succès sans rien envoyer, pour ne pas signaler au robot
     // qu'il a été repéré.
     if(document.getElementById('cf_website').value.trim()){{
-      form.innerHTML = '<p class="cf-msg ok">Message envoyé ! On vous recontacte rapidement.</p>';
+      form.innerHTML = '<p class="cf-msg ok">{tr("Message envoyé ! On vous recontacte rapidement.", lang)}</p>';
       return;
     }}
     var name = document.getElementById('cf_name').value.trim();
@@ -631,11 +784,11 @@ def page_bien(b, photos, voisins=(), publiee=None):
     msgEl.textContent = '';
     if(!name || !contact || !message){{
       msgEl.className = 'cf-msg err';
-      msgEl.textContent = 'Merci de remplir tous les champs.';
+      msgEl.textContent = '{tr("Merci de remplir tous les champs.", lang)}';
       return;
     }}
     btn.disabled = true;
-    btn.textContent = 'Envoi…';
+    btn.textContent = '{tr("Envoi…", lang)}';
     fetch(SUPABASE_URL + '/rest/v1/contact_messages', {{
       method: 'POST',
       headers: {{
@@ -647,7 +800,7 @@ def page_bien(b, photos, voisins=(), publiee=None):
       body: JSON.stringify({{ property_id: PROPERTY_ID, name: name, contact: contact, message: message, is_read: false }})
     }}).then(function(res){{
       if(res.ok){{
-        form.innerHTML = '<p class="cf-msg ok">Message envoyé ! On vous recontacte rapidement.</p>';
+        form.innerHTML = '<p class="cf-msg ok">{tr("Message envoyé ! On vous recontacte rapidement.", lang)}</p>';
         return;
       }}
       // Le plafond d'envoi (déclencheur enforce_submission_rate_limit) renvoie
@@ -655,15 +808,15 @@ def page_bien(b, photos, voisins=(), publiee=None):
       return res.json().catch(function(){{ return {{}}; }}).then(function(corps){{
         msgEl.className = 'cf-msg err';
         msgEl.textContent = (corps && corps.message) ? corps.message
-          : "Échec de l'envoi. Réessayez, ou écrivez-nous directement sur WhatsApp.";
+          : "{tr("Échec de l'envoi. Réessayez, ou écrivez-nous directement sur WhatsApp.", lang)}";
         btn.disabled = false;
-        btn.textContent = 'Envoyer le message';
+        btn.textContent = '{tr("Envoyer le message", lang)}';
       }});
     }}).catch(function(){{
       msgEl.className = 'cf-msg err';
-      msgEl.textContent = "Échec de l'envoi. Vérifiez votre connexion, ou écrivez-nous sur WhatsApp.";
+      msgEl.textContent = "{tr("Échec de l'envoi. Vérifiez votre connexion, ou écrivez-nous sur WhatsApp.", lang)}";
       btn.disabled = false;
-      btn.textContent = 'Envoyer le message';
+      btn.textContent = '{tr("Envoyer le message", lang)}';
     }});
   }});
 }})();
@@ -673,7 +826,7 @@ def page_bien(b, photos, voisins=(), publiee=None):
 '''
 
 
-def page_index(biens, par_bien):
+def page_index(biens, par_bien, lang="fr"):
     """Page d'index statique de toutes les fiches.
 
     La vitrine construit sa liste en JavaScript : dans son code source, il n'y
@@ -685,7 +838,11 @@ def page_index(biens, par_bien):
     Elle sert aussi les visiteurs : arrivés de Google sur une fiche, ils ont
     enfin une vue d'ensemble sans dépendre du chargement de la vitrine.
     """
-    titre = f"Tous nos biens à vendre et à louer à Dakar et Thiès | {AGENCE}"
+    prefixe = "../.." if lang == "en" else ".."
+    dossier = "bien/en" if lang == "en" else "bien"
+    titre = (f"All our properties for sale and for rent in Dakar and Thiès | {AGENCE}"
+             if lang == "en" else
+             f"Tous nos biens à vendre et à louer à Dakar et Thiès | {AGENCE}")
     # Deux déclarations sur cette page : l'agence elle-même, qui n'était décrite
     # nulle part alors que c'est elle qu'on cherche en tapant « agence
     # immobilière Dakar » ; et la liste des annonces, qui dit à Google que cette
@@ -704,28 +861,34 @@ def page_index(biens, par_bien):
                 ],
                 "address": {"@type": "PostalAddress", "addressCountry": "SN",
                             "addressRegion": "Dakar"},
-                "knowsLanguage": ["fr", "wo"],
+                "knowsLanguage": ["fr", "en", "wo"],
             },
             {
                 "@type": "ItemList",
-                "name": "Biens disponibles",
+                "name": "Properties available" if lang == "en" else "Biens disponibles",
                 "numberOfItems": len(biens),
                 "itemListElement": [
                     {"@type": "ListItem", "position": i + 1,
-                     "url": f"{SITE}/bien/{nom_fichier(b)}",
-                     "name": titre_bien(b)}
+                     "url": url_fiche(b, lang),
+                     "name": titre_bien(b, lang)}
                     for i, b in enumerate(biens)
                 ],
             },
         ],
     }, ensure_ascii=False, indent=2)
-    desc = (f"{len(biens)} terrains, maisons, appartements et champs agricoles "
+    desc = (f"{len(biens)} plots of land, houses, apartments and farmland for sale "
+            f"or rent in Dakar and Thiès. Price, size and photos for every "
+            f"property. {AGENCE}, visits by appointment."
+            if lang == "en" else
+            f"{len(biens)} terrains, maisons, appartements et champs agricoles "
             f"à vendre ou à louer à Dakar et Thiès. Prix, superficie et photos "
             f"pour chaque bien. {AGENCE}, visites sur rendez-vous.")
-    url = f"{SITE}/bien/"
+    url = f"{SITE}/{dossier}/"
 
     sections = ""
-    for operation, intitule in (("Vente", "À vendre"), ("Location", "À louer")):
+    intitules = ((("Vente", "For sale"), ("Location", "For rent")) if lang == "en"
+                 else (("Vente", "À vendre"), ("Location", "À louer")))
+    for operation, intitule in intitules:
         lot = [b for b in biens if b["operation"] == operation]
         if not lot:
             continue
@@ -733,33 +896,40 @@ def page_index(biens, par_bien):
         # rectangles sans image donne l'impression d'un catalogue vide.
         lot.sort(key=lambda b: (not par_bien.get(b["id"]), lieu_court(b["region"]),
                                 lieu_court(b["commune"]), b["type"]))
-        cartes = "".join(vignette(b, par_bien.get(b["id"], [])) for b in lot)
-        sections += (f'\n  <h2>{intitule} — {len(lot)} bien'
-                     f'{"s" if len(lot) > 1 else ""}</h2>\n'
+        cartes = "".join(vignette(b, par_bien.get(b["id"], []), lang) for b in lot)
+        mot = ("propert" + ("ies" if len(lot) > 1 else "y")) if lang == "en" else \
+              ("bien" + ("s" if len(lot) > 1 else ""))
+        sections += (f'\n  <h2>{intitule} — {len(lot)} {mot}</h2>\n'
                      f'  <div class="voisins">{cartes}\n  </div>\n')
 
     return f'''<!DOCTYPE html>
-<html lang="fr">
+<html lang="{'en' if lang == 'en' else 'fr'}">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>{esc(titre)}</title>
 <meta name="description" content="{esc(desc)}" />
 <link rel="canonical" href="{url}" />
+<link rel="alternate" hreflang="fr" href="{SITE}/bien/" />
+<link rel="alternate" hreflang="en" href="{SITE}/bien/en/" />
+<link rel="alternate" hreflang="x-default" href="{SITE}/bien/" />
 {f'<meta name="google-site-verification" content="{GOOGLE_VERIFICATION}" />' if GOOGLE_VERIFICATION else ''}
 {'<meta name="robots" content="noindex, follow" />' if EN_MAINTENANCE else '<meta name="robots" content="index, follow, max-image-preview:large" />'}
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="{AGENCE}" />
-<meta property="og:locale" content="fr_FR" />
+<meta property="og:locale" content="{'en_GB' if lang == 'en' else 'fr_FR'}" />
 <meta property="og:title" content="{esc(titre)}" />
 <meta property="og:description" content="{esc(desc)}" />
 <meta property="og:url" content="{url}" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../commun.css" />
+<link rel="stylesheet" href="{prefixe}/commun.css" />
 <style>
   body{{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}}
-  .bandeau{{background:var(--night);padding:14px 20px;}}
+  .bandeau{{background:var(--night);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;}}
+  .bandeau .lang{{color:rgba(255,255,255,.75);font-size:12.5px;font-weight:700;letter-spacing:.04em;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:4px 11px;}}
+  .bandeau .lang:hover{{color:var(--gold);border-color:var(--gold);}}
   .bandeau a{{color:#fff;text-decoration:none;font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;}}
   .bandeau a span{{color:var(--accent);}}
   main{{max-width:960px;margin:0 auto;padding:26px 20px 60px;}}
@@ -778,22 +948,23 @@ def page_index(biens, par_bien):
 </script>
 </head>
 <body>
-<header class="bandeau"><a href="../{ACCUEIL}">PAB <span>Immo</span></a></header>
+<header class="bandeau">
+  <a href="{prefixe}/{ACCUEIL}">PAB <span>Immo</span></a>
+  <a class="lang" href="{'../' if lang == 'en' else 'en/'}" hreflang="{'fr' if lang == 'en' else 'en'}" lang="{'fr' if lang == 'en' else 'en'}">{'Français' if lang == 'en' else 'English'}</a>
+</header>
 
 <main>
-  <h1>Tous nos biens à Dakar et Thiès</h1>
+  <h1>{'All our properties in Dakar and Thiès' if lang == 'en' else 'Tous nos biens à Dakar et Thiès'}</h1>
   <p class="intro">
-    {len(biens)} biens disponibles : terrains, maisons, appartements et champs
-    agricoles, à vendre ou à louer dans les régions de Dakar et de Thiès.
-    Chaque fiche indique le prix, la superficie et les photos du bien.
+    {f"{len(biens)} properties available: land, houses, apartments and farmland, for sale or rent across the Dakar and Thiès regions. Every listing shows the price, the size and photos of the property." if lang == 'en' else f"{len(biens)} biens disponibles : terrains, maisons, appartements et champs agricoles, à vendre ou à louer dans les régions de Dakar et de Thiès. Chaque fiche indique le prix, la superficie et les photos du bien."}
   </p>
 {sections}
-  <a class="retour" href="../{ACCUEIL}">← Rechercher sur la carte</a>
+  <a class="retour" href="{prefixe}/{ACCUEIL}">{'← Search on the map' if lang == 'en' else '← Rechercher sur la carte'}</a>
 </main>
 
 <footer>
-  {AGENCE} — {TEL_AFFICHE} · {EMAIL} · visites sur rendez-vous<br>
-  <a href="../mentions-legales.html">Mentions légales</a> · <a href="../confidentialite.html">Politique de confidentialité</a><br>
+  {AGENCE} — {TEL_AFFICHE} · {EMAIL} · {tr("visites sur rendez-vous", lang)}<br>
+  <a href="{prefixe}/mentions-legales.html">{tr("Mentions légales", lang)}</a> · <a href="{prefixe}/confidentialite.html">{tr("Politique de confidentialité", lang)}</a><br>
   <span class="reg">© {date.today().year} {AGENCE} · NINEA {NINEA} · RCCM {RCCM}</span>
 </footer>
 </body>
@@ -1435,6 +1606,53 @@ def page_guides_index(guides, lang="fr"):
 
 # --- Programme --------------------------------------------------------------
 
+def prechauffer_traductions(biens):
+    """Demande la traduction anglaise des descriptions qui n'en ont pas encore.
+
+    La fonction Edge traduire-description met sa réponse en cache dans
+    properties.description_en. Elle est normalement déclenchée par le premier
+    visiteur anglophone qui ouvre la fiche — mais une page statique n'a pas de
+    visiteur : sans ce préchauffage, la fiche anglaise d'un bien fraîchement
+    saisi paraîtrait sans description tant que personne ne l'aurait consultée
+    sur la vitrine.
+
+    Plafonné à TRADUCTIONS_PAR_PASSAGE pour rester sous la limite de la
+    fonction (10 par heure et par IP). L'action tournant tous les quarts
+    d'heure, le catalogue se remplit tout seul en une à deux heures.
+
+    Tolérant à l'échec : une traduction qui ne vient pas laisse simplement la
+    fiche anglaise sans paragraphe de description ce tour-ci. Rien ne casse,
+    et le passage suivant réessaiera.
+    """
+    manquantes = [b for b in biens
+                  if (b.get("description") or "").strip()
+                  and not (b.get("description_en") or "").strip()]
+    if not manquantes:
+        return 0
+
+    faites = 0
+    for b in manquantes[:TRADUCTIONS_PAR_PASSAGE]:
+        corps = json.dumps({"ref": b["ref"]}).encode("utf-8")
+        req = urllib.request.Request(
+            f"{SUPABASE_URL}/functions/v1/traduire-description",
+            data=corps, method="POST",
+            headers={"apikey": SUPABASE_KEY,
+                     "Authorization": f"Bearer {SUPABASE_KEY}",
+                     "Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=45) as r:
+                traduit = json.loads(r.read().decode("utf-8")).get("description_en")
+            if traduit:
+                b["description_en"] = traduit
+                faites += 1
+        except Exception as e:
+            print(f"    traduction de {b['ref']} remise à plus tard ({str(e)[:60]})")
+    reste = len(manquantes) - faites
+    print(f"  {faites} description(s) traduite(s)"
+          + (f", {reste} au prochain passage" if reste > 0 else ""))
+    return faites
+
+
 def main():
     global TYPE_COLOR
     TYPE_COLOR = couleurs_types()
@@ -1446,12 +1664,18 @@ def main():
     for p in photos:
         par_bien.setdefault(p["property_id"], []).append(p)
 
+    # Traductions manquantes, avant de générer : ce qui revient est utilisé
+    # dans la foulée par les fiches anglaises de ce même passage.
+    prechauffer_traductions(biens)
+
     os.makedirs(DOSSIER, exist_ok=True)
+    os.makedirs(DOSSIER_EN, exist_ok=True)
     # On repart d'un dossier propre : un bien dépublié ne doit pas laisser
-    # une page fantôme derrière lui.
-    for ancien in os.listdir(DOSSIER):
-        if ancien.endswith(".html"):
-            os.remove(os.path.join(DOSSIER, ancien))
+    # une page fantôme derrière lui. Les deux langues sont concernées.
+    for dossier in (DOSSIER, DOSSIER_EN):
+        for ancien in os.listdir(dossier):
+            if ancien.endswith(".html"):
+                os.remove(os.path.join(dossier, ancien))
 
     etat, catalogue_modifie = dates_des_fiches(biens, par_bien)
 
@@ -1459,14 +1683,17 @@ def main():
     manifeste = {}
     for b in biens:
         voisins = [(v, par_bien.get(v["id"], [])) for v in similaires(b, biens)]
-        nom, html = page_bien(b, par_bien.get(b["id"], []), voisins,
-                              etat[b["ref"]]["premiere"])
-        with open(os.path.join(DOSSIER, nom), "w", encoding="utf-8") as f:
-            f.write(html)
-        manifeste[b["ref"]] = nom
-        urls.append((f"{SITE}/bien/{nom}", etat[b["ref"]]["modifie"]))
+        noms = {}
+        for lang, dossier in (("fr", DOSSIER), ("en", DOSSIER_EN)):
+            nom, html = page_bien(b, par_bien.get(b["id"], []), voisins,
+                                  etat[b["ref"]]["premiere"], lang)
+            with open(os.path.join(dossier, nom), "w", encoding="utf-8") as f:
+                f.write(html)
+            noms[lang] = nom
+            urls.append((url_fiche(b, lang), etat[b["ref"]]["modifie"]))
+        manifeste[b["ref"]] = noms
     changes = sum(1 for v in etat.values() if v["modifie"] == date.today().isoformat())
-    print(f"  {len(urls)} pages écrites dans bien/ ({changes} avec du nouveau)")
+    print(f"  {len(urls)} pages écrites dans bien/ et bien/en/ ({changes} avec du nouveau)")
 
     # --- bien/index.json ----------------------------------------------------
     # La vitrine s'en sert pour pointer vers la fiche d'un bien. Elle pourrait
@@ -1474,13 +1701,19 @@ def main():
     # des liens vers des pages pas encore générées — un bien publié ce matin
     # n'a pas de fiche tant que ce script n'a pas tourné. Ce fichier ne liste
     # que ce qui existe vraiment : pas de lien mort possible.
+    # Depuis l'ajout des fiches anglaises, la valeur est un objet {fr, en} et
+    # non plus un simple nom de fichier. La vitrine accepte les deux formes :
+    # le temps qu'une nouvelle génération soit publiée, l'ancien index reste
+    # lisible et les liens continuent de fonctionner.
     with open(os.path.join(DOSSIER, "index.json"), "w", encoding="utf-8") as f:
         json.dump(manifeste, f, ensure_ascii=False, indent=1, sort_keys=True)
-    print(f"  bien/index.json : {len(manifeste)} références")
+    print(f"  bien/index.json : {len(manifeste)} références (fr + en)")
 
     with open(os.path.join(DOSSIER, "index.html"), "w", encoding="utf-8") as f:
-        f.write(page_index(biens, par_bien))
-    print("  bien/index.html : page d'index statique")
+        f.write(page_index(biens, par_bien, "fr"))
+    with open(os.path.join(DOSSIER_EN, "index.html"), "w", encoding="utf-8") as f:
+        f.write(page_index(biens, par_bien, "en"))
+    print("  bien/index.html + bien/en/index.html : pages d'index statiques")
 
     # --- guides/ --------------------------------------------------------------
     # Contenu de fond, indépendant des biens : ne dépend d'aucune donnée de la
@@ -1521,6 +1754,8 @@ def main():
     lignes = [f"  <url><loc>{SITE}/{ACCUEIL}</loc><lastmod>{accueil_modifie}</lastmod>"
               f"<changefreq>daily</changefreq><priority>1.0</priority></url>",
               f"  <url><loc>{SITE}/bien/</loc><lastmod>{accueil_modifie}</lastmod>"
+              f"<changefreq>daily</changefreq><priority>0.9</priority></url>",
+              f"  <url><loc>{SITE}/bien/en/</loc><lastmod>{accueil_modifie}</lastmod>"
               f"<changefreq>daily</changefreq><priority>0.9</priority></url>"]
     lignes += [f"  <url><loc>{u}</loc><lastmod>{d}</lastmod>"
                f"<changefreq>weekly</changefreq><priority>0.8</priority></url>"

@@ -1,20 +1,74 @@
 {
- "AP-2026-2278": "appartement-a-vendre-pout-ap-2026-2278.html",
- "AP-2026-6664": "appartement-a-vendre-thies-ouest-ap-2026-6664.html",
- "APT-2024-032": "appartement-a-louer-mermoz-apt-2024-032.html",
- "APT-2024-101": "appartement-a-vendre-point-e-apt-2024-101.html",
- "CH-2026-1262": "champ-agricole-a-vendre-keur-moussa-ch-2026-1262.html",
- "CH-2026-3415": "champ-agricole-a-vendre-thies-ouest-ch-2026-3415.html",
- "CH-2026-5515": "champ-agricole-a-vendre-thies-ch-2026-5515.html",
- "CH-2026-5713": "champ-agricole-a-vendre-thies-ch-2026-5713.html",
- "CH-2026-8460": "champ-agricole-a-vendre-keur-moussa-ch-2026-8460.html",
- "MA-2026-7029": "maison-a-louer-sebikhotane-ma-2026-7029.html",
- "ST-2026-6396": "studio-a-louer-thies-ouest-st-2026-6396.html",
- "ST-2026-8903": "studio-a-louer-communaute-rurale-de-keur-moussa-st-2026-8903.html",
- "TF-2024-0847": "terrain-a-vendre-diamniadio-tf-2024-0847.html",
- "TF-2024-0912": "terrain-a-vendre-bargny-tf-2024-0912.html",
- "TF-2026-2204": "terrain-a-vendre-dakar-tf-2026-2204.html",
- "TF-2026-3724": "terrain-a-vendre-keur-moussa-tf-2026-3724.html",
- "TF-2026-5481": "terrain-a-vendre-communaute-rurale-de-keur-moussa-tf-2026-5481.html",
- "TF-2026-5797": "terrain-a-vendre-thies-nord-tf-2026-5797.html"
+ "AP-2026-2278": {
+  "en": "apartment-for-sale-pout-ap-2026-2278.html",
+  "fr": "appartement-a-vendre-pout-ap-2026-2278.html"
+ },
+ "AP-2026-6664": {
+  "en": "apartment-for-sale-thies-ouest-ap-2026-6664.html",
+  "fr": "appartement-a-vendre-thies-ouest-ap-2026-6664.html"
+ },
+ "APT-2024-032": {
+  "en": "apartment-for-rent-mermoz-apt-2024-032.html",
+  "fr": "appartement-a-louer-mermoz-apt-2024-032.html"
+ },
+ "APT-2024-101": {
+  "en": "apartment-for-sale-point-e-apt-2024-101.html",
+  "fr": "appartement-a-vendre-point-e-apt-2024-101.html"
+ },
+ "CH-2026-1262": {
+  "en": "farmland-for-sale-keur-moussa-ch-2026-1262.html",
+  "fr": "champ-agricole-a-vendre-keur-moussa-ch-2026-1262.html"
+ },
+ "CH-2026-3415": {
+  "en": "farmland-for-sale-thies-ouest-ch-2026-3415.html",
+  "fr": "champ-agricole-a-vendre-thies-ouest-ch-2026-3415.html"
+ },
+ "CH-2026-5515": {
+  "en": "farmland-for-sale-thies-ch-2026-5515.html",
+  "fr": "champ-agricole-a-vendre-thies-ch-2026-5515.html"
+ },
+ "CH-2026-5713": {
+  "en": "farmland-for-sale-thies-ch-2026-5713.html",
+  "fr": "champ-agricole-a-vendre-thies-ch-2026-5713.html"
+ },
+ "CH-2026-8460": {
+  "en": "farmland-for-sale-keur-moussa-ch-2026-8460.html",
+  "fr": "champ-agricole-a-vendre-keur-moussa-ch-2026-8460.html"
+ },
+ "MA-2026-7029": {
+  "en": "house-for-rent-sebikhotane-ma-2026-7029.html",
+  "fr": "maison-a-louer-sebikhotane-ma-2026-7029.html"
+ },
+ "ST-2026-6396": {
+  "en": "studio-for-rent-thies-ouest-st-2026-6396.html",
+  "fr": "studio-a-louer-thies-ouest-st-2026-6396.html"
+ },
+ "ST-2026-8903": {
+  "en": "studio-for-rent-communaute-rurale-de-keur-moussa-st-2026-8903.html",
+  "fr": "studio-a-louer-communaute-rurale-de-keur-moussa-st-2026-8903.html"
+ },
+ "TF-2024-0847": {
+  "en": "land-for-sale-diamniadio-tf-2024-0847.html",
+  "fr": "terrain-a-vendre-diamniadio-tf-2024-0847.html"
+ },
+ "TF-2024-0912": {
+  "en": "land-for-sale-bargny-tf-2024-0912.html",
+  "fr": "terrain-a-vendre-bargny-tf-2024-0912.html"
+ },
+ "TF-2026-2204": {
+  "en": "land-for-sale-dakar-tf-2026-2204.html",
+  "fr": "terrain-a-vendre-dakar-tf-2026-2204.html"
+ },
+ "TF-2026-3724": {
+  "en": "land-for-sale-keur-moussa-tf-2026-3724.html",
+  "fr": "terrain-a-vendre-keur-moussa-tf-2026-3724.html"
+ },
+ "TF-2026-5481": {
+  "en": "land-for-sale-communaute-rurale-de-keur-moussa-tf-2026-5481.html",
+  "fr": "terrain-a-vendre-communaute-rurale-de-keur-moussa-tf-2026-5481.html"
+ },
+ "TF-2026-5797": {
+  "en": "land-for-sale-thies-nord-tf-2026-5797.html",
+  "fr": "terrain-a-vendre-thies-nord-tf-2026-5797.html"
+ }
 }

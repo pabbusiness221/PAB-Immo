@@ -2089,9 +2089,20 @@ async function chargerFiches(){
   }catch(e){ /* pas de fiches disponibles : on s'en passe */ }
 }
 
+// Depuis les fiches bilingues, index.json associe à chaque référence un objet
+// {fr, en} au lieu d'un simple nom de fichier. On accepte encore l'ancienne
+// forme : entre le déploiement de cette page et le prochain passage du
+// générateur, l'index en ligne est toujours l'ancien — sans ce repli, tous les
+// liens vers les fiches disparaîtraient dans l'intervalle.
 function ficheUrl(p){
-  const nom = FICHES[p.ref];
-  return nom ? new URL('bien/' + nom, window.location.href).toString() : null;
+  const entree = FICHES[p.ref];
+  if(!entree) return null;
+  const nom = typeof entree === 'string'
+    ? entree
+    : (state.lang === 'en' ? entree.en : entree.fr);
+  if(!nom) return null;
+  const dossier = (typeof entree !== 'string' && state.lang === 'en') ? 'bien/en/' : 'bien/';
+  return new URL(dossier + nom, window.location.href).toString();
 }
 
 // La forme des cartes à venir plutôt qu'un message d'attente : l'œil a déjà
