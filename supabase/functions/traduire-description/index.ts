@@ -22,8 +22,14 @@
 // jamais un identifiant arbitraire, qui exposerait autrement la description
 // d'un bien retiré de la vitrine.
 //
-// Secrets requis : GROQ_API_KEY (même secret que generer-description et
-// parser-recherche), SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY.
+// PLAFOND D'APPELS (ajouté le 9 août 2026, point M1 de l'audit)
+// La fonction étant publique, rien n'empêchait d'enchaîner les appels pour
+// épuiser le quota Groq gratuit et priver les visiteurs de traduction. Le
+// compteur (consommer_quota_ia, table submission_log) n'est consulté que sur
+// le chemin payant, jamais pour servir une traduction déjà en cache.
+//
+// Secrets requis : GROQ_API_KEY (même secret que generer-description),
+// SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY.
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -81,6 +87,39 @@ Deno.serve(async (req) => {
   }
   if (!bien.description || !bien.description.trim()) {
     return reponse({ description_en: "" });
+  }
+
+  // Plafond — placé APRÈS le cache, délibérément : une traduction déjà en base
+  // ne coûte rien et ne doit jamais être refusée. Seul le chemin payant (appel
+  // Groq) est compté, si bien qu'un visiteur qui parcourt tout le catalogue
+  // déjà traduit n'est jamais bloqué.
+  //
+  // cf-connecting-ip / sb-forwarded-for sont posés par l'infrastructure ;
+  // x-forwarded-for est fourni par le client et serait donc contournable en le
+  // faisant varier (même raisonnement que enforce_submission_rate_limit).
+  const ip = req.headers.get("cf-connecting-ip") ||
+             req.headers.get("sb-forwarded-for") ||
+             "inconnu";
+
+  const quotaRes = await fetch(`${SUPABASE_URL}/rest/v1/rpc/consommer_quota_ia`, {
+    method: "POST",
+    headers: {
+      apikey: SERVICE_KEY,
+      Authorization: `Bearer ${SERVICE_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ p_bucket: "traduction", p_ip: ip }),
+  });
+
+  // Un incident sur le compteur ne doit pas priver les visiteurs de traduction,
+  // mais il ne doit pas non plus ouvrir le robinet en grand : on refuse, et le
+  // message reste réessayable.
+  if (!quotaRes.ok) {
+    console.error("Quota injoignable:", quotaRes.status, await quotaRes.text().catch(() => ""));
+    return reponse({ erreur: "Traduction momentanément indisponible. Réessayez." }, 503);
+  }
+  if (await quotaRes.json().catch(() => false) !== true) {
+    return reponse({ erreur: "Trop de traductions demandées récemment. Réessayez dans une heure." }, 429);
   }
 
   const prompt = `Translate the following French real estate listing description into natural, professional English. Do not add, omit, or invent any information — a faithful translation only. Respond with ONLY the translated text, no quotes, no title.\n\n${bien.description}`;
