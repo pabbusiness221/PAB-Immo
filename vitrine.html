@@ -1754,7 +1754,7 @@ const I18N_EN = {
   'Voir le bien':'View property', 'Ajouter aux favoris':'Add to favorites', 'Retirer des favoris':'Remove from favorites',
   'Nouveau':'New', 'Sponsorisé':'Sponsored', 'Vérifiée':'Verified', '✓ Vérifiée':'✓ Verified',
   'Disponible':'Available', 'Sous offre':'Under offer',
-  'Comparer':'Compare', 'Vider':'Clear', 'mo':'mo', 'ch.':'bd.',
+  'Comparer':'Compare', 'Vider':'Clear', 'mois':'mo', 'ch.':'bd.',
   'Statut juridique déclaré par l’agence':'Land title status declared by the agency',
   'Agence vérifiée':'Verified agency',
   'Publié par une agence dont l’identité a été contrôlée par PAB Immo':'Published by an agency whose identity was verified by PAB Immo',
@@ -2444,7 +2444,7 @@ function renderFeatured(){
         <button type="button" class="fav-btn ${isFav(p.id)?'active':''}" data-fav-id="${p.id}" aria-pressed="${isFav(p.id)}" aria-label="${isFav(p.id)?t('Retirer des favoris'):t('Ajouter aux favoris')}">${favIconSvg(isFav(p.id))}</button>
       </div>
       <div class="bien-tile-corps">
-        <div class="bien-tile-prix">${fcfa(p.price)}${p.operation==='Location'?` <small>/${t('mo')}</small>`:''}</div>
+        <div class="bien-tile-prix">${fcfa(p.price)}${p.operation==='Location'?` <small>/${t('mois')}</small>`:''}</div>
         <button type="button" class="bien-tile-titre" data-open-id="${p.id}">${t(p.type)} — ${esc(p.commune)}</button>
         <div class="bien-tile-lieu">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -2853,7 +2853,7 @@ function renderList(){
         </label>
         <div class="card-foot">
           <span class="surface-txt mono">${p.surface} ${surfaceUnit(p.type)}</span>
-          <span class="price mono">${fcfa(p.price)}${p.operation==='Location'?` /${t('mo')}`:''}</span>
+          <span class="price mono">${fcfa(p.price)}${p.operation==='Location'?` /${t('mois')}`:''}</span>
         </div>
       </div>
     </div>`;
@@ -3048,8 +3048,8 @@ function openDrawer(p){
       </div>` : ''}
       <div class="grid2">
         <div class="info-box"><div class="k">${t('Superficie')}</div><div class="v mono">${p.surface} ${surfaceUnit(p.type)}</div></div>
-        <div class="info-box"><div class="k">${t(p.operation)}</div><div class="v mono" style="color:var(--gold)">${fcfa(p.price)}${p.operation==='Location'?'/'+t('mo'):''}</div><div class="v-secondaire mono">${prixSecondaire(p.price)}${p.operation==='Location'?'/'+t('mo'):''}</div></div>
-        ${p.charges != null ? `<div class="info-box"><div class="k">${t('Charges')}</div><div class="v mono">${fcfa(p.charges)}/${t('mo')}</div></div>` : ''}
+        <div class="info-box"><div class="k">${t(p.operation)}</div><div class="v mono" style="color:var(--gold)">${fcfa(p.price)}${p.operation==='Location'?'/'+t('mois'):''}</div><div class="v-secondaire mono">${prixSecondaire(p.price)}${p.operation==='Location'?'/'+t('mois'):''}</div></div>
+        ${p.charges != null ? `<div class="info-box"><div class="k">${t('Charges')}</div><div class="v mono">${fcfa(p.charges)}/${t('mois')}</div></div>` : ''}
         ${p.caution != null ? `<div class="info-box"><div class="k">${t('Caution')}</div><div class="v mono">${fcfa(p.caution)}</div></div>` : ''}
       </div>
       <div class="section-title">${t('Localisation')}</div>
