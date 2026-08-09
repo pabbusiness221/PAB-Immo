@@ -1773,6 +1773,25 @@ const I18N_EN = {
   'Guides & conseils':'Guides & tips', 'Devenir collaborateur':'Become a partner', 'Espace collaborateur':'Partner area',
   'Mentions légales':'Legal notice', 'Politique de confidentialité':'Privacy policy',
   'Tous droits réservés':'All rights reserved',
+  // Comparateur — le tiroir est un CONTENEUR_AUTONOME : rien n'y est traduit
+  // par le passage générique, tout passe par t() au moment du rendu.
+  'biens':'properties', 'Fermer':'Close',
+  '1 bien sélectionné — choisissez-en au moins un second':'1 property selected — pick at least one more',
+  'biens sélectionnés':'properties selected',
+  // Aperçu au survol d'un point de la carte
+  'Voir la fiche':'View listing',
+  'Prix':'Price', 'Opération':'Transaction', 'Surface':'Size', 'Statut':'Status', 'Oui':'Yes',
+  'Retirer du comparateur':'Remove from comparison',
+  // Partage
+  'Lien copié ✓':'Link copied ✓',
+  // Estimation vendeurs — le résultat est injecté après un appel réseau, donc
+  // hors de portée du passage générique lui aussi.
+  'Pas assez de biens comparables dans notre historique pour cette commune et ce type de bien — contactez-nous directement, nous établirons une évaluation personnalisée.':
+    'Not enough comparable properties in our records for this municipality and property type — contact us directly and we will prepare a tailored valuation.',
+  'Estimation indicative, non contractuelle, basée sur':'Indicative estimate, non-binding, based on',
+  'biens comparables de notre historique':'comparable properties from our records',
+  "Le prix réel dépend de l'état, de l'emplacement précis et du marché au moment de la transaction.":
+    'The actual price depends on condition, exact location and market conditions at the time of sale.',
 };
 
 // L'ORIGINAL FRANÇAIS est mémorisé sur chaque nœud au premier passage
@@ -1843,6 +1862,12 @@ function definirLangue(lang){
   renderHeroStat();
   render();
   renderFeatured();
+  // Le comparateur est un CONTENEUR_AUTONOME : le passage générique ne l'a pas
+  // touché, et il n'est reconstruit qu'à l'ouverture. Ouvert au moment du
+  // changement de langue, il resterait donc figé dans l'ancienne.
+  const comparateur = document.getElementById('compareDrawer');
+  if(comparateur && comparateur.classList.contains('open')) renderCompareDrawer();
+  updateCompareBar();
 }
 
 const STATUS_LABEL = { Disponible:'Disponible', 'Réservé':'Sous offre' };
@@ -2208,8 +2233,8 @@ function updateCompareBar(){
   bar.hidden = COMPARE.length === 0;
   if(COMPARE.length === 0) return;
   texte.textContent = COMPARE.length === 1
-    ? '1 bien sélectionné — choisissez-en au moins un second'
-    : `${COMPARE.length} biens sélectionnés`;
+    ? t('1 bien sélectionné — choisissez-en au moins un second')
+    : `${COMPARE.length} ${t('biens sélectionnés')}`;
   btn.disabled = COMPARE.length < 2;
 }
 document.getElementById('compareBarVider').onclick = () => {
@@ -2253,21 +2278,21 @@ const IS_TOUCH = window.matchMedia('(hover: none), (pointer: coarse)').matches;
 // lui-même remplace le clic.
 function mapPreview(p, tappable){
   const cover = coverUrl(p, 280, 55);
-  const rooms = p.rooms && p.rooms.chambres != null ? ' · ' + p.rooms.chambres + ' ch.' : '';
+  const rooms = p.rooms && p.rooms.chambres != null ? ' · ' + p.rooms.chambres + ' ' + t('ch.') : '';
   const fond = cover
     ? `background-image:url('${cover}')`
     : `background:linear-gradient(135deg, ${TYPE_COLOR[p.type] || '#0F2747'}, #161B22)`;
-  const cta = tappable ? '<div class="mpv-cta">Voir la fiche →</div>' : '';
+  const cta = tappable ? `<div class="mpv-cta">${t('Voir la fiche')} →</div>` : '';
   const geste = tappable ? ` role="button" tabindex="0" onclick="openDrawerById('${p.id}')"` : '';
   return `<div class="map-prev"${geste}>
     <div class="mpv-photo" style="${fond}">
-      <span class="mpv-op">${esc(p.operation)}</span>
-      ${p.sponsorisee ? '<span class="mpv-spo">Sponsorisé</span>' : ''}
+      <span class="mpv-op">${esc(t(p.operation))}</span>
+      ${p.sponsorisee ? `<span class="mpv-spo">${t('Sponsorisé')}</span>` : ''}
     </div>
     <div class="mpv-body">
-      <div class="mpv-title">${esc(p.type)} — ${esc(p.commune)}</div>
+      <div class="mpv-title">${esc(t(p.type))} — ${esc(p.commune)}</div>
       <div class="mpv-meta">${p.surface} ${surfaceUnit(p.type)}${rooms}</div>
-      <div class="mpv-price">${fcfa(p.price)}${p.operation==='Location' ? ' /mois' : ''}</div>
+      <div class="mpv-price">${fcfa(p.price)}${p.operation==='Location' ? ' /'+t('mois') : ''}</div>
       ${cta}
     </div>
   </div>`;
@@ -3312,16 +3337,19 @@ document.addEventListener('keydown', e=>{
 // Une seule déclaration des lignes affichées, comme ADV_CRITERES pour la
 // recherche avancée : ajouter un critère de comparaison ne demande qu'une
 // entrée ici, pas une modification du gabarit.
+// Les libellés restent écrits en français : c'est la clé du dictionnaire, la
+// traduction se fait au rendu via t(). Idem pour les valeurs textuelles —
+// opération, statut, statut foncier et le « Oui » de la vérification.
 const COMPARE_LIGNES = [
-  { label:'Prix',            valeur: p => fcfa(p.price) + (p.operation==='Location' ? ' /mois' : '') },
-  { label:'Opération',       valeur: p => esc(p.operation) },
+  { label:'Prix',            valeur: p => fcfa(p.price) + (p.operation==='Location' ? ' /'+t('mois') : '') },
+  { label:'Opération',       valeur: p => esc(t(p.operation)) },
   { label:'Localisation',    valeur: p => `${p.quartier ? esc(p.quartier)+', ' : ''}${esc(p.region)}` },
   { label:'Surface',         valeur: p => `${p.surface} ${surfaceUnit(p.type)}` },
   { label:'Chambres',        valeur: p => p.rooms && p.rooms.chambres != null ? String(p.rooms.chambres) : '—' },
   { label:'Salles de bain',  valeur: p => p.rooms && p.rooms.sdb != null ? String(p.rooms.sdb) : '—' },
-  { label:'Statut foncier',  valeur: p => p.statutFoncier ? esc(p.statutFoncier) : '—' },
-  { label:'Statut',          valeur: p => esc(STATUS_LABEL[p.status] || p.status) },
-  { label:'Annonce vérifiée',valeur: p => p.verified_at ? 'Oui' : '—' },
+  { label:'Statut foncier',  valeur: p => p.statutFoncier ? esc(t(p.statutFoncier)) : '—' },
+  { label:'Statut',          valeur: p => esc(t(STATUS_LABEL[p.status] || p.status)) },
+  { label:'Annonce vérifiée',valeur: p => p.verified_at ? t('Oui') : '—' },
 ];
 
 function renderCompareDrawer(){
@@ -3334,8 +3362,8 @@ function renderCompareDrawer(){
   d.innerHTML = `
     <div class="drawer-content">
       <div class="compare-head">
-        <h2 id="compareTitre">Comparer ${items.length} biens</h2>
-        <button type="button" class="drawer-close" id="compareClose" aria-label="Fermer">
+        <h2 id="compareTitre">${t('Comparer')} ${items.length} ${t('biens')}</h2>
+        <button type="button" class="drawer-close" id="compareClose" aria-label="${t('Fermer')}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
@@ -3344,15 +3372,15 @@ function renderCompareDrawer(){
           <div></div>
           ${items.map(p => `
           <div class="compare-col-head">
-            <button type="button" class="compare-remove" data-compare-remove="${p.id}" aria-label="Retirer ${esc(p.type)} — ${esc(p.commune)} du comparateur">
+            <button type="button" class="compare-remove" data-compare-remove="${p.id}" aria-label="${t('Retirer du comparateur')}${state.lang==='en'?': ':' : '}${esc(t(p.type))} — ${esc(p.commune)}">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
             ${cover(p) ? `<img src="${cover(p)}" alt="" loading="lazy" decoding="async">` : ''}
-            <h3>${esc(p.type)} — ${esc(p.commune)}</h3>
-            <button type="button" class="btn btn-primary" style="width:100%;justify-content:center;padding:8px;font-size:12.5px;" data-compare-open="${p.id}">Voir le bien</button>
+            <h3>${esc(t(p.type))} — ${esc(p.commune)}</h3>
+            <button type="button" class="btn btn-primary" style="width:100%;justify-content:center;padding:8px;font-size:12.5px;" data-compare-open="${p.id}">${t('Voir le bien')}</button>
           </div>`).join('')}
           ${COMPARE_LIGNES.map(ligne => `
-          <div class="compare-row-label">${ligne.label}</div>
+          <div class="compare-row-label">${t(ligne.label)}</div>
           ${items.map(p => `<div class="compare-cell">${ligne.valeur(p)}</div>`).join('')}`).join('')}
         </div>
       </div>
@@ -3472,9 +3500,15 @@ async function shareProperty(p){
   const directUrl = new URL(window.location);
   directUrl.searchParams.set('bien', p.ref);
   const shareUrl = ficheUrl(p) || directUrl.toString();
+  // Le « à » n'est pas passé par le dictionnaire : une clé d'une seule lettre
+  // risquerait d'être attrapée par le passage générique sur n'importe quel
+  // élément dont le texte vaut « à ». Une branche explicite est plus sûre ici.
+  const prixPartage = `${fcfa(p.price)}${p.operation==='Location' ? '/'+t('mois') : ''}`;
   const shareData = {
-    title: `${p.type} — ${p.commune}`,
-    text: `${p.type} à ${p.commune} — ${fcfa(p.price)}${p.operation==='Location'?'/mois':''}`,
+    title: `${t(p.type)} — ${p.commune}`,
+    text: state.lang === 'en'
+      ? `${t(p.type)} in ${p.commune} — ${prixPartage}`
+      : `${p.type} à ${p.commune} — ${prixPartage}`,
     url: shareUrl
   };
   const labelEl = document.getElementById('shareBtnLabel');
@@ -3486,7 +3520,7 @@ async function shareProperty(p){
     await navigator.clipboard.writeText(shareUrl);
     if(labelEl){
       const original = labelEl.textContent;
-      labelEl.textContent = 'Lien copié ✓';
+      labelEl.textContent = t('Lien copié ✓');
       setTimeout(()=>{ labelEl.textContent = original; }, 2200);
     }
   }catch(e){
@@ -3779,11 +3813,11 @@ document.getElementById('estimCalculerBtn').onclick = async () => {
   // Deux comparables minimum : en dessous, une fourchette donnerait une
   // fausse précision plutôt qu'une vraie indication.
   if(!ligne || ligne.nb_comparables < 2){
-    resultat.innerHTML = `<p class="er-detail">Pas assez de biens comparables dans notre historique pour cette commune et ce type de bien — contactez-nous directement, nous établirons une évaluation personnalisée.</p>`;
+    resultat.innerHTML = `<p class="er-detail">${t('Pas assez de biens comparables dans notre historique pour cette commune et ce type de bien — contactez-nous directement, nous établirons une évaluation personnalisée.')}</p>`;
   } else {
     resultat.innerHTML = `
-      <p class="er-montant">${fcfa(ligne.estimation_basse)} — ${fcfa(ligne.estimation_haute)}${operation==='Location'?' /mois':''}</p>
-      <p class="er-detail">Estimation indicative, non contractuelle, basée sur ${ligne.nb_comparables} biens comparables de notre historique (${esc(type)}, ${esc(commune)}). Le prix réel dépend de l'état, de l'emplacement précis et du marché au moment de la transaction.</p>`;
+      <p class="er-montant">${fcfa(ligne.estimation_basse)} — ${fcfa(ligne.estimation_haute)}${operation==='Location'?' /'+t('mois'):''}</p>
+      <p class="er-detail">${t('Estimation indicative, non contractuelle, basée sur')} ${ligne.nb_comparables} ${t('biens comparables de notre historique')} (${esc(t(type))}, ${esc(commune)}). ${t("Le prix réel dépend de l'état, de l'emplacement précis et du marché au moment de la transaction.")}</p>`;
   }
   resultat.classList.remove('hidden');
   document.querySelectorAll('.estim-suite').forEach(el => el.classList.remove('hidden'));
