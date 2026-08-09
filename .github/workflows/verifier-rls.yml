@@ -1,0 +1,60 @@
+# Vérifie qu'un visiteur anonyme ne peut lire que le catalogue public.
+#
+# Pourquoi cette action existe
+# ----------------------------
+# L'audit du 9 août 2026 a trouvé deux fuites de données que RIEN n'aurait
+# signalées :
+#
+#   • la vue `leads_enrichis` renvoyait tout le fichier prospects — nom,
+#     téléphone, notes commerciales — à n'importe quel visiteur ;
+#   • `estimer_bien()` laissait lire le prix au m² de biens non publiés.
+#
+# La première était le plus inquiétant des deux : la protection EXISTAIT, et
+# une migration ultérieure l'a défaite sans la moindre erreur, en recréant la
+# vue sans sa clause `with (security_invoker = true)`. Aucun test rouge, aucun
+# avertissement. Le défaut a vécu deux jours en production.
+#
+# C'est exactement ce que cette action empêche de se reproduire. Elle
+# interroge le site comme le ferait un inconnu, et échoue si quoi que ce soit
+# d'autre que le catalogue public lui répond.
+#
+# Elle tourne à chaque modification du schéma ou des migrations — c'est-à-dire
+# au moment précis où ce type de régression s'introduit — et une fois par
+# semaine, car une policy peut aussi être changée depuis la console Supabase,
+# sans le moindre commit.
+#
+# Aucun secret : le script n'utilise que la clé « publishable », déjà publique
+# dans commun.js. C'est volontaire — il doit voir ce que voit le public, ni
+# plus, ni moins.
+
+name: Vérifier l'étanchéité des données
+
+on:
+  push:
+    paths:
+      - 'supabase/**'
+      - 'commun.js'
+      - 'outils/verifier-rls.py'
+      - '.github/workflows/verifier-rls.yml'
+  pull_request:
+    paths:
+      - 'supabase/**'
+      - 'commun.js'
+  schedule:
+    # Tous les lundis à 6 h UTC. Attrape les changements faits directement
+    # dans la console Supabase, qui ne passent par aucun commit.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Contrôler qu'aucune donnée privée n'est lisible publiquement
+        run: python outils/verifier-rls.py

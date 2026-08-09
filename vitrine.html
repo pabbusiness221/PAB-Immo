@@ -54,7 +54,22 @@
 <meta name="twitter:image" content="https://pabbusiness221.github.io/PAB-Immo/assets/dakar-panorama.jpg" />
 <meta name="description" content="Terrains, maisons, appartements, studios et champs agricoles à vendre et à louer à Dakar et Thiès — PAB Immo." />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous" />
+<!-- preconnect : ouvrir DNS + TLS avant que le navigateur ne découvre qu'il a
+     besoin de ces domaines. Mesuré le 9 août 2026 : quatre origines externes
+     étaient utilisées, une seule était annoncée. Les trois autres coûtaient
+     chacune un aller-retour de connexion complet — pénalité sensible sur un
+     réseau mobile sénégalais.
+       • cdn.jsdelivr.net  : Leaflet et supabase-js, scripts bloquants
+       • supabase.co       : l'API et les photos des biens
+       • fonts.gstatic.com : les fichiers de police (crossorigin obligatoire,
+                             les polices se chargent en mode anonyme)
+     Les tuiles OpenStreetMap ne sont volontairement PAS préconnectées : la
+     carte n'est pas toujours ouverte, et une connexion inutile est un coût
+     net. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preconnect" href="https://avanktgaxepzpqmsiauz.supabase.co">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="commun.css" />
 <style>
@@ -213,8 +228,23 @@
   .search-adv-btn:active{transform:scale(.94);}
   .search-adv-btn[aria-expanded="true"]{background:var(--primary);color:#fff;box-shadow:none;filter:none;}
   .search-adv-btn .adv-badge{position:absolute;top:-3px;right:-3px;}
-  .hero-stat{color:rgba(255,255,255,0.72);font-size:12.5px;margin-top:18px;display:flex;align-items:center;gap:6px;}
+  /* min-height : ce bloc part vide et se remplit après l'appel à public_stats
+     (« 18 biens disponibles à Dakar et Thiès »). Sans hauteur réservée, il
+     passait de 0 à 21 px et poussait tout le reste de la page vers le bas :
+     à lui seul, il pesait 0,465 de CLS sur un total mesuré à 1,45. Réserver
+     la ligne coûte 21 px de vide pendant un instant, et supprime la secousse. */
+  .hero-stat{color:rgba(255,255,255,0.72);font-size:12.5px;margin-top:18px;display:flex;align-items:center;gap:6px;min-height:21px;}
   .hero-stat b{color:var(--accent);font-family:'Manrope',sans-serif;font-size:15px;font-variant-numeric:tabular-nums;}
+  /* La phrase qui défile dans le titre change de longueur : « au bon prix. »
+     tient sur une ligne, « sans mauvaise surprise. » en prend une de plus. Le
+     titre grandissait puis rétrécissait à CHAQUE rotation, poussant toute la
+     page de 36 px (mobile) à 55 px (desktop) — indéfiniment, pendant que le
+     visiteur lit. C'était la principale source de CLS de la vitrine.
+     On réserve la hauteur de la phrase la plus longue : les phrases courtes
+     laissent un peu d'air sous le titre, et plus rien ne bouge.
+     Unité `lh` (hauteur de ligne) et non px : la taille du titre est fluide,
+     la réservation suit automatiquement. */
+  .hero-title{min-height:3lh;}
   /* Séquence d'entrée de l'accueil : chaque élément monte en fondu, l'un
      après l'autre. N'est joué que si l'utilisateur n'a pas demandé à réduire
      les animations ; sinon tout s'affiche normalement, sans mouvement. */
@@ -271,9 +301,19 @@
     box-shadow:0 8px 18px -10px rgba(15,39,71,.20), 0 30px 64px -28px rgba(15,39,71,.42);}
   .chips-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between;}
   .chips{display:flex;gap:8px;overflow-x:auto;width:auto;min-width:0;-webkit-overflow-scrolling:touch;padding:2px;}
+  /* Les jetons d'opération sont posés par JavaScript après le chargement des
+     biens. Le conteneur passait de 0 à 48 px et poussait vers le bas tout ce
+     qui suit — sélecteur de vue, liste, carte. Deuxième source de CLS de la
+     page après le titre. 48 px = un jeton (44 px) plus le padding (2 px de
+     chaque côté) ; la rangée ne passe jamais à la ligne, elle défile
+     horizontalement. */
+  #chipsOp{min-height:48px;}
   .chip{flex-shrink:0;border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:10px 17px;font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer;white-space:nowrap;transition:all .22s var(--ease);font-family:'Inter',sans-serif;}
   .chip-group{display:flex;flex-direction:column;gap:7px;min-width:0;}
-  .chip-group-label{display:none;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);opacity:.8;padding-left:4px;}
+  /* Pas d'opacity ici : var(--ink-soft) est déjà une couleur atténuée, et la
+     voiler à 80 % faisait tomber le contraste à 3,55:1 sur blanc — sous le
+     minimum AA de 4,5:1, pour un texte déjà minuscule (9,5 px). */
+  .chip-group-label{display:none;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);padding-left:4px;}
   .fav-chip{background:var(--accent-soft);color:var(--gold);border-color:rgba(242,174,5,0.35);}
   .fav-chip:hover{background:#F7E9CC;color:var(--gold);border-color:rgba(242,174,5,0.5);}
   .fav-chip svg{stroke:currentColor;}
@@ -749,12 +789,17 @@
   .footer-social a{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;color:rgba(255,255,255,0.72);background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.11);transition:all .2s var(--ease);}
   .footer-social a:hover{color:var(--accent-clair);border-color:rgba(221,168,60,0.55);background:rgba(221,168,60,0.12);transform:translateY(-2px);}
   .footer-social svg{width:18px;height:18px;}
-  .footer-bottom{border-top:1px solid rgba(255,255,255,0.09);max-width:1400px;margin:0 auto;padding:20px 20px 28px;font-size:12px;text-align:center;color:rgba(255,255,255,0.42);}
+  /* 0.42 donnait 3,82:1 sur le bleu nuit du pied de page — sous AA. 0.55
+     monte à 5,50:1 en gardant le pied visuellement en retrait du contenu. */
+  .footer-bottom{border-top:1px solid rgba(255,255,255,0.09);max-width:1400px;margin:0 auto;padding:20px 20px 28px;font-size:12px;text-align:center;color:rgba(255,255,255,0.55);}
   .footer-legal{display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:center;margin-bottom:11px;}
   .footer-legal a{color:rgba(255,255,255,0.6);text-decoration:none;font-weight:600;transition:color .2s var(--ease);}
   .footer-legal a:hover{color:var(--accent-clair);}
   .footer-bottom p{margin:0 0 4px;}
-  .footer-reg{font-size:11px;color:rgba(255,255,255,0.32);letter-spacing:.02em;}
+  /* Mentions légales : 0.32 ne donnait que 2,79:1, le pire écart de la page.
+     0.52 → 5,08:1, tout en restant plus discret que .footer-bottom (0.55) :
+     la hiérarchie visuelle est conservée sans sacrifier la lisibilité. */
+  .footer-reg{font-size:11px;color:rgba(255,255,255,0.52);letter-spacing:.02em;}
 
   /* ---------- Icônes d'en-tête ----------
      Remplace l'ancienne barre de contact fixe en bas d'écran (téléphone) et
@@ -842,6 +887,11 @@
       background-color:var(--night);}
     .hero-eyebrow{font-size:10px;letter-spacing:.12em;margin-bottom:8px;}
     .hero h2{max-width:100%;font-size:clamp(27px,7.8vw,34px);margin-bottom:18px;}
+    /* Sous 680 px le titre est plus petit et occupe toute la largeur : deux
+       lignes suffisent à contenir la plus longue phrase. Réserver 3 lignes
+       comme au-dessus creuserait un vide inutile sur mobile, là où l'espace
+       vertical est le plus précieux. */
+    .hero-title{min-height:2lh;}
     .hero-stat{margin-top:11px;}
     /* Les trois arguments empilés mangeaient un demi-écran : ils
        deviennent un rail qui se fait glisser au doigt. */
@@ -1302,7 +1352,7 @@
       <div class="form-field"><label class="sf-label" for="alert_budget">Budget max (FCFA)</label><input class="sf-input" id="alert_budget" type="number" min="0" placeholder="ex: 50000000" style="margin-bottom:0;"/></div>
       <div class="form-field full">
         <button class="btn btn-primary sf-submit" id="alertSubmitBtn">M'inscrire aux alertes</button>
-        <p class="sf-error" id="alertError"></p>
+        <p class="sf-error" role="alert" id="alertError"></p>
       </div>
     </div>
   </div>
@@ -1407,7 +1457,7 @@
         </div>
         <div class="form-field full">
           <button type="submit" class="btn btn-primary" id="avisSubmitBtn" style="width:100%;justify-content:center;">Envoyer mon avis</button>
-          <p class="sf-error" id="avisError"></p>
+          <p class="sf-error" role="alert" id="avisError"></p>
           <p class="avis-moderation">Votre avis sera relu par notre équipe avant d'apparaître ici.</p>
         </div>
       </div>
@@ -1472,7 +1522,7 @@
       </div>
       <div class="form-field full">
         <button type="submit" class="btn btn-primary" id="collabSubmitBtn" style="width:100%;justify-content:center;">Envoyer ma candidature</button>
-        <p class="sf-error" id="collabError"></p>
+        <p class="sf-error" role="alert" id="collabError"></p>
       </div>
     </div>
   </form>
@@ -1524,9 +1574,13 @@
       </div>
       <div class="form-field full">
         <button type="button" class="btn btn-primary" id="estimCalculerBtn" style="width:100%;justify-content:center;">Voir l'estimation</button>
-        <p class="sf-error" id="estimCalculerError"></p>
+        <p class="sf-error" role="alert" id="estimCalculerError"></p>
       </div>
-      <div class="form-field full estim-resultat hidden" id="estimResultat"></div>
+      <!-- role="status" : l'estimation arrive après un appel réseau. Sans
+           annonce, un lecteur d'écran ne signale rien au clic sur « Voir
+           l'estimation » — le résultat apparaît en silence. Poli (et non
+           « alert ») : c'est une réponse attendue, pas une erreur. -->
+      <div class="form-field full estim-resultat hidden" id="estimResultat" role="status"></div>
 
       <div class="form-field estim-suite hidden" id="estim_champ_nom">
         <label class="sf-label" for="estim_nom">Votre nom</label>
@@ -1543,7 +1597,7 @@
       </div>
       <div class="form-field full estim-suite hidden" id="estim_champ_submit">
         <button type="submit" class="btn btn-primary" id="estimSubmitBtn" style="width:100%;justify-content:center;">Être recontacté(e) par l'agence</button>
-        <p class="sf-error" id="estimError"></p>
+        <p class="sf-error" role="alert" id="estimError"></p>
       </div>
     </div>
   </form>
@@ -3072,7 +3126,7 @@ function openDrawer(p){
         <textarea class="sf-textarea" id="msg_text" placeholder="${state.lang==='en'?'Your question about this property…':'Votre question sur ce bien…'}"></textarea>
         <div class="hp-field" aria-hidden="true"><label for="msg_website">Site web</label><input type="text" id="msg_website" name="website" tabindex="-1" autocomplete="off"/></div>
         <button class="btn btn-primary sf-submit" id="msgSubmitBtn">${state.lang==='en'?'Send message':'Envoyer le message'}</button>
-        <p class="sf-error" id="msgError"></p>
+        <p class="sf-error" role="alert" id="msgError"></p>
       </div>
       <div class="subform-panel hidden" id="panel-rdv">
         <label class="sf-label" for="rdv_name">${state.lang==='en'?'Name':'Nom'}</label>
@@ -3093,7 +3147,7 @@ function openDrawer(p){
         <label class="sf-label" style="margin-top:8px;" for="rdv_message">${state.lang==='en'?'Message (optional)':'Message (optionnel)'}</label>
         <textarea class="sf-textarea" id="rdv_message" placeholder="${state.lang==='en'?'Useful details for the visit…':'Précisions utiles pour la visite…'}"></textarea>
         <button class="btn btn-primary sf-submit" id="rdvSubmitBtn">${state.lang==='en'?'Request this appointment':'Demander ce rendez-vous'}</button>
-        <p class="sf-error" id="rdvError"></p>
+        <p class="sf-error" role="alert" id="rdvError"></p>
       </div>
     </div>`;
   document.getElementById('drawerClose').onclick = closeDrawer;
