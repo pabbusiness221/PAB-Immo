@@ -1000,11 +1000,11 @@ GUIDES = [
                         "concrètement. Guide à jour pour un achat de terrain au Sénégal.",
         "date_publication": "2026-08-02",
         "corps": """
-    <p>Avant le prix, avant la superficie, la première question à se poser devant un terrain
-    au Sénégal est juridique&nbsp;: <strong>sur quel statut foncier repose-t-il&nbsp;?</strong>
-    C'est elle qui détermine si vous achetez une propriété pleine et transmissible, ou un droit
-    plus fragile, parfois contestable. C'est aussi, de loin, la première source de litiges
-    immobiliers dans le pays.</p>
+    <p>Devant un terrain, on regarde d'abord le prix et la superficie. La question qui compte
+    vient pourtant avant&nbsp;: <strong>sur quel statut foncier ce terrain repose-t-il&nbsp;?</strong>
+    De la réponse dépend ce que vous achetez réellement, une propriété pleine et transmissible
+    ou un droit d'occupation plus fragile. Au Sénégal, cette confusion alimente l'essentiel des
+    litiges immobiliers.</p>
 
     <h2>Les trois statuts que vous rencontrerez</h2>
 
@@ -1013,11 +1013,11 @@ GUIDES = [
     titre est opposable à tous, transmissible, et peut servir de garantie pour un prêt. C'est
     l'équivalent d'un acte de propriété définitif.</p>
 
-    <p><strong>Le bail</strong> porte sur un terrain qui appartient à l'État ou à une commune,
-    et que son titulaire a le droit d'occuper et d'exploiter pour une durée déterminée — parfois
-    longue, mais jamais illimitée. Le bailleur reste juridiquement propriétaire du sol. Un bail
-    peut, sous certaines conditions, être transformé en titre foncier, mais ce n'en est pas un
-    tant que la conversion n'a pas eu lieu.</p>
+    <p><strong>Le bail</strong> porte sur un terrain qui appartient à l'État ou à une commune.
+    Son titulaire a le droit de l'occuper et de l'exploiter pendant une durée déterminée. Cette
+    durée peut être longue&nbsp;; elle n'est jamais illimitée, et le bailleur reste
+    juridiquement propriétaire du sol. Un bail peut, sous certaines conditions, être transformé
+    en titre foncier. Tant que cette conversion n'a pas eu lieu, il n'en est pas un.</p>
 
     <p><strong>La délibération</strong> est une décision d'affectation prise par un conseil
     municipal, qui attribue une parcelle du domaine national à un particulier. C'est le statut
@@ -1026,20 +1026,20 @@ GUIDES = [
     de propriété&nbsp;: elle peut, dans certains cas, être remise en cause par la commune qui
     l'a délivrée, en particulier si le terrain n'est pas mis en valeur dans les délais prévus.</p>
 
-    <h2>Pourquoi cette différence change tout pour un acheteur</h2>
+    <h2>Ce que la différence change pour un acheteur</h2>
 
-    <p>Acheter sur la base d'une délibération n'est pas nécessairement une erreur — une grande
-    partie du foncier rural sénégalais fonctionne ainsi, et beaucoup de délibérations sont
-    parfaitement régulières. Mais le risque n'est pas le même que pour un titre foncier&nbsp;:
-    il faut savoir <em>ce que l'on achète</em>, l'accepter en connaissance de cause, et adapter
-    sa prudence — et éventuellement son prix — en conséquence. Le problème n'est pas le statut
-    en lui-même&nbsp;: c'est de l'apprendre après la signature.</p>
+    <p>Acheter sur la base d'une délibération n'a rien d'une erreur en soi. Une grande partie du
+    foncier rural sénégalais fonctionne ainsi, et beaucoup de délibérations sont parfaitement
+    régulières. Le risque encouru n'est simplement pas celui d'un titre foncier. Il faut donc
+    savoir <em>ce que l'on achète</em>, l'accepter en connaissance de cause, et ajuster sa
+    prudence en conséquence. Souvent aussi son prix. Ce qui pose problème, ce n'est pas le
+    statut lui-même&nbsp;: c'est de le découvrir une fois la signature passée.</p>
 
     <h2>Comment vérifier, concrètement</h2>
 
     <ul>
-      <li><strong>Demandez le document original</strong> — titre foncier, bail ou délibération
-      — et le nom exact qui y figure. Un vendeur sérieux ne s'y refuse jamais.</li>
+      <li><strong>Demandez le document original</strong> (titre foncier, bail ou délibération)
+      ainsi que le nom exact qui y figure. Un vendeur sérieux ne s'y refuse jamais.</li>
       <li><strong>Vérifiez la correspondance</strong> entre la parcelle décrite sur le document
       (numéro, superficie, limites) et le terrain réellement visité. Un bornage par un géomètre
       agréé lève le doute.</li>
@@ -1050,8 +1050,8 @@ GUIDES = [
       privé » (un simple papier signé entre particuliers) sur un titre foncier n'a pas la même
       valeur juridique qu'un acte notarié, et ne suffit pas à vous rendre propriétaire.</li>
       <li><strong>Pour une délibération</strong>, vérifiez qu'elle a bien été délivrée par la
-      commune compétente sur ce terrain, et depuis quand — une délibération ancienne, mise en
-      valeur et non contestée, est un signal plus rassurant qu'une délibération toute récente.</li>
+      commune compétente sur ce terrain, et depuis quand. Une délibération ancienne, mise en
+      valeur et jamais contestée, rassure davantage qu'une délibération toute récente.</li>
     </ul>
 
     <h2>Les signaux qui doivent alerter</h2>
@@ -1067,28 +1067,28 @@ GUIDES = [
 
     <p>Chaque bien publié sur ce site porte un statut foncier déclaré, visible directement sur
     sa fiche. Les annonces marquées « Annonce vérifiée » ont fait l'objet d'un contrôle des
-    documents et de l'existence réelle du bien avant publication. Ce badge ne remplace pas les
-    vérifications qui restent les vôtres au moment de l'achat — il réduit le nombre de biens sur
-    lesquels vous avez à les mener.</p>
+    documents et de l'existence réelle du bien avant publication. Ce badge ne vous dispense
+    d'aucune vérification au moment de l'achat. Il réduit seulement le nombre de biens sur
+    lesquels vous aurez à les mener.</p>
 
     <h2>Questions fréquentes</h2>
 
     <p><strong>Un bail est-il moins bien qu'un titre foncier&nbsp;?</strong><br>
-    Ce n'est pas « moins bien », c'est différent&nbsp;: un bail donne un droit d'occupation et
-    d'exploitation limité dans le temps, pas une propriété pleine. Pour un usage personnel sur
-    une durée raisonnable, il peut parfaitement convenir&nbsp;; pour un investissement de long
-    terme destiné à être transmis, un titre foncier reste préférable.</p>
+    Les deux ne répondent pas au même besoin. Un bail donne un droit d'occupation et
+    d'exploitation limité dans le temps, non une propriété pleine. Pour un usage personnel sur
+    une durée raisonnable, il convient parfaitement. Pour un investissement de long terme
+    destiné à être transmis, un titre foncier reste préférable.</p>
 
     <p><strong>Peut-on transformer une délibération en titre foncier&nbsp;?</strong><br>
-    Oui, c'est une trajectoire courante, mais elle suit une procédure et des délais propres à
-    chaque situation. Elle n'est ni automatique ni garantie&nbsp;: à vérifier avec un notaire
-    ou directement auprès des services fonciers avant de compter dessus.</p>
+    Oui, le cas est courant. La procédure et les délais varient toutefois d'une situation à
+    l'autre, et rien n'est automatique ni garanti. Renseignez-vous auprès d'un notaire ou
+    directement des services fonciers avant de compter dessus.</p>
 
     <p><strong>Un acheteur vivant à l'étranger peut-il vérifier tout cela à distance&nbsp;?</strong><br>
     En grande partie, oui, par procuration notariée confiée à une personne de confiance ou à un
-    notaire sur place. C'est justement dans ce cas — acheter sans pouvoir se déplacer — que les
-    vérifications ci-dessus comptent le plus&nbsp;: elles se font normalement en personne, et
-    leur absence est plus difficile à repérer à distance.</p>
+    notaire sur place. C'est d'ailleurs dans cette situation que les vérifications ci-dessus
+    comptent le plus. Elles se font normalement en personne, et lorsqu'elles sont bâclées, on
+    s'en aperçoit beaucoup moins facilement depuis l'étranger.</p>
 
     <p class="avert">Cet article donne des repères généraux&nbsp;; ce n'est pas un avis
     juridique et il ne remplace pas les vérifications d'un notaire pour une transaction réelle.
@@ -1100,11 +1100,10 @@ GUIDES = [
                            "why the difference matters before you buy, and how to verify it in "
                            "practice. An up-to-date guide for buying land in Senegal.",
         "corps_en": """
-    <p>Before the price, before the surface area, the first question worth asking about a plot
-    in Senegal is a legal one: <strong>what land title status does it rest on?</strong>
-    That question decides whether you're buying full, transferable ownership, or a more fragile,
-    sometimes contestable right. It is also, by far, the leading source of property disputes in
-    the country.</p>
+    <p>Most buyers look at the price and the surface area first. The question that matters comes
+    earlier: <strong>what land title status does the plot rest on?</strong> The answer decides
+    what you are actually buying, either full transferable ownership or a far more fragile right
+    of occupation. In Senegal, confusion on this point drives most property disputes.</p>
 
     <h2>The three statuses you will encounter</h2>
 
@@ -1114,10 +1113,10 @@ GUIDES = [
     collateral for a loan. It is the equivalent of a definitive deed of ownership.</p>
 
     <p><strong>A lease (bail)</strong> applies to land that belongs to the State or a
-    municipality, which its holder has the right to occupy and use for a set period — sometimes
-    long, but never unlimited. The lessor remains the legal owner of the land. Under certain
-    conditions a lease can be converted into freehold title, but it is not one until that
-    conversion has actually taken place.</p>
+    municipality. Its holder has the right to occupy and use that land for a set period. The
+    period may be long; it is never unlimited, and the lessor remains the legal owner of the
+    ground. Under certain conditions a lease can be converted into freehold title. Until that
+    conversion takes place, it is not one.</p>
 
     <p><strong>A council deliberation (délibération)</strong> is an allocation decision made by a
     municipal council, granting a parcel of national land to an individual. It is the most common
@@ -1126,22 +1125,21 @@ GUIDES = [
     revoked by the municipality that issued it, particularly if the land is not developed within
     the required timeframe.</p>
 
-    <h2>Why this difference changes everything for a buyer</h2>
+    <h2>What the difference means for a buyer</h2>
 
-    <p>Buying on the basis of a deliberation is not necessarily a mistake — a large share of
-    Senegal's rural land operates this way, and many deliberations are perfectly regular. But the
-    risk is not the same as with freehold title: you need to know <em>what you are
-    buying</em>, accept it knowingly, and adjust your caution — and possibly your price —
-    accordingly. The problem isn't the status itself: it's finding out about it after
-    signing.</p>
+    <p>Buying on the basis of a deliberation is not a mistake in itself. A large share of
+    Senegal's rural land works this way, and many deliberations are perfectly regular. The risk
+    you take on simply is not the risk of a freehold title. So you need to know <em>what you are
+    buying</em>, accept it knowingly, and adjust your caution accordingly. Often your price too.
+    The trouble is rarely the status itself. It is discovering it once you have signed.</p>
 
     <h2>How to verify it, in practice</h2>
 
     <ul>
-      <li><strong>Ask for the original document</strong> — freehold title, lease, or
-      deliberation — and the exact name it bears. A serious seller never refuses this.</li>
-      <li><strong>Check that it matches</strong> the plot actually visited — parcel number,
-      surface area, boundaries as described on the document. A survey by a licensed surveyor
+      <li><strong>Ask for the original document</strong> (freehold title, lease, or
+      deliberation) and the exact name it bears. A serious seller never refuses this.</li>
+      <li><strong>Check that it matches</strong> the plot you actually visited: parcel number,
+      surface area and boundaries as described on the document. A survey by a licensed surveyor
       removes any doubt.</li>
       <li><strong>Confirm the registration</strong> of a freehold title with the Land Registry
       office responsible for that parcel, and check for the absence of any mortgage or pending
@@ -1150,8 +1148,8 @@ GUIDES = [
       simple paper signed between individuals) over land held under freehold title does not carry
       the same legal weight as a notarized deed, and is not enough to make you the owner.</li>
       <li><strong>For a deliberation</strong>, verify that it was indeed issued by the
-      municipality with authority over that land, and how long ago — an older deliberation,
-      developed and uncontested, is a more reassuring signal than a very recent one.</li>
+      municipality with authority over that land, and how long ago. An older deliberation,
+      developed and never contested, reassures far more than a very recent one.</li>
     </ul>
 
     <h2>Warning signs</h2>
@@ -1167,28 +1165,28 @@ GUIDES = [
 
     <p>Every property published on this site carries a declared land title status, visible
     directly on its listing page. Listings marked "Verified listing" have had their documents and
-    the property's actual existence checked before publication. This badge doesn't replace the
-    checks that remain yours to make at the time of purchase — it reduces the number of
-    properties you need to run them on.</p>
+    the property's actual existence checked before publication. The badge excuses you from no
+    verification at the time of purchase. It only reduces the number of properties you will need
+    to run those checks on.</p>
 
     <h2>Frequently asked questions</h2>
 
     <p><strong>Is a lease worse than freehold title?</strong><br>
-    It isn't "worse", it's different: a lease grants a right to occupy and use the land for
-    a limited time, not full ownership. For personal use over a reasonable period, it can suit you
-    perfectly well; for a long-term investment meant to be passed on, freehold title remains
+    The two answer different needs. A lease grants a right to occupy and use the land for a
+    limited time, not full ownership. For personal use over a reasonable period it suits
+    perfectly well. For a long-term investment meant to be passed on, freehold title remains
     preferable.</p>
 
     <p><strong>Can a deliberation be converted into freehold title?</strong><br>
-    Yes, that's a common path, but it follows a procedure and timeline specific to each situation.
-    It is neither automatic nor guaranteed: check with a notary or directly with the land
-    services before counting on it.</p>
+    Yes, and it happens often. The procedure and the timeline vary from one case to the next,
+    though, and nothing is automatic or guaranteed. Ask a notary, or the land services directly,
+    before counting on it.</p>
 
     <p><strong>Can a buyer living abroad verify all of this remotely?</strong><br>
     For the most part, yes, through a notarized power of attorney given to a trusted person or a
-    notary on the ground. This is precisely the case — buying without being able to travel —
-    where the checks above matter most: they are normally done in person, and their absence
-    is harder to spot from a distance.</p>
+    notary on the ground. This is in fact the situation where the checks above matter most. They
+    are normally done in person, and when they are skimped on, you are far less likely to notice
+    from abroad.</p>
 
     <p class="avert">This article provides general guidance; it is not legal advice and
     does not replace a notary's checks for an actual transaction. Senegalese land law evolves;
@@ -1204,15 +1202,15 @@ GUIDES = [
         "date_publication": "2026-08-05",
         "corps": """
     <p>Une grande partie des acheteurs de terrain à Dakar et à Thiès ne vit pas au Sénégal.
-    C'est une situation ordinaire, pas un obstacle — mais elle change une chose&nbsp;: les
-    vérifications qui, sur place, se font naturellement en marchant sur le terrain, doivent être
-    organisées différemment. Ce guide explique comment.</p>
+    La situation est courante et ne constitue pas un obstacle. Elle change une chose, en
+    revanche&nbsp;: les vérifications qui se font naturellement en marchant sur le terrain
+    doivent ici être organisées autrement. Ce guide explique comment.</p>
 
     <h2>La procuration&nbsp;: acheter sans être présent</h2>
 
-    <p>La procuration (ou « mandat ») est l'outil central d'un achat à distance. Elle permet de
-    donner, par un acte notarié, le pouvoir d'agir en votre nom à une personne de confiance —
-    souvent un proche sur place, ou directement un notaire. Trois points à retenir&nbsp;:</p>
+    <p>La procuration (ou « mandat ») est l'outil central d'un achat à distance. Par acte
+    notarié, elle donne à une personne de confiance le pouvoir d'agir en votre nom&nbsp;:
+    souvent un proche sur place, ou le notaire lui-même. Trois points à retenir&nbsp;:</p>
 
     <ul>
       <li><strong>Elle se signe devant notaire</strong>, soit au Sénégal si vous vous y trouvez
@@ -1232,30 +1230,29 @@ GUIDES = [
     il vérifie l'identité des parties, l'origine et le statut du bien (voir notre
     <a href="verifier-titre-foncier-senegal.html">guide sur le titre foncier</a>), l'absence
     d'hypothèque ou d'opposition, et rédige l'acte qui vous rend juridiquement propriétaire.
-    C'est lui — pas l'agence, pas le vendeur — qui porte la responsabilité de ces vérifications.
-    Pour un achat à distance, son rôle est encore plus central&nbsp;: il devient vos yeux sur
+    La responsabilité de ces vérifications lui revient à lui seul, ni à l'agence ni au vendeur.
+    Pour un achat à distance, son rôle pèse encore davantage&nbsp;: il devient vos yeux sur
     place au moment décisif.</p>
 
     <h2>Ce qu'il faut vérifier avant d'envoyer le moindre franc</h2>
 
     <ul>
       <li>Le statut foncier du terrain (titre foncier, bail ou délibération) et sa
-      correspondance avec la parcelle réellement visée — par photo, vidéo, ou un geomètre
+      correspondance avec la parcelle réellement visée, par photo, par vidéo, ou par un géomètre
       mandaté sur place si le montant le justifie.</li>
       <li>L'identité du vendeur, comparée au nom inscrit sur le document de propriété.</li>
-      <li>L'existence d'un notaire clairement identifié, joignable directement — pas seulement
+      <li>L'existence d'un notaire clairement identifié et joignable directement, pas seulement
       « connu » du vendeur ou de l'intermédiaire.</li>
-      <li>Le taux de change utilisé si vous raisonnez en euros ou en dollars&nbsp;: le FCFA est
-      arrimé à l'euro à un taux fixe (655,957 F CFA pour 1&nbsp;€), donc jamais soumis aux
-      variations qui touchent d'autres devises — un repère utile pour convertir vous-même un
-      prix affiché en FCFA.</li>
+      <li>Le taux de change, si vous raisonnez en euros ou en dollars. Le FCFA est arrimé à
+      l'euro à un taux fixe (655,957 F CFA pour 1&nbsp;€) et échappe donc aux variations qui
+      touchent les autres devises. Vous pouvez convertir vous-même sans mauvaise surprise.</li>
     </ul>
 
     <h2>Les précautions propres à l'achat à distance</h2>
 
     <ul>
-      <li><strong>Ne jamais transférer de fonds avant l'acte notarié</strong>, même face à
-      l'urgence apparente d'une « offre limitée dans le temps » — une pression classique.</li>
+      <li><strong>Ne jamais transférer de fonds avant l'acte notarié</strong>, même pressé par
+      une « offre limitée dans le temps ». C'est une pression classique.</li>
       <li><strong>Privilégier un virement bancaire traçable</strong> plutôt qu'un transfert
       d'argent informel, y compris pour un acompte.</li>
       <li><strong>Demander des preuves visuelles récentes</strong> du terrain (photo datée,
@@ -1284,9 +1281,9 @@ GUIDES = [
     l'organisme qui l'établira.</p>
 
     <p><strong>Peut-on financer l'achat depuis un compte à l'étranger&nbsp;?</strong><br>
-    Oui, par virement bancaire international vers un compte au Sénégal — le vôtre ou, une fois
-    l'acte prêt, celui indiqué par le notaire. Passer par un compte personnel plutôt que par un
-    intermédiaire non identifié reste la règle la plus sûre.</p>
+    Oui, par virement bancaire international vers un compte au Sénégal&nbsp;: le vôtre, ou celui
+    que le notaire vous indiquera une fois l'acte prêt. Passer par un compte personnel plutôt
+    que par un intermédiaire non identifié reste la règle la plus sûre.</p>
 
     <p class="avert">Cet article donne des repères généraux&nbsp;; ce n'est pas un avis
     juridique. Les démarches de procuration varient selon votre pays de résidence&nbsp;:
@@ -1297,16 +1294,15 @@ GUIDES = [
                            "land in Senegal. Here's how power of attorney works, what a notary "
                            "checks, and the precautions specific to a remote purchase.",
         "corps_en": """
-    <p>A large share of land buyers in Dakar and Thiès don't live in Senegal. That's an ordinary
-    situation, not an obstacle — but it changes one thing: the checks that, on the ground,
-    happen naturally by walking the plot, need to be organized differently. This guide explains
-    how.</p>
+    <p>A large share of land buyers in Dakar and Thiès don't live in Senegal. The situation is
+    common and no obstacle in itself. It does change one thing: the checks that happen naturally
+    when you walk the plot have to be organized another way. This guide explains how.</p>
 
     <h2>Power of attorney: buying without being present</h2>
 
     <p>A power of attorney (or "mandate") is the central tool for a remote purchase. Through a
-    notarized deed, it lets you give a trusted person — often a relative on the ground, or a
-    notary directly — the authority to act on your behalf. Three points to keep in mind:</p>
+    notarized deed, it gives a trusted person the authority to act on your behalf: often a
+    relative on the ground, or the notary directly. Three points to keep in mind:</p>
 
     <ul>
       <li><strong>It is signed before a notary</strong>, either in Senegal if you happen to be
@@ -1325,31 +1321,30 @@ GUIDES = [
     <p>In Senegal as in France, the notary is not a mere witness to the signature: they
     verify the parties' identity, the property's origin and status (see our
     <a href="verifier-titre-foncier-senegal.html">guide to land title status</a>), the absence of
-    any mortgage or dispute, and draft the deed that legally makes you the owner. It is the
-    notary — not the agency, not the seller — who bears responsibility for these checks. For a
-    remote purchase, their role becomes even more central: they become your eyes on the
+    any mortgage or dispute, and draft the deed that legally makes you the owner. Responsibility
+    for these checks rests with the notary alone, not with the agency and not with the seller.
+    For a remote purchase that role weighs even heavier: the notary becomes your eyes on the
     ground at the decisive moment.</p>
 
     <h2>What to check before sending a single franc</h2>
 
     <ul>
       <li>The plot's land title status (freehold title, lease, or deliberation) and whether it
-      matches the plot actually seen — by photo, video, or a surveyor commissioned on site if the
-      amount justifies it.</li>
+      matches the plot actually seen, by photo, by video, or through a surveyor commissioned on
+      site if the amount justifies it.</li>
       <li>The seller's identity, checked against the name on the property document.</li>
-      <li>The existence of a clearly identified notary, reachable directly — not merely
+      <li>The existence of a clearly identified notary you can reach directly, not merely one
       "known" to the seller or intermediary.</li>
-      <li>The exchange rate, if you're thinking in euros or dollars: the FCFA is pegged to
-      the euro at a fixed rate (655.957 F CFA to 1&nbsp;€), so it is never subject to the swings
-      that affect other currencies — a useful anchor for converting a price shown in FCFA
-      yourself.</li>
+      <li>The exchange rate, if you're thinking in euros or dollars. The FCFA is pegged to the
+      euro at a fixed rate (655.957 F CFA to 1&nbsp;€) and so escapes the swings that affect
+      other currencies. You can convert a price yourself without surprises.</li>
     </ul>
 
     <h2>Precautions specific to a remote purchase</h2>
 
     <ul>
-      <li><strong>Never transfer funds before the notarized deed</strong>, even under the
-      apparent urgency of a "limited-time offer" — a classic pressure tactic.</li>
+      <li><strong>Never transfer funds before the notarized deed</strong>, however urgent a
+      "limited-time offer" is made to sound. That is a classic pressure tactic.</li>
       <li><strong>Favor a traceable bank transfer</strong> over an informal money transfer, even
       for a deposit.</li>
       <li><strong>Ask for recent visual proof</strong> of the land (a dated photo, a video call on
@@ -1378,7 +1373,7 @@ GUIDES = [
     estimate.</p>
 
     <p><strong>Can the purchase be funded from an account abroad?</strong><br>
-    Yes, by international bank transfer to an account in Senegal — either yours, or, once the
+    Yes, by international bank transfer to an account in Senegal: either yours, or, once the
     deed is ready, the one indicated by the notary. Going through a personal account rather than
     an unidentified intermediary remains the safest rule.</p>
 

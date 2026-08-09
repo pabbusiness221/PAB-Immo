@@ -1924,10 +1924,14 @@ async function saveProperty(existing){
     let photoErrors = [];
     for(let i=0;i<pendingFiles.length;i++){
       const file = pendingFiles[i].file;
-      const safeName = file.name
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')   // enlève les accents
-        .replace(/[^a-zA-Z0-9.\-_]/g, '_');                  // remplace espaces/parenthèses/etc.
-      const path = `${propertyId}/${Date.now()}-${i}-${safeName}`;
+      // Le nom d'origine du fichier n'est PAS conservé. Il finissait dans une
+      // adresse publique, reprise telle quelle dans les balises og:image :
+      // l'aperçu de partage WhatsApp ou Facebook affichait donc des noms comme
+      // « ChatGPT_Image_18_juil._2026.jpg » ou « Capture d'écran… ». Sur une
+      // annonce immobilière, un tel nom laisse penser que la photo du bien est
+      // fabriquée. On ne garde que l'extension, seule utile au type de fichier.
+      const extension = (file.name.match(/\.[a-zA-Z0-9]{1,5}$/) || ['.jpg'])[0].toLowerCase();
+      const path = `${propertyId}/${Date.now()}-${i}${extension}`;
       const { error: upErr } = await db.storage.from('property-photos').upload(path, file);
       if(upErr){
         console.error('Upload photo échoué:', upErr);
