@@ -1779,6 +1779,16 @@ function definirLangue(lang){
   const comparateur = document.getElementById('compareDrawer');
   if(comparateur && comparateur.classList.contains('open')) renderCompareDrawer();
   updateCompareBar();
+
+  // Même raison pour le tiroir de détail, resté ouvert pendant la bascule :
+  // son contenu ne se traduisait qu'à la prochaine ouverture. Le lien « voir
+  // la fiche » continuait surtout de pointer vers la page FRANÇAISE alors que
+  // toute la vitrine venait de passer en anglais.
+  const tiroir = document.getElementById('drawer');
+  if(tiroir && tiroir.classList.contains('open') && state.selected){
+    const bien = PROPERTIES.find(p => p.id === state.selected);
+    if(bien) openDrawer(bien);
+  }
 }
 
 const STATUS_LABEL = { Disponible:'Disponible', 'Réservé':'Sous offre' };
