@@ -127,6 +127,7 @@ EN = {
     "Mentions légales": "Legal notice",
     "Politique de confidentialité": "Privacy policy",
     "visites sur rendez-vous": "visits by appointment",
+    "7j/7, 24h/24": "24/7",
     "Disponible à partir du": "Available from",
     # Messages du formulaire
     "Message envoyé ! On vous recontacte rapidement.":
@@ -758,7 +759,7 @@ def page_bien(b, photos, voisins=(), publiee=None, lang="fr"):
 
 <footer>
   {AGENCE} — {'land, houses, apartments and farmland in Dakar &amp; Thiès' if lang == 'en' else 'terrains, maisons, appartements et champs agricoles à Dakar &amp; Thiès'}<br>
-  {TEL_AFFICHE} · {EMAIL} · {tr("visites sur rendez-vous", lang)}<br>
+  {TEL_AFFICHE} · {EMAIL} · {tr("7j/7, 24h/24", lang)} · {tr("visites sur rendez-vous", lang)}<br>
   <a href="{prefixe}/mentions-legales.html">{tr("Mentions légales", lang)}</a> · <a href="{prefixe}/confidentialite.html">{tr("Politique de confidentialité", lang)}</a><br>
   <span class="reg">© {date.today().year} {AGENCE} · NINEA {NINEA} · RCCM {RCCM}</span>
 </footer>
@@ -870,6 +871,15 @@ def page_index(biens, par_bien, lang="fr"):
                 ],
                 "address": {"@type": "PostalAddress", "addressCountry": "SN",
                             "addressRegion": "Dakar"},
+                # Joignable en permanence : c'est ce que Google lit pour
+                # afficher « Ouvert 24h/24 » dans un résultat local.
+                "openingHoursSpecification": {
+                    "@type": "OpeningHoursSpecification",
+                    "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday",
+                                  "Friday", "Saturday", "Sunday"],
+                    "opens": "00:00",
+                    "closes": "23:59",
+                },
                 "knowsLanguage": ["fr", "en", "wo"],
             },
             {
@@ -975,7 +985,7 @@ def page_index(biens, par_bien, lang="fr"):
 </main>
 
 <footer>
-  {AGENCE} — {TEL_AFFICHE} · {EMAIL} · {tr("visites sur rendez-vous", lang)}<br>
+  {AGENCE} — {TEL_AFFICHE} · {EMAIL} · {tr("7j/7, 24h/24", lang)} · {tr("visites sur rendez-vous", lang)}<br>
   <a href="{prefixe}/mentions-legales.html">{tr("Mentions légales", lang)}</a> · <a href="{prefixe}/confidentialite.html">{tr("Politique de confidentialité", lang)}</a><br>
   <span class="reg">© {date.today().year} {AGENCE} · NINEA {NINEA} · RCCM {RCCM}</span>
 </footer>
@@ -2467,7 +2477,7 @@ def page_guide(g, lang="fr"):
 </main>
 
 <footer>
-  {AGENCE} — {TEL_AFFICHE} · {EMAIL} · {"visits by appointment" if en else "visites sur rendez-vous"}<br>
+  {AGENCE} — {TEL_AFFICHE} · {EMAIL} · {"24/7" if en else "7j/7, 24h/24"} · {"visits by appointment" if en else "visites sur rendez-vous"}<br>
   <a href="{prefixe}/mentions-legales.html">{"Legal notice" if en else "Mentions légales"}</a> · <a href="{prefixe}/confidentialite.html">{"Privacy policy" if en else "Politique de confidentialité"}</a><br>
   <span class="reg">© {date.today().year} {AGENCE} · NINEA {NINEA} · RCCM {RCCM}</span>
 </footer>
@@ -2550,7 +2560,7 @@ def page_guides_index(guides, lang="fr"):
 </main>
 
 <footer>
-  {AGENCE} — {TEL_AFFICHE} · {EMAIL} · {"visits by appointment" if en else "visites sur rendez-vous"}<br>
+  {AGENCE} — {TEL_AFFICHE} · {EMAIL} · {"24/7" if en else "7j/7, 24h/24"} · {"visits by appointment" if en else "visites sur rendez-vous"}<br>
   <a href="{prefixe}/mentions-legales.html">{"Legal notice" if en else "Mentions légales"}</a> · <a href="{prefixe}/confidentialite.html">{"Privacy policy" if en else "Politique de confidentialité"}</a><br>
   <span class="reg">© {date.today().year} {AGENCE} · NINEA {NINEA} · RCCM {RCCM}</span>
 </footer>
