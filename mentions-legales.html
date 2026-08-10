@@ -24,11 +24,16 @@
   .legal-wrap p{margin:0 0 12px;font-size:15px;}
   .legal-wrap ul{margin:0 0 14px;padding-left:20px;}
   .legal-wrap li{margin:6px 0;font-size:15px;}
-  .legal-wrap a{color:var(--accent-dark);}
+  /* --accent-dark (#D89A04) ne donne que 2,34:1 sur ce fond clair, loin du
+     minimum AA de 4,5:1. Il rendait illisibles TOUS les liens de la page, dont
+     le téléphone et l'e-mail par lesquels on exerce ses droits. Cet or plus
+     sombre atteint 5,03:1. Correction locale : la variable globale sert
+     ailleurs dans le design, sur des fonds différents. */
+  .legal-wrap a{color:#8f6400;}
   .legal-key{color:var(--ink-soft);font-weight:600;}
   .todo{background:var(--accent-soft);border:1px dashed var(--accent);border-radius:8px;padding:1px 8px;font-size:13.5px;font-weight:700;color:var(--accent-dark);}
   .legal-foot{max-width:760px;margin:0 auto;padding:0 20px 60px;font-size:12.5px;color:var(--ink-soft);}
-  .legal-foot a{color:var(--accent-dark);text-decoration:none;font-weight:600;}
+  .legal-foot a{color:#8f6400;text-decoration:none;font-weight:600;}
 </style>
 </head>
 <body>
@@ -45,7 +50,7 @@
 
 <main class="legal-wrap">
   <h2>Éditeur du site</h2>
-  <p>Le présent site est édité par <strong>PAB Immo</strong>, agence immobilière exerçant à Dakar et Thiès (Sénégal).</p>
+  <p>Ce site est édité par <strong>PAB Immo</strong>, agence immobilière établie à Dakar et à Thiès, au Sénégal.</p>
   <ul>
     <li><span class="legal-key">NINEA :</span> 012603686</li>
     <li><span class="legal-key">RCCM :</span> SN DKR 2025 A 44101</li>
@@ -55,14 +60,15 @@
   </ul>
 
   <h2>Hébergement</h2>
-  <p>Le site est hébergé par <strong>GitHub Pages</strong> — GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis (<a href="https://github.com" target="_blank" rel="noopener">github.com</a>).</p>
-  <p>Les données des formulaires (alertes, candidatures, avis) sont traitées via <strong>Supabase</strong>, prestataire d'hébergement de base de données.</p>
+  <p>Les pages du site sont hébergées par <strong>GitHub Pages</strong>, service de GitHub, Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis (<a href="https://github.com" target="_blank" rel="noopener">github.com</a>).</p>
+  <p>Ce que vous saisissez dans les formulaires est enregistré chez <strong>Supabase</strong>, notre hébergeur de base de données. Le détail figure dans la <a href="confidentialite.html">politique de confidentialité</a>.</p>
 
   <h2>Propriété intellectuelle</h2>
-  <p>L'ensemble des contenus présents sur ce site — textes, photographies des biens, logo et éléments graphiques — est la propriété de PAB Immo ou de ses partenaires. Toute reproduction, représentation ou diffusion, totale ou partielle, sans autorisation écrite préalable est interdite.</p>
+  <p>Les textes, les photographies des biens, le logo et les éléments graphiques appartiennent à PAB Immo ou à ses partenaires. Vous ne pouvez pas les reproduire, les diffuser ni les republier, en tout ou partie, sans notre accord écrit.</p>
 
   <h2>Responsabilité</h2>
-  <p>Les informations sur les biens (prix, surfaces, disponibilité) sont fournies à titre indicatif et vérifiées avant publication. Elles peuvent évoluer ; seules les informations confirmées par l'agence lors d'un rendez-vous font foi. PAB Immo ne saurait être tenue responsable d'une erreur ou d'une omission.</p>
+  <p>Les prix, les surfaces et la disponibilité sont vérifiés avant publication, mais ils évoluent. Un bien peut être réservé ou son prix révisé entre deux mises à jour du site. Seules les informations que l'agence vous confirme lors d'un rendez-vous font foi, et PAB Immo ne saurait être tenue responsable d'une erreur ou d'une omission.</p>
+  <p>Le site propose une version anglaise. Les descriptions de biens y sont traduites automatiquement&nbsp;: en cas de divergence, la version française prévaut.</p>
 
   <h2>Données personnelles</h2>
   <p>Le traitement de vos données personnelles est décrit dans notre <a href="confidentialite.html">politique de confidentialité</a>.</p>

@@ -25,11 +25,16 @@
   .legal-wrap p{margin:0 0 12px;font-size:15px;}
   .legal-wrap ul{margin:0 0 14px;padding-left:20px;}
   .legal-wrap li{margin:7px 0;font-size:15px;}
-  .legal-wrap a{color:var(--accent-dark);}
+  /* --accent-dark (#D89A04) ne donne que 2,34:1 sur ce fond clair, loin du
+     minimum AA de 4,5:1. Il rendait illisibles TOUS les liens de la page, dont
+     le téléphone et l'e-mail par lesquels on exerce ses droits. Cet or plus
+     sombre atteint 5,03:1. Correction locale : la variable globale sert
+     ailleurs dans le design, sur des fonds différents. */
+  .legal-wrap a{color:#8f6400;}
   .legal-key{color:var(--ink-soft);font-weight:700;}
   .todo{background:var(--accent-soft);border:1px dashed var(--accent);border-radius:8px;padding:1px 8px;font-size:13.5px;font-weight:700;color:var(--accent-dark);}
   .legal-foot{max-width:760px;margin:0 auto;padding:0 20px 60px;font-size:12.5px;color:var(--ink-soft);}
-  .legal-foot a{color:var(--accent-dark);text-decoration:none;font-weight:600;}
+  .legal-foot a{color:#8f6400;text-decoration:none;font-weight:600;}
 </style>
 </head>
 <body>
@@ -47,10 +52,12 @@
 
 <main class="legal-wrap">
   <h2>Responsable du traitement</h2>
-  <p>Les données collectées sur ce site sont traitées par <strong>PAB Immo</strong>, agence immobilière à Dakar et Thiès.</p>
+  <p>Les données recueillies sur ce site sont traitées par <strong>PAB Immo</strong>, agence immobilière à Dakar et à Thiès. Nos coordonnées figurent dans les <a href="mentions-legales.html">mentions légales</a>.</p>
 
   <h2>Données que nous collectons</h2>
   <ul>
+    <li><span class="legal-key">Message sur un bien :</span> votre nom, le moyen de vous joindre (téléphone ou e-mail), votre message et la référence du bien concerné.</li>
+    <li><span class="legal-key">Demande de rendez-vous :</span> les mêmes informations, plus la date et l'heure que vous souhaitez.</li>
     <li><span class="legal-key">Alertes e-mail :</span> votre adresse e-mail et vos critères de recherche (type de bien, zone, budget), pour vous prévenir des nouveaux biens correspondants.</li>
     <li><span class="legal-key">Candidature collaborateur :</span> le nom de votre agence, vos coordonnées de contact et votre message.</li>
     <li><span class="legal-key">Avis clients :</span> le nom que vous affichez, votre note et votre commentaire.</li>
@@ -58,38 +65,43 @@
   </ul>
 
   <h2>Pourquoi nous les utilisons</h2>
-  <p>Vos données servent uniquement à : vous envoyer les alertes auxquelles vous vous êtes abonné(e), traiter les candidatures de partenariat, publier les avis après modération, et répondre à vos demandes. Nous ne les utilisons à aucune autre fin.</p>
+  <p>Ces informations servent à vous répondre, à organiser les visites, à vous envoyer les alertes auxquelles vous vous êtes abonné(e), à examiner les candidatures de partenariat et à publier les avis après modération. Nous ne nous en servons pour rien d'autre.</p>
+
+  <h2>Mesure d'audience</h2>
+  <p>Pour savoir quels biens intéressent le plus, nous comptons les visites, les fiches ouvertes et les mises en favori. Chacune de ces mesures est rattachée à un identifiant aléatoire, créé par votre navigateur lors de votre première visite et conservé sur votre appareil. Cet identifiant ne contient ni votre nom, ni votre adresse, ni rien qui permette de vous reconnaître ailleurs. Effacer les données du site depuis votre navigateur suffit à en repartir avec un nouveau.</p>
+  <p>Les formulaires publics sont par ailleurs protégés contre les envois massifs. Ce contrôle enregistre une empreinte chiffrée de votre adresse IP, jamais l'adresse elle-même, et l'efface au bout de deux heures.</p>
 
   <h2>Prestataires techniques</h2>
-  <p>Pour fonctionner, le site s'appuie sur des prestataires qui traitent une partie des données pour notre compte :</p>
+  <p>Deux prestataires traitent une partie de ces données pour notre compte&nbsp;:</p>
   <ul>
-    <li><span class="legal-key">Supabase</span> — hébergement sécurisé de la base de données.</li>
-    <li><span class="legal-key">Resend</span> — envoi des e-mails d'alerte.</li>
+    <li><span class="legal-key">Supabase</span>, qui héberge la base de données.</li>
+    <li><span class="legal-key">Resend</span>, qui expédie les e-mails d'alerte.</li>
   </ul>
-  <p>Nous ne vendons ni ne louons vos données à des tiers.</p>
+  <p>Nous ne vendons ni ne louons vos données, à personne.</p>
+  <p>Les descriptions de biens affichées en anglais sont traduites automatiquement par un service tiers. Seul le texte de l'annonce lui est transmis&nbsp;: aucune donnée vous concernant ne quitte le site par ce biais.</p>
 
   <h2>Durée de conservation</h2>
-  <p>Vos données sont conservées tant que votre alerte est active ou tant qu'elles sont nécessaires au traitement de votre demande. Les avis restent visibles tant qu'ils sont publiés. Vous pouvez demander leur suppression à tout moment.</p>
+  <p>Nous gardons vos données tant que votre alerte est active, ou tant qu'elles restent nécessaires au suivi de votre demande. Les avis publiés le restent jusqu'à leur retrait. Les mesures d'audience sont conservées sous forme de compteurs. Vous pouvez demander la suppression de vos données à tout moment.</p>
 
   <h2>Modération des avis</h2>
-  <p>Chaque avis est vérifié par l'agence avant d'être publié. Un avis peut être refusé ou retiré s'il est inapproprié, mensonger ou hors sujet.</p>
+  <p>Chaque avis passe par l'agence avant d'être publié. Nous refusons ou retirons ceux qui sont inappropriés, mensongers ou sans rapport avec un bien.</p>
 
-  <h2>Cookies</h2>
-  <p>Ce site n'utilise pas de cookies publicitaires ni de traceurs. Seul un stockage local technique de votre navigateur est utilisé pour mémoriser vos préférences (biens favoris, recherches enregistrées). Vous pouvez l'effacer depuis les réglages de votre navigateur.</p>
+  <h2>Cookies et stockage local</h2>
+  <p>Ce site ne dépose aucun cookie publicitaire et n'héberge aucun traceur commercial. Il se sert en revanche du stockage local de votre navigateur pour trois choses&nbsp;: retenir vos biens favoris, garder vos recherches enregistrées, et conserver l'identifiant de mesure d'audience décrit plus haut. Rien de tout cela ne quitte votre appareil, sauf cet identifiant. Vous pouvez l'effacer depuis les réglages de votre navigateur.</p>
 
   <h2>Vos droits</h2>
-  <p>Vous pouvez à tout moment demander l'accès, la rectification ou la suppression de vos données, ou vous désabonner des alertes. Pour cela, contactez-nous :</p>
+  <p>Vous pouvez à tout moment demander à consulter vos données, à les faire corriger ou supprimer, ou vous désabonner des alertes. Écrivez-nous&nbsp;:</p>
   <ul>
     <li><span class="legal-key">Téléphone / WhatsApp :</span> <a href="tel:+221778494111">+221 77 849 41 11</a></li>
     <li><span class="legal-key">E-mail :</span> <a href="mailto:pab.business221@gmail.com">pab.business221@gmail.com</a></li>
   </ul>
 
   <h2>Mise à jour</h2>
-  <p>Cette politique peut être mise à jour. La date de dernière modification figure ci-dessous.</p>
+  <p>Cette politique évoluera avec le site. La date de dernière modification figure ci-dessous.</p>
 </main>
 
 <footer class="legal-foot">
-  Dernière mise à jour : <span id="maj">juillet 2026</span> · © <span id="year">2026</span> PAB Immo · <a href="vitrine.html">Retour au site</a>
+  Dernière mise à jour : <span id="maj">août 2026</span> · © <span id="year">2026</span> PAB Immo · <a href="vitrine.html">Retour au site</a>
 </footer>
 <script>(function(){var y=document.getElementById('year');if(y)y.textContent=new Date().getFullYear();})();</script>
 </body>
