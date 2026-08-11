@@ -2401,8 +2401,12 @@ function renderChips(){
 //
 // Respecte enfin « réduire les animations » : un défilement animé peut
 // provoquer un malaise chez les personnes sensibles au mouvement.
+// Le délai distingue deux gestes. Un clic est une action terminée : on
+// descend presque tout de suite. Une frappe au clavier ne l'est pas : on
+// attend que la personne ait vraiment fini d'écrire, sinon la page part
+// pendant qu'elle réfléchit au milieu d'un mot.
 let minuteurDefilement = null;
-function defilerVersResultats(){
+function defilerVersResultats(delai = 260){
   clearTimeout(minuteurDefilement);
   minuteurDefilement = setTimeout(()=>{
     // On vise la LISTE, pas le titre de la section de recherche.
@@ -2426,7 +2430,7 @@ function defilerVersResultats(){
 
     const douxAutorise = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     cible.scrollIntoView({ behavior: douxAutorise ? 'smooth' : 'auto', block: 'start' });
-  }, 260);
+  }, delai);
 }
 
 function renderHeroStat(){
@@ -3722,6 +3726,21 @@ document.getElementById('search').addEventListener('input', e=>{
   state.search = e.target.value;
   clearTimeout(searchTimer);
   searchTimer = setTimeout(render, 180);
+  // Une recherche vidée ne mène nulle part : on ne va pas balader la page
+  // parce que quelqu'un vient d'effacer son texte.
+  if(e.target.value.trim()) defilerVersResultats(750);
+});
+
+// Entrée vaut « j'ai fini » : on descend sans attendre la pause de frappe.
+// Le champ n'est pas dans un formulaire, il n'y a donc pas de soumission à
+// empêcher, mais on referme le clavier sur mobile — sinon il masque la
+// moitié des résultats qu'on vient de demander.
+document.getElementById('search').addEventListener('keydown', e=>{
+  if(e.key !== 'Enter') return;
+  clearTimeout(searchTimer);
+  render();
+  e.target.blur();
+  defilerVersResultats(0);
 });
 
 function toggleFavOnly(){
