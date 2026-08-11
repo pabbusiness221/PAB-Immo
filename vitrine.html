@@ -1326,8 +1326,17 @@
     <button type="button" class="chip" data-radius="50">50 km</button>
   </div>
 
+  <!-- « Rechercher » est l'action principale depuis que le panneau ne fait
+       plus défiler tout seul à chaque critère : il faut un geste explicite
+       pour dire « j'ai fini, montre-moi ». L'enregistrement passe en action
+       secondaire, il reste disponible mais ce n'est pas ce qu'on vient
+       faire ici. -->
   <div class="adv-search-footer">
-    <button type="button" class="btn btn-primary" id="saveSearchBtn">
+    <button type="button" class="btn btn-primary" id="advSearchGoBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      Rechercher
+    </button>
+    <button type="button" class="btn btn-outline" id="saveSearchBtn">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
       Enregistrer cette recherche
     </button>
@@ -2735,12 +2744,23 @@ function initAdvancedSearch(){
   // revient à la première page, on met le compteur à jour, on redessine.
   // Les quatre filtres de lieu omettaient l'appel au compteur : on pouvait
   // filtrer sur une commune et voir le badge annoncer « aucun filtre ».
+  // Pas de défilement automatique depuis ce panneau, volontairement.
+  //
+  // Ailleurs (catégories, types, puces vente/location), un clic est une
+  // action terminée : amener les résultats sous les yeux rend service. Ici,
+  // on compose une requête à plusieurs critères — on tape une commune, puis
+  // un budget, puis un nombre de chambres. Partir vers la liste à chaque
+  // touche, ou même à chaque choix dans une liste déroulante, arrache le
+  // panneau que la personne est encore en train de remplir.
+  //
+  // Le compteur de résultats reste mis à jour en direct, et la zone
+  // #annonceResultats l'annonce aux lecteurs d'écran : on sait donc ce que
+  // le filtre donne sans avoir à y être conduit.
   const appliquerCritere = (cle, valeur) => {
     state[cle] = valeur;
     state.page = 1;
     updateAdvBadge();
     render();
-    defilerVersResultats();
   };
 
   document.getElementById('adv_region').addEventListener('change', e=>{
@@ -2820,6 +2840,24 @@ function initAdvancedSearch(){
     list.push({ name, criteria });
     persistSavedSearches(list);
     renderSavedSearches();
+  };
+
+  // « Rechercher » : le geste explicite qui remplace le défilement
+  // automatique retiré du panneau. Il referme les filtres avant de descendre,
+  // sinon on laisserait derrière soi un panneau ouvert qui pousse la liste
+  // hors de l'écran — et l'on aurait à nouveau l'impression qu'il ne s'est
+  // rien passé.
+  //
+  // Le repli sur render() n'est pas décoratif : si le panneau se referme, les
+  // positions changent, il faut donc laisser le navigateur recalculer avant
+  // de viser la liste.
+  document.getElementById('advSearchGoBtn').onclick = () => {
+    const panneau = document.getElementById('advSearchPanel');
+    if(panneau && !panneau.classList.contains('hidden')){
+      panneau.classList.add('hidden');
+      document.getElementById('advSearchToggle').setAttribute('aria-expanded', 'false');
+    }
+    requestAnimationFrame(defilerVersResultats);
   };
 
   document.getElementById('resetAdvSearchBtn').onclick = () => {
