@@ -575,7 +575,11 @@
   }
 
   /* ---------- Bandeau d'alerte ---------- */
-  .alert-banner{max-width:1400px;margin:20px auto 0;padding:0 20px;}
+  /* Marges symétriques : la bannière est descendue entre deux bandes pleine
+     largeur (les avis au-dessus, l'appel aux agences en dessous). Sa marge
+     basse valait 0, héritée de l'époque où elle était collée au catalogue :
+     elle se retrouvait donc coincée contre la bande suivante. */
+  .alert-banner{max-width:1400px;margin:44px auto;padding:0 20px;}
   .alert-card{background:
       radial-gradient(500px 200px at 100% 0%, rgba(242,174,5,0.18), transparent 60%),
       linear-gradient(135deg, var(--night) 0%, var(--night-2) 100%);
@@ -994,7 +998,9 @@
     /* Liens de pied de page : 16 px de haut, c'était intouchable au doigt. */
     .footer-links{gap:2px;}
     .footer-links a{padding:9px 0;}
-    .alert-banner{margin-top:14px;}
+    /* Un peu plus resserré sur téléphone, où la hauteur d'écran est rare,
+       mais toujours symétrique. */
+    .alert-banner{margin:28px auto;}
     .alert-form-inner{grid-template-columns:1fr 1fr;}
     /* La carte « Être alerté(e) » était masquée ici tant qu'elle occupait le
        HAUT du catalogue, avant même les biens : elle y coûtait un écran
