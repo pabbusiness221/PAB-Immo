@@ -634,7 +634,12 @@ def page_bien(b, photos, voisins=(), publiee=None, lang="fr"):
 <link rel="stylesheet" href="{prefixe}/commun.css" />
 <style>
   body{{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}}
-  .bandeau{{background:var(--night);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;}}
+  /* Bandeau collant : un visiteur arrive ici depuis Google ou un partage
+     WhatsApp, pas depuis la vitrine. Statique, il disparaissait des le
+     premier defilement et l'on se retrouvait sur une page sans aucun moyen
+     de revenir au catalogue ni de changer de langue. z-index modeste : rien
+     d'autre ne se superpose sur ces pages. */
+  .bandeau{{position:sticky;top:0;z-index:50;background:var(--night);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;}}
   .bandeau .lang{{color:rgba(255,255,255,.75);font-size:12.5px;font-weight:700;letter-spacing:.04em;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:4px 11px;}}
   .bandeau .lang:hover{{color:var(--gold);border-color:var(--gold);}}
   .bandeau a{{color:#fff;text-decoration:none;font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;}}
@@ -946,7 +951,12 @@ def page_index(biens, par_bien, lang="fr"):
 <link rel="stylesheet" href="{prefixe}/commun.css" />
 <style>
   body{{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}}
-  .bandeau{{background:var(--night);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;}}
+  /* Bandeau collant : un visiteur arrive ici depuis Google ou un partage
+     WhatsApp, pas depuis la vitrine. Statique, il disparaissait des le
+     premier defilement et l'on se retrouvait sur une page sans aucun moyen
+     de revenir au catalogue ni de changer de langue. z-index modeste : rien
+     d'autre ne se superpose sur ces pages. */
+  .bandeau{{position:sticky;top:0;z-index:50;background:var(--night);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;}}
   .bandeau .lang{{color:rgba(255,255,255,.75);font-size:12.5px;font-weight:700;letter-spacing:.04em;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:4px 11px;}}
   .bandeau .lang:hover{{color:var(--gold);border-color:var(--gold);}}
   .bandeau a{{color:#fff;text-decoration:none;font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;}}
@@ -2397,7 +2407,12 @@ def page_guide(g, lang="fr"):
 <link rel="stylesheet" href="{prefixe}/commun.css" />
 <style>
   body{{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}}
-  .bandeau{{background:var(--night);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}}
+  /* Bandeau collant : un visiteur arrive ici depuis Google ou un partage
+     WhatsApp, pas depuis la vitrine. Statique, il disparaissait des le
+     premier defilement et l'on se retrouvait sur une page sans aucun moyen
+     de revenir au catalogue ni de changer de langue. z-index modeste : rien
+     d'autre ne se superpose sur ces pages. */
+  .bandeau{{position:sticky;top:0;z-index:50;background:var(--night);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}}
   .bandeau a.marque{{color:#fff;text-decoration:none;font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;}}
   .bandeau a.marque span{{color:var(--accent);}}
   .bandeau a.langue{{color:rgba(255,255,255,0.72);text-decoration:underline;font-size:12.5px;font-weight:600;}}
@@ -2522,7 +2537,12 @@ def page_guides_index(guides, lang="fr"):
 <link rel="stylesheet" href="{prefixe}/commun.css" />
 <style>
   body{{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}}
-  .bandeau{{background:var(--night);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}}
+  /* Bandeau collant : un visiteur arrive ici depuis Google ou un partage
+     WhatsApp, pas depuis la vitrine. Statique, il disparaissait des le
+     premier defilement et l'on se retrouvait sur une page sans aucun moyen
+     de revenir au catalogue ni de changer de langue. z-index modeste : rien
+     d'autre ne se superpose sur ces pages. */
+  .bandeau{{position:sticky;top:0;z-index:50;background:var(--night);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}}
   .bandeau a.marque{{color:#fff;text-decoration:none;font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;}}
   .bandeau a.marque span{{color:var(--accent);}}
   .bandeau a.langue{{color:rgba(255,255,255,0.72);text-decoration:underline;font-size:12.5px;font-weight:600;}}

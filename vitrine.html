@@ -114,6 +114,17 @@
   /* Le tiroir commence SOUS l'en-tête plutôt que de le recouvrir. */
   .drawer{top:var(--h-entete);height:calc(100% - var(--h-entete));}
 
+  /* position:sticky CESSE d'agir dès qu'un ancêtre porte overflow:hidden —
+     ce que fait précisément le verrou de défilement à l'ouverture du tiroir.
+     L'en-tête retombait alors à sa position statique, donc hors écran si la
+     page était défilée : ouvert depuis le bas de la liste, il se retrouvait
+     à top:-788.
+     Le passage en fixed le détache du conteneur de défilement et le maintient
+     en haut quoi qu'il arrive. Le padding compense sa sortie du flux, pour que
+     le contenu derrière ne saute pas de 67 px pendant le fondu du voile. */
+  header.sur-panneau{position:fixed;top:0;left:0;right:0;}
+  body.panneau-ouvert{padding-top:var(--h-entete);}
+
   /* Une cible de défilement ne doit pas s'arrêter sous la barre collante :
      sans cette marge, le titre visé se retrouve caché derrière l'en-tête et
      l'on croit que le défilement a raté. */
@@ -2988,6 +2999,8 @@ function updateScrollLock(){
   // n'a pas quitté le héros : le contenu du tiroir apparaîtrait au travers.
   // On lui impose donc son fond plein tant qu'un panneau est ouvert.
   document.querySelector('header').classList.toggle('sur-panneau', unPanneauOuvert);
+  // Compense la sortie du flux de l'en-tête passé en fixed (voir le CSS).
+  document.body.classList.toggle('panneau-ouvert', unPanneauOuvert);
 }
 
 
