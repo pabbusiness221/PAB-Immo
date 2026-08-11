@@ -99,24 +99,41 @@
      dans le héros, puis devient une barre pleine dès qu'on le quitte. Sans
      cette bascule, une barre opaque couperait l'image dès la première
      seconde et l'on perdrait l'effet d'entrée. */
-  header{position:sticky;top:0;z-index:40;background:transparent;border-bottom:1px solid transparent;
+  /* z-index au-dessus du tiroir (901) et de son voile (900) : l'en-tête doit
+     rester visible et cliquable pendant qu'on consulte un bien. Sans cela, le
+     tiroir couvrait tout l'écran et la seule sortie était son bouton de
+     fermeture — on perdait la marque, la navigation et la bascule de langue. */
+  header{position:sticky;top:0;z-index:950;background:transparent;border-bottom:1px solid transparent;
     transition:background-color .34s var(--ease), box-shadow .34s var(--ease), border-color .34s var(--ease), backdrop-filter .34s var(--ease);}
+
+  /* Hauteur de l'en-tête, mesurée : elle sert à décaler le tiroir et à régler
+     les marges de défilement. Une seule valeur, pour qu'un changement de
+     hauteur n'oblige pas à corriger trois endroits. */
+  :root{--h-entete:67px;}
+
+  /* Le tiroir commence SOUS l'en-tête plutôt que de le recouvrir. */
+  .drawer{top:var(--h-entete);height:calc(100% - var(--h-entete));}
+
+  /* Une cible de défilement ne doit pas s'arrêter sous la barre collante :
+     sans cette marge, le titre visé se retrouve caché derrière l'en-tête et
+     l'on croit que le défilement a raté. */
+  #titreBiens, #explorerSection, #split{scroll-margin-top:calc(var(--h-entete) + 12px);}
   /* Bandeau plein une fois qu'on quitte le héros : blanc plutôt que nuit,
      à la manière d'une barre d'app plutôt que d'un bandeau publicitaire.
      Chaque élément de l'en-tête (marque, navigation, icônes) porte donc
      aussi sa variante encre-sur-blanc juste en dessous, pour la remplacer
      seulement dans cet état — transparent sur la photo, elle reste blanche. */
-  header.scrolled{background:rgba(255,255,255,0.94);backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);
+  header:is(.scrolled,.sur-panneau){background:rgba(255,255,255,0.94);backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);
     border-bottom-color:var(--border);box-shadow:0 8px 24px -18px rgba(15,39,71,0.28);}
-  header.scrolled .brand h1{color:var(--ink);}
-  header.scrolled .brand h1 span{color:var(--accent-bronze);}
-  header.scrolled .brand p{color:var(--ink-soft);}
-  header.scrolled .nav-link{color:var(--ink-soft);}
-  header.scrolled .nav-link:hover{background:var(--surface-alt);color:var(--ink);}
-  header.scrolled .btn-espace{background:var(--surface-alt);color:var(--ink);border-color:var(--border);}
-  header.scrolled .btn-espace:hover{background:var(--border);}
-  header.scrolled .btn-outline{background:var(--surface-alt);color:var(--ink);border-color:var(--border);}
-  header.scrolled .btn-outline:hover{background:var(--border);}
+  header:is(.scrolled,.sur-panneau) .brand h1{color:var(--ink);}
+  header:is(.scrolled,.sur-panneau) .brand h1 span{color:var(--accent-bronze);}
+  header:is(.scrolled,.sur-panneau) .brand p{color:var(--ink-soft);}
+  header:is(.scrolled,.sur-panneau) .nav-link{color:var(--ink-soft);}
+  header:is(.scrolled,.sur-panneau) .nav-link:hover{background:var(--surface-alt);color:var(--ink);}
+  header:is(.scrolled,.sur-panneau) .btn-espace{background:var(--surface-alt);color:var(--ink);border-color:var(--border);}
+  header:is(.scrolled,.sur-panneau) .btn-espace:hover{background:var(--border);}
+  header:is(.scrolled,.sur-panneau) .btn-outline{background:var(--surface-alt);color:var(--ink);border-color:var(--border);}
+  header:is(.scrolled,.sur-panneau) .btn-outline:hover{background:var(--border);}
   .header-inner{display:flex;align-items:center;gap:20px;padding:12px 22px;max-width:1400px;margin:0 auto;}
   .brand{display:flex;align-items:center;gap:11px;margin-right:auto;}
   .brand h1 span{color:var(--accent-clair);}
@@ -812,9 +829,9 @@
   .btn-icon-header:hover{background:rgba(255,255,255,0.26);}
   .lang-btn{font-family:'Manrope',sans-serif;font-size:12.5px;font-weight:800;letter-spacing:.02em;}
   .btn-icon-header.active{background:var(--accent);border-color:var(--accent);color:var(--primary);}
-  header.scrolled .btn-icon-header{background:var(--surface-alt);border-color:var(--border);color:var(--ink-soft);}
-  header.scrolled .btn-icon-header:hover{background:var(--border);}
-  header.scrolled .btn-icon-header.active{background:var(--accent);border-color:var(--accent);color:var(--primary);}
+  header:is(.scrolled,.sur-panneau) .btn-icon-header{background:var(--surface-alt);border-color:var(--border);color:var(--ink-soft);}
+  header:is(.scrolled,.sur-panneau) .btn-icon-header:hover{background:var(--border);}
+  header:is(.scrolled,.sur-panneau) .btn-icon-header.active{background:var(--accent);border-color:var(--accent);color:var(--primary);}
   .btn-icon-header .pastille{
     position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;
     background:var(--accent);border:1.5px solid var(--night);
@@ -934,9 +951,12 @@
     .card-photo .pill{font-size:9.5px;padding:3px 8px;}
     .list-pager{flex-direction:column;padding:14px;}
     .pager-btn{width:100%;}
+    /* Feuille remontant du bas. La hauteur est calculée à partir de celle de
+       l'en-tête plutôt que fixée à 92vh : sur un écran court, 92vh ne
+       laissait que 65 px et recouvrait donc la barre de 67 px. */
     .drawer{
       top:auto;bottom:0;right:0;left:0;width:100% !important;max-width:100% !important;
-      height:92vh;border-radius:22px 22px 0 0;
+      height:calc(100vh - var(--h-entete));border-radius:22px 22px 0 0;
       transform:translateY(100%);
       padding-bottom:env(safe-area-inset-bottom);
     }
@@ -955,7 +975,7 @@
        et hachait le défilement), mais l'en-tête garde sa bascule : transparent
        sur la photo, plein ensuite — en aplat, sans flou, donc sans coût. */
     header{background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;}
-    header.scrolled{background:#FFFFFF;backdrop-filter:none;-webkit-backdrop-filter:none;}
+    header:is(.scrolled,.sur-panneau){background:#FFFFFF;backdrop-filter:none;-webkit-backdrop-filter:none;}
     .pill{backdrop-filter:none;-webkit-backdrop-filter:none;}
     /* min-height 44px (norme tactile) sans changer l'apparence : la puce
        reste visuellement identique, seule sa zone cliquable grandit. */
@@ -965,11 +985,14 @@
     .footer-links a{padding:9px 0;}
     .alert-banner{margin-top:14px;}
     .alert-form-inner{grid-template-columns:1fr 1fr;}
-    /* La grosse carte « Être alerté(e) » en tête de liste prenait trop
-       de place et arrivait avant même les biens. Sur mobile, on la
-       masque et on la remplace par une icône cloche compacte dans la
-       barre de contact fixe déjà présente en bas d'écran. */
-    .alert-card{display:none;}
+    /* La carte « Être alerté(e) » était masquée ici tant qu'elle occupait le
+       HAUT du catalogue, avant même les biens : elle y coûtait un écran
+       entier sur téléphone, et le bouton cloche de l'en-tête servait
+       d'entrée de remplacement.
+       Elle est désormais en bas de page, après les avis, donc elle ne coûte
+       plus rien à personne — et comme la cloche de l'en-tête a laissé la
+       place à la recherche, la masquer priverait les téléphones de tout
+       accès aux alertes. On la montre. */
     .alert-form-mobile-title{display:block;}
     .fav-btn{width:44px;height:44px;}
     /* Une hauteur plancher réduite plutôt que nulle : à 0, le temps qu'une
@@ -1125,11 +1148,12 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M10 21v-6h4v6"/></svg>
       <span class="btn-label">Mon espace</span>
     </a>
-    <!-- Alertes et favoris : ici, sur tous les écrans, plutôt que dupliqués
-         dans la barre de filtres ou une barre fixe séparée (voir
-         toggleAlertForm() et toggleFavOnly()). -->
-    <button type="button" class="btn-icon-header" id="headerAlertBtn" aria-expanded="false" aria-controls="alertForm" aria-label="Être alerté(e) de nouveaux biens" title="Être alerté(e)">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+    <!-- Recherche : l'action la plus fréquente, donc la plus accessible.
+         Elle remplace le bouton d'alerte, descendu en bas de page près de son
+         formulaire — s'abonner aux alertes est ce qu'on fait APRÈS avoir
+         cherché sans trouver, pas en arrivant. -->
+    <button type="button" class="btn-icon-header" id="headerSearchBtn" aria-label="Rechercher un bien" title="Rechercher">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
     </button>
     <button type="button" class="btn-icon-header" id="headerFavBtn" aria-pressed="false" aria-label="Afficher uniquement mes favoris" title="Mes favoris">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>
@@ -1311,53 +1335,6 @@
   </div>
 </div>
 
-<div class="alert-banner">
-  <div class="alert-card">
-    <div class="ai"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg></div>
-    <div class="at"><strong>Aucun bien ne correspond aujourd'hui ?</strong><p>Laissez votre email, on vous préviendra pour les prochains biens qui correspondent.</p></div>
-    <button class="btn btn-primary alert-toggle-btn" id="alertToggleBtn" aria-expanded="false" aria-controls="alertForm">Être alerté(e)</button>
-  </div>
-  <div class="alert-form hidden" id="alertForm">
-    <div class="alert-form-inner">
-      <div class="form-field full alert-form-mobile-title"><strong style="font-family:'Manrope',sans-serif;font-size:13.5px;">Être alerté(e) de nouveaux biens</strong><p style="margin:2px 0 0;font-size:12px;color:var(--ink-soft);">Laissez votre email, on vous préviendra dès qu'un bien correspond.</p></div>
-      <div class="form-field full"><label class="sf-label" for="alert_email">Email</label><input class="sf-input" id="alert_email" type="email" placeholder="vous@email.com" style="margin-bottom:0;"/></div>
-      <div class="hp-field" aria-hidden="true"><label for="alert_website">Site web</label><input type="text" id="alert_website" name="website" tabindex="-1" autocomplete="off"/></div>
-      <div class="form-field"><label class="sf-label" for="alert_type">Type de bien</label>
-        <select class="sf-select" id="alert_type" style="margin-bottom:0;">
-          <option value="">Tous types</option>
-          <option value="Terrain">Terrain</option>
-          <option value="Maison">Maison</option>
-          <option value="Appartement">Appartement</option>
-          <option value="Studio">Studio</option>
-          <option value="Champ agricole">Champ agricole</option>
-        </select>
-      </div>
-      <div class="form-field"><label class="sf-label">Opération</label>
-        <select class="sf-select" id="alert_operation" style="margin-bottom:0;" aria-label="Opération">
-          <option value="">Vente ou location</option>
-          <option value="Vente">Vente</option>
-          <option value="Location">Location</option>
-        </select>
-      </div>
-      <div class="form-field"><label class="sf-label">Région</label>
-        <!-- Options peuplées depuis REGIONS (commun.js) : la liste des régions
-             ne doit exister qu'à un seul endroit, partagé avec la saisie d'un
-             bien, sous peine que l'appariement des alertes (égalité exacte)
-             cesse de correspondre. La valeur « Toutes régions » sert de repli
-             tant que le script n'a pas peuplé la liste. -->
-        <select class="sf-select" id="alert_region" style="margin-bottom:0;" aria-label="Région">
-          <option value="">Toutes régions</option>
-        </select>
-      </div>
-      <div class="form-field"><label class="sf-label" for="alert_budget">Budget max (FCFA)</label><input class="sf-input" id="alert_budget" type="number" min="0" placeholder="ex: 50000000" style="margin-bottom:0;"/></div>
-      <div class="form-field full">
-        <button class="btn btn-primary sf-submit" id="alertSubmitBtn">M'inscrire aux alertes</button>
-        <p class="sf-error" role="alert" id="alertError"></p>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- Découverte rapide : deux rails horizontaux entre les filtres et le
      catalogue complet — un raccourci visuel, pas un remplacement de la
      recherche avancée ni de la liste exhaustive plus bas. Masqués (hidden)
@@ -1468,6 +1445,58 @@
 <!-- Appel aux agences. Placé juste avant le pied de page : c'est une porte
      professionnelle, elle ne doit pas concurrencer les annonces auprès des
      acheteurs, qui sont la raison d'être de cette page. -->
+<!-- Alertes e-mail : descendu ici, en bas de page. S'abonner est ce que
+     l'on fait APRÈS avoir cherché sans trouver, jamais en arrivant — la
+     bannière occupait auparavant le haut du catalogue, avant même que le
+     visiteur ait vu un seul bien. Le déclencheur de l'en-tête a laissé la
+     place à la recherche. -->
+<div class="alert-banner">
+  <div class="alert-card">
+    <div class="ai"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg></div>
+    <div class="at"><strong>Aucun bien ne correspond aujourd'hui ?</strong><p>Laissez votre email, on vous préviendra pour les prochains biens qui correspondent.</p></div>
+    <button class="btn btn-primary alert-toggle-btn" id="alertToggleBtn" aria-expanded="false" aria-controls="alertForm">Être alerté(e)</button>
+  </div>
+  <div class="alert-form hidden" id="alertForm">
+    <div class="alert-form-inner">
+      <div class="form-field full alert-form-mobile-title"><strong style="font-family:'Manrope',sans-serif;font-size:13.5px;">Être alerté(e) de nouveaux biens</strong><p style="margin:2px 0 0;font-size:12px;color:var(--ink-soft);">Laissez votre email, on vous préviendra dès qu'un bien correspond.</p></div>
+      <div class="form-field full"><label class="sf-label" for="alert_email">Email</label><input class="sf-input" id="alert_email" type="email" placeholder="vous@email.com" style="margin-bottom:0;"/></div>
+      <div class="hp-field" aria-hidden="true"><label for="alert_website">Site web</label><input type="text" id="alert_website" name="website" tabindex="-1" autocomplete="off"/></div>
+      <div class="form-field"><label class="sf-label" for="alert_type">Type de bien</label>
+        <select class="sf-select" id="alert_type" style="margin-bottom:0;">
+          <option value="">Tous types</option>
+          <option value="Terrain">Terrain</option>
+          <option value="Maison">Maison</option>
+          <option value="Appartement">Appartement</option>
+          <option value="Studio">Studio</option>
+          <option value="Champ agricole">Champ agricole</option>
+        </select>
+      </div>
+      <div class="form-field"><label class="sf-label">Opération</label>
+        <select class="sf-select" id="alert_operation" style="margin-bottom:0;" aria-label="Opération">
+          <option value="">Vente ou location</option>
+          <option value="Vente">Vente</option>
+          <option value="Location">Location</option>
+        </select>
+      </div>
+      <div class="form-field"><label class="sf-label">Région</label>
+        <!-- Options peuplées depuis REGIONS (commun.js) : la liste des régions
+             ne doit exister qu'à un seul endroit, partagé avec la saisie d'un
+             bien, sous peine que l'appariement des alertes (égalité exacte)
+             cesse de correspondre. La valeur « Toutes régions » sert de repli
+             tant que le script n'a pas peuplé la liste. -->
+        <select class="sf-select" id="alert_region" style="margin-bottom:0;" aria-label="Région">
+          <option value="">Toutes régions</option>
+        </select>
+      </div>
+      <div class="form-field"><label class="sf-label" for="alert_budget">Budget max (FCFA)</label><input class="sf-input" id="alert_budget" type="number" min="0" placeholder="ex: 50000000" style="margin-bottom:0;"/></div>
+      <div class="form-field full">
+        <button class="btn btn-primary sf-submit" id="alertSubmitBtn">M'inscrire aux alertes</button>
+        <p class="sf-error" role="alert" id="alertError"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <section class="collab-band reveal-band" id="collaborateur" aria-labelledby="collabTitre">
   <div class="collab-inner">
     <div class="collab-txt">
@@ -1643,6 +1672,7 @@ const I18N_EN = {
   'Terrain':'Land', 'Maison':'House', 'Appartement':'Apartment', 'Studio':'Studio', 'Champ agricole':'Farmland',
   'Mon espace':'My space', 'Votre partenaire immobilier de confiance':'Your trusted real estate partner',
   'Être alerté(e)':'Get alerts', 'Mes favoris':'My favorites',
+  'Rechercher un bien':'Search properties', 'Rechercher':'Search',
   // Hero
   'Trouvez. Investissez. Vivez.':'Find. Invest. Live.',
   'Trouvez le bien':'Find the property',
@@ -2322,8 +2352,55 @@ function renderChips(){
   // ci-dessous — ce ne sont pas des puces, mais ils suivent le même filtre.
   document.getElementById('chipsOp').innerHTML = OPS.map(([key,label])=>
     `<button class="chip ${state.op===key?'active':''}" data-op="${key}" aria-pressed="${state.op===key}">${t(label)}</button>`).join('');
-  document.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>{ state.op=b.dataset.op; majEtiquettePrix(); render(); });
-  document.querySelectorAll('[data-type]').forEach(b=>b.onclick=(e)=>{ e.preventDefault(); state.type=b.dataset.type; render(); document.getElementById('titreBiens').scrollIntoView({ behavior:'smooth', block:'start' }); });
+  document.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>{ state.op=b.dataset.op; majEtiquettePrix(); render(); defilerVersResultats(); });
+  document.querySelectorAll('[data-type]').forEach(b=>b.onclick=(e)=>{ e.preventDefault(); state.type=b.dataset.type; render(); defilerVersResultats(); });
+}
+
+// Amène les résultats sous les yeux après un filtrage.
+//
+// Sans cela, cliquer sur « Terrains » depuis le haut de la page changeait la
+// liste sans rien montrer : le filtre semblait sans effet, et il fallait
+// deviner qu'il fallait faire défiler. Le titre porte une marge de défilement
+// (scroll-margin-top) pour ne pas s'arrêter sous l'en-tête collant.
+//
+// Deux garde-fous, sans lesquels le remède serait pire que le mal :
+//
+//  · on ne bouge PAS si les résultats sont déjà à l'écran. Arracher la page
+//    sous les yeux de quelqu'un qui regarde déjà la liste est désagréable, et
+//    c'est ce qui arriverait à chaque ajustement d'un filtre ;
+//
+//  · l'appel est temporisé. Les champs texte et nombre de la recherche
+//    avancée réagissent à « input », donc à CHAQUE frappe : taper
+//    « 20000000 » aurait déclenché huit défilements successifs.
+//
+// Respecte enfin « réduire les animations » : un défilement animé peut
+// provoquer un malaise chez les personnes sensibles au mouvement.
+let minuteurDefilement = null;
+function defilerVersResultats(){
+  clearTimeout(minuteurDefilement);
+  minuteurDefilement = setTimeout(()=>{
+    // On vise la LISTE, pas le titre de la section de recherche.
+    //
+    // Première version : on visait #titreBiens, « Rechercher et parcourir les
+    // biens disponibles ». Il est à 385 px, mais la première annonce est à
+    // 1 264 px — entre les deux se glissent le sélecteur de vue, le rail
+    // « Explorer par type » et « Sélection du moment ». Le défilement
+    // s'arrêtait donc AVANT le premier bien, et l'on avait l'impression que
+    // le filtre n'avait rien fait.
+    const cible = document.getElementById('split');
+    if(!cible) return;
+
+    // Déjà à l'écran : on ne bouge pas. Le repère est la première annonce
+    // réellement visible, pas le conteneur — c'est ce que la personne
+    // cherche à voir.
+    const premiere = document.querySelector('#list .card') || cible;
+    const r = premiere.getBoundingClientRect();
+    const hauteurEntete = 67;
+    if(r.top >= hauteurEntete && r.bottom <= window.innerHeight) return;
+
+    const douxAutorise = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    cible.scrollIntoView({ behavior: douxAutorise ? 'smooth' : 'auto', block: 'start' });
+  }, 260);
 }
 
 function renderHeroStat(){
@@ -2376,7 +2453,7 @@ function renderCategories(){
       // catégorie déjà active revient à « Tous les biens ».
       state.type = state.type === btn.dataset.cat ? 'Tous' : btn.dataset.cat;
       render();
-      document.getElementById('titreBiens').scrollIntoView({ behavior:'smooth', block:'start' });
+      defilerVersResultats();
     };
   });
   activerGlisserPourDefiler(host);
@@ -2646,6 +2723,7 @@ function initAdvancedSearch(){
     state.page = 1;
     updateAdvBadge();
     render();
+    defilerVersResultats();
   };
 
   document.getElementById('adv_region').addEventListener('change', e=>{
@@ -2904,7 +2982,12 @@ function updateScrollLock(){
   const drawerOpen = document.getElementById('drawer').classList.contains('open');
   const compareOpen = document.getElementById('compareDrawer').classList.contains('open');
   const galleryOpen = !document.getElementById('galleryModal').classList.contains('hidden');
-  document.body.style.overflow = (drawerOpen || compareOpen || galleryOpen) ? 'hidden' : '';
+  const unPanneauOuvert = drawerOpen || compareOpen || galleryOpen;
+  document.body.style.overflow = unPanneauOuvert ? 'hidden' : '';
+  // L'en-tête reste au-dessus du tiroir, mais il est TRANSPARENT tant qu'on
+  // n'a pas quitté le héros : le contenu du tiroir apparaîtrait au travers.
+  // On lui impose donc son fond plein tant qu'un panneau est ouvert.
+  document.querySelector('header').classList.toggle('sur-panneau', unPanneauOuvert);
 }
 
 
@@ -3593,6 +3676,21 @@ function toggleFavOnly(){
 }
 document.getElementById('headerFavBtn').onclick = toggleFavOnly;
 
+// Le bouton loupe de l'en-tête ramène à la barre de recherche et y place le
+// curseur. Depuis le bas d'une longue page, c'est le geste attendu : on ne
+// veut pas remonter à la main pour changer sa recherche.
+//
+// Le focus est posé APRÈS le défilement plutôt qu'avant : donner le focus à un
+// champ hors écran fait sauter la page instantanément, ce qui annule
+// l'animation et désoriente.
+document.getElementById('headerSearchBtn').onclick = () => {
+  const champ = document.getElementById('search');
+  if(!champ) return;
+  const douxAutorise = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  champ.scrollIntoView({ behavior: douxAutorise ? 'smooth' : 'auto', block: 'center' });
+  setTimeout(() => champ.focus({ preventScroll: true }), douxAutorise ? 380 : 0);
+};
+
 document.getElementById('langToggleBtn').onclick = () => definirLangue(state.lang === 'en' ? 'fr' : 'en');
 // Applique tout de suite le libellé du bouton et traduit le HTML statique
 // déjà présent (en-tête, recherche avancée, pied de page…) si la langue
@@ -3604,14 +3702,16 @@ if(state.lang === 'en') definirLangue('en');
 function toggleAlertForm(){
   const form = document.getElementById('alertForm');
   const ouvert = form.classList.toggle('hidden') === false;
-  ['alertToggleBtn','headerAlertBtn'].forEach(id=>{
+  // Un seul déclencheur depuis que le bouton d'alerte de l'en-tête a laissé
+  // la place à la recherche. La boucle est conservée : elle rend l'ajout d'un
+  // second déclencheur sans risque d'oublier son aria-expanded.
+  ['alertToggleBtn'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.setAttribute('aria-expanded', String(ouvert));
   });
   if(ouvert){ form.scrollIntoView({ behavior:'smooth', block:'nearest' }); document.getElementById('alert_email').focus(); }
 }
 document.getElementById('alertToggleBtn').onclick = toggleAlertForm;
-document.getElementById('headerAlertBtn').onclick = toggleAlertForm;
 document.getElementById('alertSubmitBtn').onclick = async () => {
   if(document.getElementById('alert_website').value.trim()){
     document.getElementById('alertForm').innerHTML = '<div class="alert-form-inner" style="display:block;text-align:center;"><p class="sf-success" style="margin:0;">Inscription confirmée ! Vous serez recontacté(e) dès qu\'un bien correspond.</p></div>';
