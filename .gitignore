@@ -1,6 +1,8 @@
-# Réglages Claude Code propres à un poste (permissions accordées localement)
-.claude/settings.local.json
-.claude/worktrees/
+# Réglages d'éditeur propres à un poste : ils dépendent des chemins locaux et
+# n'ont pas de sens sur une autre machine.
+.claude/
+.vscode/
+.idea/
 
 # Exports de données. Le dépôt est PUBLIC et les tables contact_messages,
 # appointments et alert_subscriptions contiennent des noms, téléphones et

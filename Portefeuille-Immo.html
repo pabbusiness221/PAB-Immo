@@ -1926,10 +1926,11 @@ async function saveProperty(existing){
       const file = pendingFiles[i].file;
       // Le nom d'origine du fichier n'est PAS conservé. Il finissait dans une
       // adresse publique, reprise telle quelle dans les balises og:image :
-      // l'aperçu de partage WhatsApp ou Facebook affichait donc des noms comme
-      // « ChatGPT_Image_18_juil._2026.jpg » ou « Capture d'écran… ». Sur une
-      // annonce immobilière, un tel nom laisse penser que la photo du bien est
-      // fabriquée. On ne garde que l'extension, seule utile au type de fichier.
+      // l'aperçu de partage WhatsApp ou Facebook exposait donc le nom que le
+      // téléphone ou l'ordinateur avait donné au fichier — souvent une capture
+      // d'écran ou un export d'outil. Sur une annonce immobilière, un tel nom
+      // jette un doute sur l'authenticité de la photo. On ne garde que
+      // l'extension, seule utile au type de fichier.
       const extension = (file.name.match(/\.[a-zA-Z0-9]{1,5}$/) || ['.jpg'])[0].toLowerCase();
       const path = `${propertyId}/${Date.now()}-${i}${extension}`;
       const { error: upErr } = await db.storage.from('property-photos').upload(path, file);
