@@ -83,6 +83,8 @@ TRADUCTIONS_PAR_PASSAGE = 8
 # rédigée par l'agence et traduite par l'IA (colonne description_en).
 
 EN = {
+    # Navigation
+    "Revenir à l'accueil": "Back to home", "Accueil": "Home",
     # Types de biens et opérations
     "Terrain": "Land", "Maison": "House", "Appartement": "Apartment",
     "Studio": "Studio", "Champ agricole": "Farmland",
@@ -644,6 +646,9 @@ def page_bien(b, photos, voisins=(), publiee=None, lang="fr"):
   .bandeau .lang:hover{{color:var(--gold);border-color:var(--gold);}}
   .bandeau a{{color:#fff;text-decoration:none;font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;}}
   .bandeau a span{{color:var(--accent);}}
+  .bandeau-gauche{{display:flex;align-items:center;gap:10px;}}
+  .bandeau a.accueil{{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex:none;border:1px solid rgba(255,255,255,.28);border-radius:9px;}}
+  .bandeau a.accueil:hover{{border-color:var(--gold);color:var(--gold);}}
   main{{max-width:760px;margin:0 auto;padding:26px 20px 60px;}}
   .fil{{font-size:12.5px;color:var(--ink-soft);margin:0 0 16px;}}
   .fil a{{color:var(--ink-soft);}}
@@ -699,7 +704,14 @@ def page_bien(b, photos, voisins=(), publiee=None, lang="fr"):
 </head>
 <body>
 <header class="bandeau">
-  <a href="{prefixe}/{ACCUEIL}">PAB <span>Immo</span></a>
+  <div class="bandeau-gauche">
+    <!-- Le même bouton accueil que dans l'en-tête de la vitrine : depuis une
+         fiche, la marque seule ne se lit pas comme « retour ». -->
+    <a class="accueil" href="{prefixe}/{ACCUEIL}" aria-label="{tr('Revenir à l\'accueil', lang)}" title="{tr('Accueil', lang)}">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+    </a>
+    <a href="{prefixe}/{ACCUEIL}">PAB <span>Immo</span></a>
+  </div>
   <a class="lang" href="{lien_autre}" hreflang="{autre_lang}" lang="{autre_lang}">{'Français' if lang == 'en' else 'English'}</a>
 </header>
 
@@ -961,6 +973,9 @@ def page_index(biens, par_bien, lang="fr"):
   .bandeau .lang:hover{{color:var(--gold);border-color:var(--gold);}}
   .bandeau a{{color:#fff;text-decoration:none;font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;}}
   .bandeau a span{{color:var(--accent);}}
+  .bandeau-gauche{{display:flex;align-items:center;gap:10px;}}
+  .bandeau a.accueil{{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex:none;border:1px solid rgba(255,255,255,.28);border-radius:9px;}}
+  .bandeau a.accueil:hover{{border-color:var(--gold);color:var(--gold);}}
   main{{max-width:960px;margin:0 auto;padding:26px 20px 60px;}}
   h1{{font-family:'Manrope',sans-serif;font-size:clamp(24px,4.5vw,32px);font-weight:800;letter-spacing:-0.02em;margin:0 0 10px;}}
   .intro{{color:var(--ink-soft);font-size:15px;line-height:1.65;margin:0 0 8px;max-width:60ch;}}
@@ -981,7 +996,14 @@ def page_index(biens, par_bien, lang="fr"):
 </head>
 <body>
 <header class="bandeau">
-  <a href="{prefixe}/{ACCUEIL}">PAB <span>Immo</span></a>
+  <div class="bandeau-gauche">
+    <!-- Le même bouton accueil que dans l'en-tête de la vitrine : depuis une
+         fiche, la marque seule ne se lit pas comme « retour ». -->
+    <a class="accueil" href="{prefixe}/{ACCUEIL}" aria-label="{tr('Revenir à l\'accueil', lang)}" title="{tr('Accueil', lang)}">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+    </a>
+    <a href="{prefixe}/{ACCUEIL}">PAB <span>Immo</span></a>
+  </div>
   <a class="lang" href="{'../' if lang == 'en' else 'en/'}" hreflang="{'fr' if lang == 'en' else 'en'}" lang="{'fr' if lang == 'en' else 'en'}">{'Français' if lang == 'en' else 'English'}</a>
 </header>
 
@@ -2415,6 +2437,9 @@ def page_guide(g, lang="fr"):
   .bandeau{{position:sticky;top:0;z-index:50;background:var(--night);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}}
   .bandeau a.marque{{color:#fff;text-decoration:none;font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;}}
   .bandeau a.marque span{{color:var(--accent);}}
+  .bandeau-gauche{{display:flex;align-items:center;gap:10px;}}
+  .bandeau a.accueil{{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex:none;color:#fff;border:1px solid rgba(255,255,255,.28);border-radius:9px;}}
+  .bandeau a.accueil:hover{{border-color:var(--gold);color:var(--gold);}}
   .bandeau a.langue{{color:rgba(255,255,255,0.72);text-decoration:underline;font-size:12.5px;font-weight:600;}}
   .bandeau a.langue:hover{{color:#fff;}}
   main{{max-width:720px;margin:0 auto;padding:26px 20px 60px;}}
@@ -2463,7 +2488,14 @@ def page_guide(g, lang="fr"):
 </head>
 <body>
 <header class="bandeau">
-  <a class="marque" href="{prefixe}/{ACCUEIL}">PAB <span>Immo</span></a>
+  <div class="bandeau-gauche">
+    <!-- Le même bouton accueil que dans l'en-tête de la vitrine : depuis un
+         guide, la marque seule ne se lit pas comme « retour ». -->
+    <a class="accueil" href="{prefixe}/{ACCUEIL}" aria-label="{"Back to home" if en else "Revenir à l'accueil"}" title="{"Home" if en else "Accueil"}">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+    </a>
+    <a class="marque" href="{prefixe}/{ACCUEIL}">PAB <span>Immo</span></a>
+  </div>
   <a class="langue" href="{lien_autre_langue}">{"Lire en français" if en else "Read in English"}</a>
 </header>
 
@@ -2545,6 +2577,9 @@ def page_guides_index(guides, lang="fr"):
   .bandeau{{position:sticky;top:0;z-index:50;background:var(--night);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}}
   .bandeau a.marque{{color:#fff;text-decoration:none;font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;}}
   .bandeau a.marque span{{color:var(--accent);}}
+  .bandeau-gauche{{display:flex;align-items:center;gap:10px;}}
+  .bandeau a.accueil{{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex:none;color:#fff;border:1px solid rgba(255,255,255,.28);border-radius:9px;}}
+  .bandeau a.accueil:hover{{border-color:var(--gold);color:var(--gold);}}
   .bandeau a.langue{{color:rgba(255,255,255,0.72);text-decoration:underline;font-size:12.5px;font-weight:600;}}
   .bandeau a.langue:hover{{color:#fff;}}
   main{{max-width:900px;margin:0 auto;padding:34px 20px 60px;}}
@@ -2567,7 +2602,14 @@ def page_guides_index(guides, lang="fr"):
 </head>
 <body>
 <header class="bandeau">
-  <a class="marque" href="{prefixe}/{ACCUEIL}">PAB <span>Immo</span></a>
+  <div class="bandeau-gauche">
+    <!-- Le même bouton accueil que dans l'en-tête de la vitrine : depuis un
+         guide, la marque seule ne se lit pas comme « retour ». -->
+    <a class="accueil" href="{prefixe}/{ACCUEIL}" aria-label="{"Back to home" if en else "Revenir à l'accueil"}" title="{"Home" if en else "Accueil"}">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+    </a>
+    <a class="marque" href="{prefixe}/{ACCUEIL}">PAB <span>Immo</span></a>
+  </div>
   <a class="langue" href="{lien_autre_langue}">{"Lire en français" if en else "Read in English"}</a>
 </header>
 

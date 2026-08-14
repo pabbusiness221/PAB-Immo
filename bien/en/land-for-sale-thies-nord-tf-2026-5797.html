@@ -44,6 +44,9 @@
   .bandeau .lang:hover{color:var(--gold);border-color:var(--gold);}
   .bandeau a{color:#fff;text-decoration:none;font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;}
   .bandeau a span{color:var(--accent);}
+  .bandeau-gauche{display:flex;align-items:center;gap:10px;}
+  .bandeau a.accueil{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex:none;border:1px solid rgba(255,255,255,.28);border-radius:9px;}
+  .bandeau a.accueil:hover{border-color:var(--gold);color:var(--gold);}
   main{max-width:760px;margin:0 auto;padding:26px 20px 60px;}
   .fil{font-size:12.5px;color:var(--ink-soft);margin:0 0 16px;}
   .fil a{color:var(--ink-soft);}
@@ -148,7 +151,14 @@
 </head>
 <body>
 <header class="bandeau">
-  <a href="../../vitrine.html">PAB <span>Immo</span></a>
+  <div class="bandeau-gauche">
+    <!-- Le même bouton accueil que dans l'en-tête de la vitrine : depuis une
+         fiche, la marque seule ne se lit pas comme « retour ». -->
+    <a class="accueil" href="../../vitrine.html" aria-label="Back to home" title="Home">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+    </a>
+    <a href="../../vitrine.html">PAB <span>Immo</span></a>
+  </div>
   <a class="lang" href="../terrain-a-vendre-thies-nord-tf-2026-5797.html" hreflang="fr" lang="fr">Français</a>
 </header>
 

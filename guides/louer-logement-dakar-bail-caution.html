@@ -31,6 +31,9 @@
   .bandeau{position:sticky;top:0;z-index:50;background:var(--night);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}
   .bandeau a.marque{color:#fff;text-decoration:none;font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;}
   .bandeau a.marque span{color:var(--accent);}
+  .bandeau-gauche{display:flex;align-items:center;gap:10px;}
+  .bandeau a.accueil{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex:none;color:#fff;border:1px solid rgba(255,255,255,.28);border-radius:9px;}
+  .bandeau a.accueil:hover{border-color:var(--gold);color:var(--gold);}
   .bandeau a.langue{color:rgba(255,255,255,0.72);text-decoration:underline;font-size:12.5px;font-weight:600;}
   .bandeau a.langue:hover{color:#fff;}
   main{max-width:720px;margin:0 auto;padding:26px 20px 60px;}
@@ -95,7 +98,14 @@
 </head>
 <body>
 <header class="bandeau">
-  <a class="marque" href="../vitrine.html">PAB <span>Immo</span></a>
+  <div class="bandeau-gauche">
+    <!-- Le même bouton accueil que dans l'en-tête de la vitrine : depuis un
+         guide, la marque seule ne se lit pas comme « retour ». -->
+    <a class="accueil" href="../vitrine.html" aria-label="Revenir à l'accueil" title="Accueil">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+    </a>
+    <a class="marque" href="../vitrine.html">PAB <span>Immo</span></a>
+  </div>
   <a class="langue" href="en/louer-logement-dakar-bail-caution.html">Read in English</a>
 </header>
 
