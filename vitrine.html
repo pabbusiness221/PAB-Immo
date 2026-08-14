@@ -1718,6 +1718,8 @@ const I18N_EN = {
   'Être alerté(e)':'Get alerts', 'Mes favoris':'My favorites',
   'Rechercher':'Search', 'Ma sélection':'My selection',
   "Revenir à l'accueil":'Back to home', 'Accueil':'Home',
+  'Types de biens':'Property types', 'Vente et location':'Sale and rental',
+  'Retour à mon espace':'Back to my space', 'Contacter par WhatsApp':'Contact on WhatsApp',
   // Hero
   'Trouvez. Investissez. Vivez.':'Find. Invest. Live.',
   'Trouvez le bien':'Find the property',
@@ -1730,7 +1732,9 @@ const I18N_EN = {
   'Dakar & Thiès':'Dakar & Thiès', 'Visites sur rendez-vous':'Visits by appointment',
   // Recherche
   'Rechercher : type, lieu, prix, réf…':'Search: type, location, price, ref…',
+  'Rechercher un bien par type, lieu, prix, référence ou mot-clé':'Search properties by type, location, price, reference or keyword',
   'Recherche avancée':'Advanced search',
+  'ex : Sacré-Cœur':'e.g. Sacré-Cœur', 'ex : Dakar, Thiès':'e.g. Dakar, Thiès',
   'Région':'Region', 'Toutes régions':'All regions',
   'Département':'District', 'Tous départements':'All districts',
   'Commune':'Municipality', 'Quartier':'Neighborhood',
@@ -1775,6 +1779,14 @@ const I18N_EN = {
   'Guides & conseils':'Guides & tips', 'Devenir collaborateur':'Become a partner', 'Espace collaborateur':'Partner area',
   'Mentions légales':'Legal notice', 'Politique de confidentialité':'Privacy policy',
   'Tous droits réservés':'All rights reserved',
+  'PAB Immo sur Facebook':'PAB Immo on Facebook', 'PAB Immo sur Instagram':'PAB Immo on Instagram',
+  'PAB Immo sur LinkedIn':'PAB Immo on LinkedIn',
+  // Avis et formulaire collaborateur
+  'Note de 1 à 5 étoiles':'Rating from 1 to 5 stars', 'étoile':'star', 'étoiles':'stars',
+  'étoiles sur 5':'stars out of 5',
+  'Partagez votre expérience avec PAB Immo…':'Share your experience with PAB Immo…',
+  'Pour vous répondre':'So we can reply',
+  'Parlez-nous de votre agence et de vos biens…':'Tell us about your agency and your properties…',
   // Comparateur — le tiroir est un CONTENEUR_AUTONOME : rien n'y est traduit
   // par le passage générique, tout passe par t() au moment du rendu.
   'biens':'properties', 'Fermer':'Close',
@@ -1865,6 +1877,18 @@ function definirLangue(lang){
   // Le libellé du filtre favoris est composé en JS (« Mes favoris (3) ») :
   // le passage générique ne le traduit pas, il faut le refabriquer.
   majBoutonFavoris();
+  // Même cas pour les avis : « 4 étoiles sur 5 » et les libellés du sélecteur
+  // de note sont assemblés autour d'un chiffre, donc introuvables tels quels
+  // dans le dictionnaire.
+  //
+  // On ne redessine que si les avis sont déjà là. Au chargement d'un visiteur
+  // anglophone, definirLangue s'exécute AVANT la déclaration de AVIS : y
+  // toucher, même via typeof, lèverait une ReferenceError de zone morte et
+  // casserait toute l'initialisation de la langue. Le test porte donc sur le
+  // DOM, jamais sur la variable.
+  const listeAvis = document.getElementById('avisListe');
+  if(listeAvis && listeAvis.children.length) renderAvisListe();
+  majLibellesEtoiles();
 
   // Même raison pour le tiroir de détail, resté ouvert pendant la bascule :
   // son contenu ne se traduisait qu'à la prochaine ouverture. Le lien « voir
@@ -4002,7 +4026,7 @@ function renderAvisListe(){
   const aMontrer = avisDeplie ? AVIS : AVIS.slice(0, AVIS_APERCU);
   liste.innerHTML = aMontrer.map(a => `
     <div class="avis-carte">
-      <div class="a-etoiles" aria-label="${a.rating} étoiles sur 5">${etoilesHtml(a.rating)}</div>
+      <div class="a-etoiles" aria-label="${a.rating} ${t('étoiles sur 5')}">${etoilesHtml(a.rating)}</div>
       <p class="a-texte">${esc(a.comment)}</p>
       <div class="a-bas">
         <span class="a-nom">${esc(a.author_name)}${a.property_label ? `<span class="a-bien-tag">${esc(a.property_label)}</span>` : ''}</span>
@@ -4034,12 +4058,22 @@ let avisNote = 0;
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'star-btn'; b.dataset.val = i;
     b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', 'false');
-    b.setAttribute('aria-label', i + (i > 1 ? ' étoiles' : ' étoile'));
     b.textContent = '★';
     b.onclick = () => setAvisNote(i);
     zone.appendChild(b);
   }
+  majLibellesEtoiles();
 })();
+
+// Les cinq boutons sont créés une fois pour toutes : leur libellé est composé
+// en JS (« 3 étoiles »), donc invisible au passage générique, qui ne sait
+// traduire qu'une valeur d'attribut présente telle quelle dans I18N_EN.
+function majLibellesEtoiles(){
+  document.querySelectorAll('#avisStars .star-btn').forEach(b => {
+    const i = Number(b.dataset.val);
+    b.setAttribute('aria-label', i + ' ' + t(i > 1 ? 'étoiles' : 'étoile'));
+  });
+}
 function setAvisNote(n){
   avisNote = n;
   document.querySelectorAll('#avisStars .star-btn').forEach(b => {
