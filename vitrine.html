@@ -338,6 +338,13 @@
   #chipsOp{min-height:48px;}
   .chip{flex-shrink:0;border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:10px 17px;font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer;white-space:nowrap;transition:all .22s var(--ease);font-family:'Inter',sans-serif;}
   .chip-group{display:flex;flex-direction:column;gap:7px;min-width:0;}
+  .chip-group[hidden]{display:none;}
+  /* Puce des favoris : le cœur reste discret tant que le filtre est inactif,
+     et passe au rouge une fois activé. Le rouge n'est pas décoratif, c'est le
+     seul repère qui distingue « mes favoris » d'un filtre ordinaire. */
+  .chip-fav{display:inline-flex;align-items:center;gap:6px;}
+  .chip-fav.active{background:var(--danger);border-color:var(--danger);color:#fff;}
+  .chip-fav.active svg{fill:currentColor;}
   /* Pas d'opacity ici : var(--ink-soft) est déjà une couleur atténuée, et la
      voiler à 80 % faisait tomber le contraste à 3,55:1 sur blanc — sous le
      minimum AA de 4,5:1, pour un texte déjà minuscule (9,5 px). */
@@ -1165,15 +1172,13 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M10 21v-6h4v6"/></svg>
       <span class="btn-label">Mon espace</span>
     </a>
-    <!-- Recherche : l'action la plus fréquente, donc la plus accessible.
-         Elle remplace le bouton d'alerte, descendu en bas de page près de son
-         formulaire — s'abonner aux alertes est ce qu'on fait APRÈS avoir
-         cherché sans trouver, pas en arrivant. -->
-    <button type="button" class="btn-icon-header" id="headerSearchBtn" aria-label="Rechercher un bien" title="Rechercher">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-    </button>
-    <button type="button" class="btn-icon-header" id="headerFavBtn" aria-pressed="false" aria-label="Afficher uniquement mes favoris" title="Mes favoris">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>
+    <!-- Accueil : remet la page à zéro, filtres compris, et remonte en haut.
+         C'est la sortie de secours d'une navigation qui a mal tourné, et le
+         geste qu'on cherche instinctivement quand on s'est perdu dans les
+         filtres. Les favoris, eux, sont descendus dans la barre de filtres :
+         c'en est un, et ils y voisinent les résultats qu'ils modifient. -->
+    <button type="button" class="btn-icon-header" id="headerHomeBtn" aria-label="Revenir à l'accueil" title="Accueil">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
     </button>
     <!-- Bascule de langue : FR/EN uniquement pour l'instant (voir I18N).
          Persistée (voir definirLangue) pour ne pas revenir au français à
@@ -1353,6 +1358,19 @@
     <div class="chip-group" role="group" aria-label="Vente et location">
       <span class="chip-group-label" aria-hidden="true">Vente &amp; location</span>
       <div class="chips" id="chipsOp"></div>
+    </div>
+    <!-- Les favoris sont un FILTRE, pas un outil de navigation : leur place
+         est dans la barre de filtres, à côté de vente/location, et non dans
+         l'en-tête où ils voisinaient la marque et la langue. Ici, ils sont
+         aussi juste au-dessus des résultats qu'ils modifient. -->
+    <div class="chip-group" role="group" aria-label="Mes favoris">
+      <span class="chip-group-label" aria-hidden="true">Ma sélection</span>
+      <div class="chips">
+        <button type="button" class="chip chip-fav" id="favFilterBtn" aria-pressed="false">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>
+          <span id="favFilterLabel">Mes favoris</span>
+        </button>
+      </div>
     </div>
   </div>
   <div class="view-toggle" id="viewToggle" style="margin-top:12px;">
@@ -1698,7 +1716,8 @@ const I18N_EN = {
   'Terrain':'Land', 'Maison':'House', 'Appartement':'Apartment', 'Studio':'Studio', 'Champ agricole':'Farmland',
   'Mon espace':'My space', 'Votre partenaire immobilier de confiance':'Your trusted real estate partner',
   'Être alerté(e)':'Get alerts', 'Mes favoris':'My favorites',
-  'Rechercher un bien':'Search properties', 'Rechercher':'Search',
+  'Rechercher':'Search', 'Ma sélection':'My selection',
+  "Revenir à l'accueil":'Back to home', 'Accueil':'Home',
   // Hero
   'Trouvez. Investissez. Vivez.':'Find. Invest. Live.',
   'Trouvez le bien':'Find the property',
@@ -1843,6 +1862,9 @@ function definirLangue(lang){
   const comparateur = document.getElementById('compareDrawer');
   if(comparateur && comparateur.classList.contains('open')) renderCompareDrawer();
   updateCompareBar();
+  // Le libellé du filtre favoris est composé en JS (« Mes favoris (3) ») :
+  // le passage générique ne le traduit pas, il faut le refabriquer.
+  majBoutonFavoris();
 
   // Même raison pour le tiroir de détail, resté ouvert pendant la bascule :
   // son contenu ne se traduisait qu'à la prochaine ouverture. Le lien « voir
@@ -2134,6 +2156,7 @@ async function loadProperties(){
   renderFeatured();
   tryRenderStatsBand();
   initAdvancedSearch();
+  majBoutonFavoris();
   render();
   openPropertyFromURL();
   checkPhotoResize();
@@ -2203,6 +2226,9 @@ function toggleFav(id){
   else { FAVORITES.add(id); action = 'add'; }
   saveFavorites();
   recordFavoriteEvent(id, action);
+  // Le filtre porte le compte et se cache quand la sélection est vide : il
+  // doit donc suivre chaque cœur coché ou décoché.
+  if(typeof majBoutonFavoris === 'function') majBoutonFavoris();
 }
 function favIconSvg(active){
   return `<svg width="15" height="15" viewBox="0 0 24 24" fill="${active?'currentColor':'none'}" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>`;
@@ -2320,6 +2346,15 @@ function rebuildMarkers(list){
       m.on('click', () => openDrawerById(p.id));
     }
     m.addTo(map);
+    // Leaflet rend chaque marqueur focusable avec role="button", mais ne lui
+    // donne aucun nom : au lecteur d'écran, la carte annonçait dix-huit fois
+    // « bouton », sans dire lequel. On lui donne ce que l'aperçu affiche déjà.
+    const el = m.getElement();
+    if(el){
+      const nom = `${t(p.type)} — ${p.commune}, ${fcfa(p.price)}${p.operation==='Location' ? ' /'+t('mois') : ''}`;
+      el.setAttribute('aria-label', nom);
+      el.title = nom;
+    }
     markers[p.id] = m;
   });
 }
@@ -3743,28 +3778,73 @@ document.getElementById('search').addEventListener('keydown', e=>{
   defilerVersResultats(0);
 });
 
+// Filtre « mes favoris », désormais dans la barre de filtres.
+//
+// Il conduit aux résultats comme les autres filtres : sans cela, on cochait
+// ses favoris depuis le haut de la page et rien ne semblait se produire.
+// Le libellé porte le compte — « Mes favoris (3) » — pour qu'on sache ce
+// qu'on va trouver avant de cliquer, et le bouton disparaît tant qu'aucun
+// bien n'a été mis de côté : proposer un filtre qui ne peut rien donner
+// n'aide personne.
 function toggleFavOnly(){
   state.favOnly = !state.favOnly;
-  const btn = document.getElementById('headerFavBtn');
+  majBoutonFavoris();
+  render();
+  defilerVersResultats();
+}
+
+function majBoutonFavoris(){
+  const btn = document.getElementById('favFilterBtn');
+  if(!btn) return;
+  const nb = FAVORITES.size;
+  const groupe = btn.closest('.chip-group');
+  if(groupe) groupe.hidden = nb === 0;
+  if(nb === 0 && state.favOnly){
+    // Dernier favori retiré alors que le filtre est actif : sans cela on
+    // resterait bloqué sur une liste vide, sans bouton pour en sortir.
+    state.favOnly = false;
+  }
   btn.classList.toggle('active', state.favOnly);
   btn.setAttribute('aria-pressed', String(state.favOnly));
-  render();
+  const libelle = document.getElementById('favFilterLabel');
+  if(libelle) libelle.textContent = `${t('Mes favoris')}${nb ? ` (${nb})` : ''}`;
 }
-document.getElementById('headerFavBtn').onclick = toggleFavOnly;
 
-// Le bouton loupe de l'en-tête ramène à la barre de recherche et y place le
-// curseur. Depuis le bas d'une longue page, c'est le geste attendu : on ne
-// veut pas remonter à la main pour changer sa recherche.
-//
-// Le focus est posé APRÈS le défilement plutôt qu'avant : donner le focus à un
-// champ hors écran fait sauter la page instantanément, ce qui annule
-// l'animation et désoriente.
-document.getElementById('headerSearchBtn').onclick = () => {
+document.getElementById('favFilterBtn').onclick = toggleFavOnly;
+
+// Accueil : remise à zéro complète plutôt qu'un simple retour en haut.
+// Quelqu'un qui clique « accueil » après s'être perdu dans les filtres veut
+// retrouver le site tel qu'il l'a trouvé, pas le haut d'une liste filtrée
+// qu'il ne comprend plus.
+document.getElementById('headerHomeBtn').onclick = () => {
+  // Depuis la fiche d'un bien, le comparateur ou la visionneuse, « accueil »
+  // doit d'abord refermer ce qu'on regarde : sans cela on remettait les
+  // filtres à zéro derrière un panneau qui, lui, restait ouvert.
+  if(!document.getElementById('galleryModal').classList.contains('hidden')) closePhotoGallery();
+  if(document.getElementById('compareDrawer').classList.contains('open')) closeCompareDrawer();
+  if(document.getElementById('drawer').classList.contains('open')) closeDrawer();
+
   const champ = document.getElementById('search');
-  if(!champ) return;
+  if(champ) champ.value = '';
+  state.search = '';
+  state.type = 'Tous';
+  state.op = 'Tous';
+  state.favOnly = false;
+  state.page = 1;
+  ADV_CRITERES.forEach(c=>{
+    state[c.cle] = '';
+    const el = document.getElementById(c.champ);
+    if(el) el.value = '';
+  });
+  clearSearchZone();
+  majEtiquettePrix();
+  updateAdvBadge();
+  majBoutonFavoris();
+  renderChips();
+  renderCategories();
+  render();
   const douxAutorise = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  champ.scrollIntoView({ behavior: douxAutorise ? 'smooth' : 'auto', block: 'center' });
-  setTimeout(() => champ.focus({ preventScroll: true }), douxAutorise ? 380 : 0);
+  window.scrollTo({ top: 0, behavior: douxAutorise ? 'smooth' : 'auto' });
 };
 
 document.getElementById('langToggleBtn').onclick = () => definirLangue(state.lang === 'en' ? 'fr' : 'en');
@@ -4044,6 +4124,10 @@ document.querySelectorAll('#viewToggle button').forEach(b=>{
     b.setAttribute('aria-pressed','true');
     document.getElementById('split').dataset.view = b.dataset.view;
     if(b.dataset.view==='map' && map) setTimeout(()=>map.invalidateSize(), 100);
+    // La carte s'affichait bien, mais 760 px plus bas que le bouton qu'on
+    // venait de cliquer : on croyait qu'il ne s'était rien passé. Même
+    // remède que pour les filtres, et pour la même raison.
+    defilerVersResultats();
   };
 });
 </script>
