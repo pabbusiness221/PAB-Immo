@@ -1373,6 +1373,84 @@ def page_destination(spec, toutes_specs, par_bien, lang="fr"):
                                                lieu_court(b["commune"])))
     cartes = "".join(vignette(b, par_bien.get(b["id"], []), lang) for b in lot)
 
+    # Sur un terrain ou un champ, la question qui vient après le prix est
+    # toujours la même : est-il viabilisé, fait-il partie d'un lotissement
+    # approuvé, quel est son statut foncier. Ces mots sont posés ici comme des
+    # VÉRIFICATIONS À FAIRE, jamais comme une promesse : le portefeuille ne
+    # renseigne pas la viabilisation, et l'annoncer sans le savoir serait
+    # exactement le genre d'affirmation qui coûte la confiance d'un acheteur.
+    verifications = ""
+    if spec["type"] in ("Terrain", "Champ agricole"):
+        guide_statut = ("../../guides/en/verifier-titre-foncier-senegal.html" if en
+                        else "../guides/verifier-titre-foncier-senegal.html")
+        guide_construire = ("../../guides/en/construire-terrain-senegal-permis.html" if en
+                            else "../guides/construire-terrain-senegal-permis.html")
+        if en:
+            verifications = f'''<h2>What to check before buying</h2>
+  <p class="intro">Price is rarely what decides a purchase here. Before you commit, ask
+  for the land title status of the plot, whether it belongs to an approved subdivision
+  (<em>lotissement</em>), and whether it is serviced — water, electricity and road access.
+  We answer these questions for each plot, in writing, before any visit.</p>
+  <ul class="autres">
+    <li><a href="{guide_statut}">Checking Land Title Status in Senegal</a></li>
+    <li><a href="{guide_construire}">Building on Your Land in Senegal</a></li>
+  </ul>'''
+        else:
+            verifications = f'''<h2>Ce qu'il faut vérifier avant d'acheter</h2>
+  <p class="intro">Le prix décide rarement seul d'un achat de terrain. Avant de vous
+  engager, demandez le statut foncier de la parcelle, si elle appartient à un
+  lotissement approuvé, et si elle est viabilisée — eau, électricité, accès
+  carrossable. Nous répondons à ces questions pour chaque parcelle, par écrit,
+  avant toute visite.</p>
+  <ul class="autres">
+    <li><a href="{guide_statut}">Vérifier le statut foncier d'un terrain au Sénégal</a></li>
+    <li><a href="{guide_construire}">Construire sur son terrain au Sénégal</a></li>
+  </ul>'''
+
+    elif spec["operation"] == "Location":
+        guide_bail = ("../../guides/en/louer-logement-dakar-bail-caution.html" if en
+                      else "../guides/louer-logement-dakar-bail-caution.html")
+        if en:
+            verifications = f'''<h2>What to check before signing</h2>
+  <p class="intro">Beyond the monthly rent, ask what the deposit and advance rent come to,
+  what the charges cover, and insist on a written inventory at move-in. These are the points
+  that cause disputes at move-out, and they are settled in a few minutes beforehand.</p>
+  <ul class="autres">
+    <li><a href="{guide_bail}">Renting a Home in Dakar: Lease and Deposit</a></li>
+  </ul>'''
+        else:
+            verifications = f'''<h2>Ce qu'il faut vérifier avant de signer</h2>
+  <p class="intro">Au-delà du loyer mensuel, demandez le montant de la caution et de
+  l'avance de loyers, ce que couvrent les charges, et exigez un état des lieux écrit à
+  l'entrée. Ce sont les points qui font les litiges à la sortie, et ils se règlent en
+  quelques minutes en amont.</p>
+  <ul class="autres">
+    <li><a href="{guide_bail}">Louer un logement à Dakar : bail et caution</a></li>
+  </ul>'''
+    else:
+        guide_frais = ("../../guides/en/frais-achat-immobilier-senegal.html" if en
+                       else "../guides/frais-achat-immobilier-senegal.html")
+        guide_statut = ("../../guides/en/verifier-titre-foncier-senegal.html" if en
+                        else "../guides/verifier-titre-foncier-senegal.html")
+        if en:
+            verifications = f'''<h2>What to check before buying</h2>
+  <p class="intro">The asking price is not the final cost: registration duties and notary
+  fees come on top. Ask for the title deeds, and have them checked by a notary before you
+  commit to anything in writing.</p>
+  <ul class="autres">
+    <li><a href="{guide_frais}">Property Purchase Costs in Senegal</a></li>
+    <li><a href="{guide_statut}">Checking Land Title Status in Senegal</a></li>
+  </ul>'''
+        else:
+            verifications = f'''<h2>Ce qu'il faut vérifier avant d'acheter</h2>
+  <p class="intro">Le prix affiché n'est pas le coût final : s'y ajoutent les droits
+  d'enregistrement et les frais de notaire. Demandez les titres de propriété, et faites-les
+  vérifier par un notaire avant de vous engager par écrit.</p>
+  <ul class="autres">
+    <li><a href="{guide_frais}">Frais d'achat immobilier au Sénégal</a></li>
+    <li><a href="{guide_statut}">Vérifier le statut foncier d'un terrain au Sénégal</a></li>
+  </ul>'''
+
     # Les autres pages de destination, pour que celles-ci se relient entre
     # elles plutôt que de dépendre toutes du seul index.
     voisines = []
@@ -1488,6 +1566,8 @@ def page_destination(spec, toutes_specs, par_bien, lang="fr"):
   <h2>{'Available now' if en else 'Disponibles actuellement'} — {len(lot)} {('propert' + ('ies' if len(lot) > 1 else 'y')) if en else ('bien' + ('s' if len(lot) > 1 else ''))}</h2>
   <div class="voisins">{cartes}
   </div>
+
+  {verifications}
 
   {f'''<h2>{'Other searches' if en else 'Autres recherches'}</h2>
   <ul class="autres">
@@ -1701,7 +1781,7 @@ def page_index(biens, par_bien, lang="fr"):
 <main>
   <h1>{'All our properties in Dakar and Thiès' if lang == 'en' else 'Tous nos biens à Dakar et Thiès'}</h1>
   <p class="intro">
-    {f"{len(biens)} properties available: land, houses, apartments and farmland, for sale or rent across the Dakar and Thiès regions. Every listing shows the price, the size and photos of the property." if lang == 'en' else f"{len(biens)} biens disponibles : terrains, maisons, appartements et champs agricoles, à vendre ou à louer dans les régions de Dakar et de Thiès. Chaque fiche indique le prix, la superficie et les photos du bien."}
+    {f"{AGENCE} is a real estate agency working in Senegal, in the Dakar and Thiès regions. {len(biens)} properties available: land, houses, apartments and farmland, for sale or rent. Every listing shows the price, the size and photos of the property, and visits are arranged by appointment." if lang == 'en' else f"{AGENCE} est une agence immobilière au Sénégal, sur les régions de Dakar et de Thiès. {len(biens)} biens disponibles : terrains, maisons, appartements et champs agricoles, à vendre ou à louer. Chaque fiche indique le prix, la superficie et les photos du bien, et les visites se font sur rendez-vous."}
   </p>
 {liens_destinations}
 {sections}
@@ -1952,9 +2032,10 @@ GUIDES = [
         "date_publication": "2026-08-05",
         "corps": """
     <p>Une grande partie des acheteurs de terrain à Dakar et à Thiès ne vit pas au Sénégal.
-    La situation est courante et ne constitue pas un obstacle. Elle change une chose, en
-    revanche&nbsp;: les vérifications qui se font naturellement en marchant sur le terrain
-    doivent ici être organisées autrement. Ce guide explique comment.</p>
+    Pour la diaspora sénégalaise installée en France, en Italie, en Espagne ou aux
+    États-Unis, la situation est courante et ne constitue pas un obstacle. Elle change une
+    chose, en revanche&nbsp;: les vérifications qui se font naturellement en marchant sur le
+    terrain doivent ici être organisées autrement. Ce guide explique comment.</p>
 
     <h2>La procuration&nbsp;: acheter sans être présent</h2>
 
@@ -2044,9 +2125,10 @@ GUIDES = [
                            "land in Senegal. Here's how power of attorney works, what a notary "
                            "checks, and the precautions specific to a remote purchase.",
         "corps_en": """
-    <p>A large share of land buyers in Dakar and Thiès don't live in Senegal. The situation is
-    common and no obstacle in itself. It does change one thing: the checks that happen naturally
-    when you walk the plot have to be organized another way. This guide explains how.</p>
+    <p>A large share of land buyers in Dakar and Thiès don't live in Senegal. For the Senegalese
+    diaspora in France, Italy, Spain or the United States, the situation is common and no obstacle
+    in itself. It does change one thing: the checks that happen naturally when you walk the plot
+    have to be organized another way. This guide explains how.</p>
 
     <h2>Power of attorney: buying without being present</h2>
 
