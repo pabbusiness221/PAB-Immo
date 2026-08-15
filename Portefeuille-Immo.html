@@ -393,7 +393,9 @@
        restent explicites et l'en-tête tient sur une seule ligne. */
     .btn-label{display:none;}
   }
-  @media (max-width: 1023px){
+  /* Voir vitrine.html : 1023.98 ferme l'intervalle que laissait « 1023 » sur
+     les écrans à rapport de pixels fractionnaire. */
+  @media (max-width: 1023.98px){
     .panel-map{position:relative;top:0;height:min(60vh,480px);}
     .split{flex-direction:column;}
     .panel-list, .panel-map{flex:1 1 auto;width:100%;}

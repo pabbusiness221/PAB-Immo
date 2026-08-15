@@ -538,7 +538,12 @@
   .fav-chip{display:flex;align-items:center;gap:7px;}
 
   /* ---------- Comparateur ---------- */
+  /* min-height : la zone cliquable réelle — le label entier, pas la petite
+     case — mesurait 21 px de haut. WCAG 2.2 en demande 24 au minimum : trois
+     pixels manquaient pour qu'un doigt tombe juste à coup sûr. La largeur,
+     elle, était déjà confortable. */
   .compare-check{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;
+    min-height:24px;
     color:var(--ink-soft);font-weight:600;cursor:pointer;user-select:none;}
   .compare-check.is-disabled{opacity:.5;cursor:not-allowed;}
   .compare-check input{width:15px;height:15px;accent-color:var(--gold);cursor:pointer;}
@@ -901,7 +906,12 @@
   @media (max-width: 1180px){
     .main-nav{display:none;}
   }
-  @media (max-width: 1023px){
+  /* 1023.98 et non 1023 : la largeur CSS est fractionnaire dès que l'écran a
+     un rapport de pixels non entier — 1,5 sur beaucoup d'appareils Android et
+     sur Windows en affichage agrandi. À 1023,3 px, « max-width: 1023px » et
+     « min-width: 1024px » étaient tous deux faux, et l'intervalle n'appartenait
+     à personne. La borne haute couvre désormais tout ce qui précède 1024. */
+  @media (max-width: 1023.98px){
     .panel-map{position:relative;top:0;height:min(60vh,480px);}
     .split{flex-direction:column;}
     .panel-list, .panel-map{flex:1 1 auto;width:100%;}
@@ -1150,6 +1160,33 @@
   /* Cible tactile élargie : au doigt, un marqueur de 32 px est petit à viser.
      Un halo transparent étend la zone touchable sans rien changer à l'aspect —
      un tap dans le halo atteint le marqueur et ouvre l'aperçu. */
+  /* Téléphone tenu à l'horizontale. La hauteur devient la ressource rare :
+     mesuré à 667x375, le héros occupait 347 px sur 375, soit 93 % de l'écran,
+     et la première annonce se trouvait à 3,6 écrans de défilement — contre 1,5
+     en portrait. Quelqu'un qui bascule son téléphone le fait pour mieux voir
+     les photos, pas pour relire le slogan.
+     On resserre les postes mesurés : marge basse, titre, accroche. Les
+     arguments de confiance sont compactés, jamais retirés : ce sont eux qui
+     répondent à « puis-je faire confiance à ces annonces ».
+
+     PLACÉ EN FIN DE FEUILLE À DESSEIN. Un premier essai posé plus haut n'a
+     rien donné : le bloc « max-width: 680px », écrit plus loin et de même
+     spécificité, l'emportait sur chaque propriété. À poids égal, c'est
+     l'ordre qui tranche — déplacer ce bloc plus bas suffit à le faire gagner,
+     sans recourir à !important. */
+  @media (orientation: landscape) and (max-height: 460px){
+    .hero{padding-bottom:20px;}
+    .hero-eyebrow{display:none;}          /* décoratif : « Trouvez. Investissez. Vivez. » */
+    .hero h2{font-size:clamp(20px,3.6vw,26px);margin-bottom:10px;}
+    .hero-title{min-height:1lh;}
+    .hero-stat{margin-top:6px;font-size:12.5px;}
+    .hero-trust{margin-top:8px;}
+    .trust-item{padding:6px 10px;}
+    .trust-item .ti{width:24px;height:24px;}
+    .trust-item strong{font-size:11.5px;}
+    .trust-item span{font-size:10px;}
+  }
+
   @media (pointer: coarse){
     .custom-marker{position:relative;}
     .custom-marker::after{content:'';position:absolute;inset:-11px;border-radius:50%;}
