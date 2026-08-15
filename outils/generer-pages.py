@@ -714,7 +714,10 @@ def guides_lies(b, lang="fr"):
         if not g:
             continue
         titre = g.get("titre_seo_en" if en else "titre_seo") or (g["titre_en"] if en else g["titre"])
-        chemin = f"../guides/en/{s}.html" if en else f"../guides/{s}.html"
+        # Les fiches anglaises vivent dans bien/en/, un niveau plus bas que les
+        # françaises : « ../guides/ » y désignait bien/guides/, qui n'existe
+        # pas. Les 18 fiches anglaises pointaient donc toutes dans le vide.
+        chemin = f"../../guides/en/{s}.html" if en else f"../guides/{s}.html"
         sortie.append((chemin, titre))
     return sortie
 
@@ -772,16 +775,20 @@ def donnees_structurees(b, photos, url, publiee, lang="fr"):
     # Les trois échelons reprennent mot pour mot ceux du <nav class="fil"> :
     # une piste de navigation déclarée qui ne correspond pas à celle qu'on voit
     # est une erreur signalée par Google, et à juste titre.
-    # L'échelon du milieu — le type de bien — n'a pas encore de page à lui.
-    # Il restera sans adresse tant que les pages « terrains à vendre à Thiès »
-    # n'existent pas ; le jour où elles seront générées, c'est ici qu'elles se
-    # brancheront. Le dernier échelon pointe la fiche elle-même, ce qui évite
-    # de laisser deux maillons sans destination.
+    # L'échelon du milieu pointe la page de destination correspondante quand
+    # elle existe — « Terrains à vendre au Sénégal ». Il restait muet tant
+    # qu'aucune page ne pouvait l'accueillir ; c'est désormais un vrai chemin,
+    # de la catégorie vers la fiche, que Google peut suivre dans les deux sens.
     racine = f"{SITE}/bien/en/" if lang == "en" else f"{SITE}/bien/"
+    dest = DESTINATIONS.get((b["type"], b["operation"], lang))
+    milieu = {"@type": "ListItem", "position": 2, "name": tr(b["type"], lang)}
+    if dest:
+        milieu["name"] = dest["titre"]
+        milieu["item"] = racine + dest["nom"]
     fil = [
         {"@type": "ListItem", "position": 1,
          "name": tr("Tous les biens", lang), "item": racine},
-        {"@type": "ListItem", "position": 2, "name": tr(b["type"], lang)},
+        milieu,
         {"@type": "ListItem", "position": 3,
          "name": lieu_court(b["commune"]), "item": url},
     ]
@@ -1056,7 +1063,7 @@ def page_bien(b, photos, voisins=(), publiee=None, lang="fr"):
 
 <main>
   <nav class="fil" aria-label="{tr("Fil d'Ariane", lang)}">
-    <a href="./">{tr("Tous les biens", lang)}</a> › {esc(tr(b["type"], lang))} › {esc(lieu_court(b["commune"]))}
+    <a href="./">{tr("Tous les biens", lang)}</a> › {(lambda d: f'<a href="{esc(d["nom"])}">{esc(d["titre"])}</a>' if d else esc(tr(b["type"], lang)))(DESTINATIONS.get((b["type"], b["operation"], lang)))} › {esc(lieu_court(b["commune"]))}
   </nav>
 
   <h1>{esc(titre)}</h1>
@@ -1212,6 +1219,294 @@ def page_bien(b, photos, voisins=(), publiee=None, lang="fr"):
 '''
 
 
+# Nombre minimal de biens pour qu'une page de destination existe. En dessous,
+# la page listerait un ou deux biens et ferait doublon avec leurs propres
+# fiches : Google y verrait du contenu pauvre, et le visiteur une impasse.
+# Le seuil est le seul réglage à toucher quand le portefeuille grandit.
+SEUIL_DESTINATION = 3
+
+# Pages de destination réellement écrites lors de ce passage, par (type,
+# opération) et par langue. Le fil d'Ariane des fiches s'en sert pour donner
+# une adresse à son échelon du milieu — celui qui restait muet faute de page
+# à désigner. Rempli par main() avant l'écriture des fiches : une page ne peut
+# pointer que vers ce qui existera vraiment.
+DESTINATIONS = {}
+
+# Pluriels des types, pour des titres qui se lisent : « Terrains à vendre »
+# et non « Terrain à vendre » sur une page qui en liste six.
+# « Land » est invariable : la page de catégorie « Land for sale in Dakar »
+# portait donc exactement le titre d'une fiche située à Dakar, et les deux
+# pages se disputaient la même requête. « Plots of land » les sépare, et dit
+# au passage qu'on arrive sur une liste et non sur une annonce.
+PLURIELS = {
+    "Terrain": ("Terrains", "Plots of land"),
+    "Maison": ("Maisons", "Houses"),
+    "Appartement": ("Appartements", "Apartments"),
+    "Studio": ("Studios", "Studios"),
+    "Champ agricole": ("Champs agricoles", "Farmland"),
+}
+
+
+def combinaisons_destination(biens):
+    """Les pages de destination que le catalogue peut réellement soutenir.
+
+    On cherche les regroupements que les gens tapent — « terrains à vendre à
+    Dakar » — et non toutes les combinaisons possibles : avec dix-huit biens,
+    croiser type, opération, région et commune produirait une trentaine de
+    pages dont la plupart n'en listeraient qu'un seul.
+
+    Deux garde-fous. Le seuil écarte les regroupements trop maigres. Et une
+    page régionale n'est créée que si elle découpe un sous-ensemble STRICTEMENT
+    plus petit que la page générale : si tous les champs agricoles à vendre se
+    trouvent à Thiès, « champs agricoles à vendre » et « champs agricoles à
+    vendre à Thiès » listeraient les mêmes biens — deux pages, un seul contenu.
+    """
+    dispo = [b for b in biens if b.get("type") and b.get("operation")]
+    specs = []
+
+    par_type_op = {}
+    for b in dispo:
+        par_type_op.setdefault((b["type"], b["operation"]), []).append(b)
+
+    for (type_, op), lot in sorted(par_type_op.items()):
+        if len(lot) < SEUIL_DESTINATION:
+            continue
+        specs.append({"type": type_, "operation": op, "region": None, "biens": lot})
+
+        # Découpage régional, seulement s'il apporte une page différente.
+        par_region = {}
+        for b in lot:
+            par_region.setdefault(lieu_court(b["region"]), []).append(b)
+        for region, sous_lot in sorted(par_region.items()):
+            if len(sous_lot) >= SEUIL_DESTINATION and len(sous_lot) < len(lot):
+                specs.append({"type": type_, "operation": op,
+                              "region": region, "biens": sous_lot})
+    return specs
+
+
+def libelle_destination(spec, lang="fr"):
+    """Titre lisible d'une page de destination, et son adresse."""
+    en = lang == "en"
+    pluriel = PLURIELS.get(spec["type"], (spec["type"], spec["type"]))[1 if en else 0]
+    if en:
+        action = "for sale" if spec["operation"] == "Vente" else "for rent"
+        titre = f"{pluriel} {action}"
+        if spec["region"]:
+            titre += f" in {spec['region']}"
+        else:
+            titre += " in Senegal"
+    else:
+        action = "à vendre" if spec["operation"] == "Vente" else "à louer"
+        titre = f"{pluriel} {action}"
+        titre += f" à {spec['region']}" if spec["region"] else " au Sénégal"
+    morceaux = [slug(pluriel), "a-vendre" if spec["operation"] == "Vente" else "a-louer"]
+    if en:
+        morceaux = [slug(pluriel), "for-sale" if spec["operation"] == "Vente" else "for-rent"]
+    morceaux.append(slug(spec["region"]) if spec["region"] else ("senegal"))
+    return titre, "-".join(morceaux) + ".html"
+
+
+def intro_destination(spec, lang="fr"):
+    """Le paragraphe d'ouverture d'une page de destination.
+
+    Composé des seules données du lot : combien de biens, dans quelle
+    fourchette de prix, sur quelles superficies, dans quelles communes. Une
+    page de catégorie qui n'aligne que des vignettes ne dit rien à un moteur —
+    et pas grand-chose à un visiteur qui hésite encore.
+    """
+    en = lang == "en"
+    lot = spec["biens"]
+    prix = sorted(float(b["price"]) for b in lot if b.get("price"))
+    communes = []
+    for b in lot:
+        c = lieu_court(b["commune"])
+        if c not in communes:
+            communes.append(c)
+    pluriel = PLURIELS.get(spec["type"], (spec["type"],) * 2)[1 if en else 0].lower()
+    action = ("for sale" if spec["operation"] == "Vente" else "to rent") if en else \
+             ("à vendre" if spec["operation"] == "Vente" else "à louer")
+    zone = spec["region"] or ("Senegal" if en else "Sénégal")
+
+    p = (f"{len(lot)} {pluriel} {action} in {zone}." if en
+         else f"{len(lot)} {pluriel} {action} à {zone}." if spec["region"]
+         else f"{len(lot)} {pluriel} {action} au Sénégal.")
+    if prix:
+        suffixe = ("/mo" if en else "/mois") if spec["operation"] == "Location" else ""
+        if prix[0] == prix[-1]:
+            p += (f" Priced at {fcfa(prix[0])}{suffixe}." if en
+                  else f" Au prix de {fcfa(prix[0])}{suffixe}.")
+        else:
+            p += (f" Prices range from {fcfa(prix[0])}{suffixe} to {fcfa(prix[-1])}{suffixe}."
+                  if en else
+                  f" Les prix vont de {fcfa(prix[0])}{suffixe} à {fcfa(prix[-1])}{suffixe}.")
+    if communes:
+        liste = ", ".join(communes[:6])
+        p += (f" Available in {liste}." if en else f" Disponibles à {liste}.")
+    p += (" Every listing shows the size, the price and the reference; visits are by appointment."
+          if en else
+          " Chaque fiche indique la superficie, le prix et la référence ; les visites se font sur rendez-vous.")
+    return p
+
+
+def page_destination(spec, toutes_specs, par_bien, lang="fr"):
+    """Une page listant les biens d'un regroupement — « terrains à vendre à
+    Dakar ». C'est le chaînon qui manquait entre l'index général et les fiches.
+
+    Personne ne tape « bien immobilier » : on tape un type, une opération et un
+    lieu. Le site n'avait aucune page fixe pour ces requêtes — la vitrine sait
+    filtrer, mais son filtre vit en JavaScript et ne laisse aucune adresse
+    derrière lui. Ces pages donnent une adresse à chaque intention.
+    """
+    en = lang == "en"
+    prefixe = "../.." if en else ".."
+    dossier = "bien/en" if en else "bien"
+    titre, nom = libelle_destination(spec, lang)
+    _, nom_fr = libelle_destination(spec, "fr")
+    _, nom_en = libelle_destination(spec, "en")
+    url = f"{SITE}/{dossier}/{nom}"
+    url_fr = f"{SITE}/bien/{nom_fr}"
+    url_en = f"{SITE}/bien/en/{nom_en}"
+    intro = intro_destination(spec, lang)
+    desc = couper_proprement(intro, LIMITE_DESCRIPTION)
+
+    lot = sorted(spec["biens"], key=lambda b: (not par_bien.get(b["id"]),
+                                               lieu_court(b["commune"])))
+    cartes = "".join(vignette(b, par_bien.get(b["id"], []), lang) for b in lot)
+
+    # Les autres pages de destination, pour que celles-ci se relient entre
+    # elles plutôt que de dépendre toutes du seul index.
+    voisines = []
+    for autre in toutes_specs:
+        if autre is spec:
+            continue
+        t, n = libelle_destination(autre, lang)
+        voisines.append((n, t))
+
+    ld = json.dumps({
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "CollectionPage",
+                "name": titre,
+                "description": desc,
+                "url": url,
+                "inLanguage": "en" if en else "fr",
+                "isPartOf": {"@type": "WebSite", "name": AGENCE, "url": f"{SITE}/{ACCUEIL}"},
+            },
+            {
+                "@type": "ItemList",
+                "numberOfItems": len(lot),
+                "itemListElement": [
+                    {"@type": "ListItem", "position": i + 1,
+                     "url": url_fiche(b, lang), "name": titre_bien(b, lang)}
+                    for i, b in enumerate(lot)
+                ],
+            },
+            {
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    {"@type": "ListItem", "position": 1,
+                     "name": tr("Tous les biens", lang),
+                     "item": f"{SITE}/{dossier}/"},
+                    {"@type": "ListItem", "position": 2, "name": titre, "item": url},
+                ],
+            },
+        ],
+    }, ensure_ascii=False, indent=2)
+
+    return nom, f'''<!DOCTYPE html>
+<html lang="{'en' if en else 'fr'}">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{esc(titre)} | {AGENCE}</title>
+<meta name="description" content="{esc(desc)}" />
+<link rel="canonical" href="{url}" />
+<link rel="alternate" hreflang="fr" href="{url_fr}" />
+<link rel="alternate" hreflang="en" href="{url_en}" />
+<link rel="alternate" hreflang="x-default" href="{url_fr}" />
+{f'<meta name="google-site-verification" content="{GOOGLE_VERIFICATION}" />' if GOOGLE_VERIFICATION else ''}
+{'<meta name="robots" content="noindex, follow" />' if EN_MAINTENANCE else '<meta name="robots" content="index, follow, max-image-preview:large" />'}
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="{AGENCE}" />
+<meta property="og:locale" content="{'en_GB' if en else 'fr_FR'}" />
+<meta property="og:title" content="{esc(titre)}" />
+<meta property="og:description" content="{esc(desc)}" />
+<meta property="og:url" content="{url}" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{prefixe}/commun.css" />
+<style>
+  body{{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}}
+  .bandeau{{position:sticky;top:0;z-index:50;background:var(--night);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;}}
+  .bandeau .lang{{color:rgba(255,255,255,.75);font-size:12.5px;font-weight:700;letter-spacing:.04em;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:4px 11px;}}
+  .bandeau .lang:hover{{color:var(--gold);border-color:var(--gold);}}
+  .bandeau a{{color:#fff;text-decoration:none;font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;}}
+  .bandeau a span{{color:var(--accent);}}
+  .bandeau-gauche{{display:flex;align-items:center;gap:10px;}}
+  .bandeau a.accueil{{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex:none;border:1px solid rgba(255,255,255,.28);border-radius:9px;}}
+  .bandeau a.accueil:hover{{border-color:var(--gold);color:var(--gold);}}
+  main{{max-width:960px;margin:0 auto;padding:26px 20px 60px;}}
+  .fil{{font-size:12.5px;color:var(--ink-soft);margin:0 0 14px;}}
+  .fil a{{color:var(--ink-soft);}}
+  h1{{font-family:'Manrope',sans-serif;font-size:clamp(24px,4.5vw,32px);font-weight:800;letter-spacing:-0.02em;margin:0 0 10px;}}
+  .intro{{color:var(--ink-soft);font-size:15px;line-height:1.65;margin:0 0 8px;max-width:62ch;}}
+  h2{{font-family:'Manrope',sans-serif;font-size:17px;font-weight:800;margin:32px 0 14px;}}
+{STYLE_VIGNETTES}
+  .autres{{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px;}}
+  .autres a{{display:inline-block;padding:9px 14px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--night);text-decoration:none;font-weight:600;font-size:13px;}}
+  .autres a:hover{{border-color:var(--accent);color:var(--accent-dark);}}
+  .retour{{display:inline-block;margin-top:30px;font-size:14px;font-weight:700;color:var(--gold);}}
+  footer{{background:var(--night);color:rgba(255,255,255,.5);font-size:12.5px;text-align:center;padding:26px 20px;line-height:1.9;}}
+  footer a{{color:rgba(255,255,255,.72);text-decoration:none;font-weight:600;}}
+  footer a:hover{{color:var(--gold);}}
+  footer .reg{{font-size:11.5px;}}
+</style>
+<script type="application/ld+json">
+{ld}
+</script>
+</head>
+<body>
+<header class="bandeau">
+  <div class="bandeau-gauche">
+    <a class="accueil" href="{prefixe}/{ACCUEIL}" aria-label="{tr("Revenir à l'accueil", lang)}" title="{tr('Accueil', lang)}">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+    </a>
+    <a href="{prefixe}/{ACCUEIL}">PAB <span>Immo</span></a>
+  </div>
+  <a class="lang" href="{'../' + nom_fr if en else 'en/' + nom_en}" hreflang="{'fr' if en else 'en'}" lang="{'fr' if en else 'en'}">{'Français' if en else 'English'}</a>
+</header>
+
+<main>
+  <nav class="fil" aria-label="{tr("Fil d'Ariane", lang)}">
+    <a href="./">{tr("Tous les biens", lang)}</a> › {esc(titre)}
+  </nav>
+  <h1>{esc(titre)}</h1>
+  <p class="intro">{esc(intro)}</p>
+
+  <h2>{'Available now' if en else 'Disponibles actuellement'} — {len(lot)} {('propert' + ('ies' if len(lot) > 1 else 'y')) if en else ('bien' + ('s' if len(lot) > 1 else ''))}</h2>
+  <div class="voisins">{cartes}
+  </div>
+
+  {f'''<h2>{'Other searches' if en else 'Autres recherches'}</h2>
+  <ul class="autres">
+    {"".join(f'<li><a href="{esc(n)}">{esc(t)}</a></li>' for n, t in voisines)}
+  </ul>''' if voisines else ''}
+
+  <a class="retour" href="./">{'← All our properties' if en else '← Tous nos biens'}</a>
+</main>
+
+<footer>
+  {AGENCE} — {TEL_AFFICHE} · {EMAIL} · {tr("7j/7, 24h/24", lang)} · {tr("visites sur rendez-vous", lang)}<br>
+  <a href="{prefixe}/mentions-legales.html">{tr("Mentions légales", lang)}</a> · <a href="{prefixe}/confidentialite.html">{tr("Politique de confidentialité", lang)}</a><br>
+  <span class="reg">© {date.today().year} {AGENCE} · NINEA {NINEA} · RCCM {RCCM}</span>
+</footer>
+</body>
+</html>
+'''
+
+
 def page_index(biens, par_bien, lang="fr"):
     """Page d'index statique de toutes les fiches.
 
@@ -1300,6 +1595,20 @@ def page_index(biens, par_bien, lang="fr"):
     desc = couper_proprement(desc, LIMITE_DESCRIPTION)
     url = f"{SITE}/{dossier}/"
 
+    # Raccourcis vers les pages de destination. Sans eux, ces pages ne seraient
+    # atteignables que par le sitemap : Google les découvrirait, mais rien ne
+    # dirait qu'elles comptent, et aucun visiteur ne tomberait dessus.
+    raccourcis = combinaisons_destination(biens)
+    liens_destinations = ""
+    if raccourcis:
+        elements = "".join(
+            f'<li><a href="{esc(libelle_destination(s, lang)[1])}">'
+            f'{esc(libelle_destination(s, lang)[0])}</a></li>'
+            for s in raccourcis)
+        liens_destinations = (
+            f'\n  <h2>{"Browse by category" if lang == "en" else "Parcourir par catégorie"}</h2>'
+            f'\n  <ul class="autres">{elements}</ul>\n')
+
     sections = ""
     intitules = ((("Vente", "For sale"), ("Location", "For rent")) if lang == "en"
                  else (("Vente", "À vendre"), ("Location", "À louer")))
@@ -1360,6 +1669,9 @@ def page_index(biens, par_bien, lang="fr"):
   .intro{{color:var(--ink-soft);font-size:15px;line-height:1.65;margin:0 0 8px;max-width:60ch;}}
   h2{{font-family:'Manrope',sans-serif;font-size:17px;font-weight:800;margin:32px 0 14px;}}
 {STYLE_VIGNETTES}
+  .autres{{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px;}}
+  .autres a{{display:inline-block;padding:9px 14px;border:1px solid var(--border);border-radius:999px;background:var(--surface);color:var(--night);text-decoration:none;font-weight:600;font-size:13px;}}
+  .autres a:hover{{border-color:var(--accent);color:var(--accent-dark);}}
   .retour{{display:inline-block;margin-top:30px;font-size:14px;font-weight:700;color:var(--gold);}}
   footer{{background:var(--night);color:rgba(255,255,255,.5);font-size:12.5px;text-align:center;padding:26px 20px;line-height:1.9;}}
   footer a{{color:rgba(255,255,255,.72);text-decoration:none;font-weight:600;}}
@@ -1391,6 +1703,7 @@ def page_index(biens, par_bien, lang="fr"):
   <p class="intro">
     {f"{len(biens)} properties available: land, houses, apartments and farmland, for sale or rent across the Dakar and Thiès regions. Every listing shows the price, the size and photos of the property." if lang == 'en' else f"{len(biens)} biens disponibles : terrains, maisons, appartements et champs agricoles, à vendre ou à louer dans les régions de Dakar et de Thiès. Chaque fiche indique le prix, la superficie et les photos du bien."}
   </p>
+{liens_destinations}
 {sections}
   <a class="retour" href="{prefixe}/{ACCUEIL}">{'← Search on the map' if lang == 'en' else '← Rechercher sur la carte'}</a>
 </main>
@@ -3107,6 +3420,19 @@ def main():
 
     etat, catalogue_modifie = dates_des_fiches(biens, par_bien)
 
+    # Les regroupements sont décidés AVANT d'écrire les fiches : celles-ci
+    # renvoient vers leur page de catégorie, et on ne peut pas pointer vers une
+    # page dont on ignore encore si elle atteindra le seuil.
+    specs = combinaisons_destination(biens)
+    DESTINATIONS.clear()
+    for spec in specs:
+        if spec["region"]:
+            continue          # le fil d'Ariane vise la catégorie, pas la région
+        for lang in ("fr", "en"):
+            titre_d, nom_d = libelle_destination(spec, lang)
+            DESTINATIONS[(spec["type"], spec["operation"], lang)] = {
+                "titre": titre_d, "nom": nom_d}
+
     urls = []
     manifeste = {}
     for b in biens:
@@ -3142,6 +3468,27 @@ def main():
     with open(os.path.join(DOSSIER_EN, "index.html"), "w", encoding="utf-8") as f:
         f.write(page_index(biens, par_bien, "en"))
     print("  bien/index.html + bien/en/index.html : pages d'index statiques")
+
+    # --- Pages de destination -------------------------------------------------
+    # « Terrains à vendre à Dakar » : les regroupements que les gens tapent, et
+    # auxquels le site n'opposait jusqu'ici qu'un filtre en JavaScript, sans
+    # adresse propre. Elles s'écrivent dans bien/ comme les fiches, et sont
+    # nettoyées avec elles au passage suivant : une catégorie qui tombe sous le
+    # seuil ne doit pas laisser de page derrière elle.
+    for spec in specs:
+        for lang, dossier in (("fr", DOSSIER), ("en", DOSSIER_EN)):
+            nom, html = page_destination(spec, specs, par_bien, lang)
+            with open(os.path.join(dossier, nom), "w", encoding="utf-8") as f:
+                f.write(html)
+            urls.append((f"{SITE}/{'bien/en' if lang == 'en' else 'bien'}/{nom}",
+                         date.today().isoformat()))
+    if specs:
+        apercu = ", ".join(libelle_destination(s, "fr")[0] for s in specs[:3])
+        print(f"  {len(specs) * 2} page(s) de destination (fr + en) : {apercu}"
+              + (" …" if len(specs) > 3 else ""))
+    else:
+        print(f"  aucune page de destination : aucun regroupement n'atteint "
+              f"{SEUIL_DESTINATION} biens")
 
     # --- guides/ --------------------------------------------------------------
     # Contenu de fond, indépendant des biens : ne dépend d'aucune donnée de la
