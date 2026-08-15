@@ -85,6 +85,9 @@ TRADUCTIONS_PAR_PASSAGE = 8
 EN = {
     # Navigation
     "Revenir à l'accueil": "Back to home", "Accueil": "Home",
+    # Formulaire de contact
+    "Merci d’indiquer un téléphone valide (au moins 9 chiffres) ou une adresse email.":
+        "Please enter a valid phone number (at least 9 digits) or an email address.",
     # Types de biens et opérations
     "Terrain": "Land", "Maison": "House", "Appartement": "Apartment",
     "Studio": "Studio", "Champ agricole": "Farmland",
@@ -1178,6 +1181,25 @@ def page_bien(b, photos, voisins=(), publiee=None, lang="fr"):
     if(!name || !contact || !message){{
       msgEl.className = 'cf-msg err';
       msgEl.textContent = '{tr("Merci de remplir tous les champs.", lang)}';
+      return;
+    }}
+    // Ce formulaire est une seconde implémentation de celui de la vitrine : il
+    // écrit en REST brut, sans le client Supabase. Le contrôle du contact
+    // n'avait donc pas suivi, et « abc » partait sans broncher — une piste
+    // injoignable, sur le chemin le plus emprunté puisque c'est ici
+    // qu'atterrissent les visiteurs venus d'un moteur de recherche.
+    //
+    // Le contrôle reste large, comme sur la vitrine : un numéro sénégalais
+    // s'écrit de dix façons, et refuser une forme valide serait pire que le
+    // mal. On exige au moins neuf chiffres, ce qu'aucune saisie fantaisiste
+    // n'atteint par hasard, ou une adresse correctement formée.
+    var contactOk = contact.indexOf('@') >= 0
+      ? /^[^\\s@]+@[^\\s@]+\\.[^\\s@]{{2,}}$/.test(contact)
+      : (contact.match(/\\d/g) || []).length >= 9;
+    if(!contactOk){{
+      msgEl.className = 'cf-msg err';
+      msgEl.textContent = '{tr("Merci d’indiquer un téléphone valide (au moins 9 chiffres) ou une adresse email.", lang)}';
+      document.getElementById('cf_contact').focus();
       return;
     }}
     btn.disabled = true;
