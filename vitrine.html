@@ -194,7 +194,13 @@
        et le logo devient illisible. --entete-h est mesurée en JS, car la
        hauteur de la barre change avec la largeur d'écran. */
     margin-top:calc(-1 * var(--entete-h, 67px));
-    padding:calc(var(--entete-h, 67px) + clamp(48px,7vw,84px)) 22px clamp(96px,11vw,132px);
+    /* La marge se réglait sur la largeur seule. Sur un portable large mais peu
+       haut — 1290x800, le cas courant — elle atteignait 285 px, et repoussait
+       les tuiles de catégories sous la ligne de flottaison : on arrivait sur un
+       slogan, sans un seul bien ni la moindre porte d'entrée visible. En tenant
+       compte aussi de la hauteur, le héros garde son ampleur sur grand écran et
+       se resserre là où la place manque. */
+    padding:calc(var(--entete-h, 67px) + clamp(40px, min(6.5vw, 7.5vh), 76px)) 22px clamp(72px, min(10vw, 11vh), 112px);
     position:relative;overflow:hidden;}
   .hero-bg{position:absolute;inset:-3%;z-index:0;
     background:url('assets/dakar-panorama.jpg') center 45% / cover no-repeat;
@@ -471,7 +477,24 @@
   .trust-ico.vieux{background:var(--surface-alt);color:var(--ink-soft);}
 
   .empty{background:var(--surface);border-radius:var(--radius-lg);padding:56px 24px;text-align:center;box-shadow:var(--shadow);border:1px solid var(--border);position:relative;animation:fadeInUp .35s var(--ease);}
-  .empty h3{color:var(--ink);}
+  /* Avertissement affiché quand un lien partagé pointe vers un bien retiré. */
+  .avis-retire{
+    display:flex; align-items:flex-start; gap:12px;
+    background:#FFF7E6; border:1px solid #F0C97A; border-left:4px solid var(--accent);
+    border-radius:var(--radius); padding:14px 16px; margin:0 0 16px;
+    animation:fadeInUp .35s var(--ease);
+    scroll-margin-top:calc(var(--h-entete) + 12px);
+  }
+  .avis-retire strong{display:block; color:#5A3E05; font-size:14px; margin-bottom:3px;}
+  .avis-retire p{margin:0; color:#7A5B14; font-size:12.5px; line-height:1.5;}
+  .avis-retire-fermer{
+    margin-left:auto; flex:none; width:32px; height:32px; border-radius:8px;
+    border:none; background:transparent; color:#7A5B14; font-size:20px; line-height:1; cursor:pointer;
+  }
+  .avis-retire-fermer:hover{background:rgba(122,91,20,0.12);}
+  .empty h3{color:var(--ink);margin:0 0 6px;font-size:15px;}
+  .empty p{margin:0 0 16px;color:var(--ink-soft);font-size:12.5px;}
+  .empty .btn{display:inline-flex;}
 
   /* Pagination de la liste — n'apparaît qu'au-delà d'une page. */
   .list-pager{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow);}
@@ -713,7 +736,12 @@
   .adv-radius-chips.hidden{display:none;}
   .adv-radius-chips .chip{padding:8px 15px;font-size:12.5px;}
   .adv-radius-chips .chip.active{background:var(--primary);color:#fff;border-color:var(--primary);}
-  .adv-search-footer{background:var(--surface);border:1px solid var(--border);border-top:none;padding:16px 20px;display:flex;gap:10px;flex-wrap:wrap;}
+  /* Le panneau dépasse le bas de l'écran : sur un portable de 800 px de haut,
+     « Rechercher » se trouvait 218 px sous la ligne de flottaison. On remplissait
+     donc ses critères sans jamais voir le bouton qui mène aux résultats. Collée
+     en bas, la barre reste sous la main du premier au dernier champ. */
+  .adv-search-footer{background:var(--surface);border:1px solid var(--border);border-top:none;padding:16px 20px;display:flex;gap:10px;flex-wrap:wrap;
+    position:sticky;bottom:0;z-index:5;box-shadow:0 -8px 20px -12px rgba(15,23,42,0.28);}
   .adv-search-footer .btn{padding:10px 18px;font-size:12.5px;}
   .saved-searches{background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius-lg) var(--radius-lg);padding:0 20px;}
   .saved-searches:empty{display:none;}
@@ -841,13 +869,17 @@
      dans le même registre que ses bulles vitrées au-dessus de la photo —
      sur bureau comme sur téléphone, plutôt que deux façons différentes de
      faire la même chose selon la largeur d'écran. */
+  /* Une icône seule ne se lit pas : la maison peut aussi bien dire « accueil »
+     que « biens » ou « immobilier ». Le mot l'accompagne dès qu'il y a la place,
+     et le bouton reprend sa forme ronde sur téléphone, où l'espace manque. */
   .btn-icon-header{
-    display:flex;align-items:center;justify-content:center;flex-shrink:0;
-    width:44px;height:44px;border-radius:50%;position:relative;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;gap:7px;
+    min-width:44px;height:44px;border-radius:999px;position:relative;padding:0 14px;
     background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.24);
-    color:#fff;cursor:pointer;padding:0;
+    color:#fff;cursor:pointer;
     transition:background-color .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease);
   }
+  .btn-icon-header .btn-label{font-size:13px;font-weight:700;letter-spacing:.01em;}
   .btn-icon-header:hover{background:rgba(255,255,255,0.26);}
   .lang-btn{font-family:'Manrope',sans-serif;font-size:12.5px;font-weight:800;letter-spacing:.02em;}
   .btn-icon-header.active{background:var(--accent);border-color:var(--accent);color:var(--primary);}
@@ -894,6 +926,9 @@
     .brand p{display:none;}
     .brand h1{font-size:15px;}
     .btn-label{display:none;}
+    /* Sans son mot, le bouton redevient le rond de 44 px : une pilule vide
+       autour d'une seule icône aurait l'air d'un bouton cassé. */
+    .btn-icon-header{width:44px;padding:0;border-radius:50%;}
     .btn-whatsapp{padding:11px 14px;}
     /* Sur téléphone, l'enjeu est d'amener les annonces au-dessus de la
        ligne de flottaison : le hero et la barre de filtres sont
@@ -1179,6 +1214,7 @@
          c'en est un, et ils y voisinent les résultats qu'ils modifient. -->
     <button type="button" class="btn-icon-header" id="headerHomeBtn" aria-label="Revenir à l'accueil" title="Accueil">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+      <span class="btn-label">Accueil</span>
     </button>
     <!-- Bascule de langue : FR/EN uniquement pour l'instant (voir I18N).
          Persistée (voir definirLangue) pour ne pas revenir au français à
@@ -1339,7 +1375,7 @@
   <div class="adv-search-footer">
     <button type="button" class="btn btn-primary" id="advSearchGoBtn">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      Rechercher
+      <span id="advGoLabel">Rechercher</span>
     </button>
     <button type="button" class="btn btn-outline" id="saveSearchBtn">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
@@ -1889,6 +1925,8 @@ function definirLangue(lang){
   const listeAvis = document.getElementById('avisListe');
   if(listeAvis && listeAvis.children.length) renderAvisListe();
   majLibellesEtoiles();
+  // « Voir 18 biens » se compose aussi autour d'un chiffre.
+  majLibelleBoutonRechercher();
 
   // Même raison pour le tiroir de détail, resté ouvert pendant la bascule :
   // son contenu ne se traduisait qu'à la prochaine ouverture. Le lien « voir
@@ -2686,6 +2724,26 @@ function updateAdvBadge(){
   const badge = document.getElementById('advBadge');
   badge.style.display = n > 0 ? '' : 'none';
   badge.textContent = n;
+  majLibelleBoutonRechercher();
+}
+
+// Choisir un critère ne produisait aucun signe visible : la liste se met bien à
+// jour, mais mille pixels plus bas, et le panneau ne défile volontairement plus
+// pendant la saisie. Le compte porté par le bouton dit ce que le filtre a fait
+// sans quitter le panneau des yeux — et annonce ce qu'on trouvera en cliquant.
+function majLibelleBoutonRechercher(){
+  const libelle = document.getElementById('advGoLabel');
+  if(!libelle) return;
+  const n = filtered().length;
+  if(n === 0){
+    libelle.textContent = state.lang === 'en' ? 'No match' : 'Aucun résultat';
+  } else {
+    libelle.textContent = state.lang === 'en'
+      ? `View ${n} propert${n > 1 ? 'ies' : 'y'}`
+      : `Voir ${n} bien${n > 1 ? 's' : ''}`;
+  }
+  const btn = document.getElementById('advSearchGoBtn');
+  if(btn) btn.disabled = n === 0;
 }
 
 function updateSearchCircle(){
@@ -2920,7 +2978,12 @@ function initAdvancedSearch(){
       panneau.classList.add('hidden');
       document.getElementById('advSearchToggle').setAttribute('aria-expanded', 'false');
     }
-    requestAnimationFrame(defilerVersResultats);
+    // La parenthèse vide est indispensable : passer la fonction directement à
+    // requestAnimationFrame lui fait recevoir l'horodatage de l'animation comme
+    // premier argument, donc comme délai. Ce délai valait le temps écoulé depuis
+    // l'ouverture de la page — près de quatre minutes après quelques instants de
+    // navigation. Le bouton « Rechercher » ne faisait alors plus rien de visible.
+    requestAnimationFrame(() => defilerVersResultats(0));
   };
 
   document.getElementById('resetAdvSearchBtn').onclick = () => {
@@ -2966,9 +3029,31 @@ function renderList(){
                             : `${items.length} bien${items.length > 1 ? 's' : ''} correspond${items.length > 1 ? 'ent' : ''} aux critères.`);
   }
   if(items.length===0){
-    el.innerHTML = state.lang==='en'
-      ? `<div class="empty"><h3 style="margin:0 0 6px;font-size:15px;">No property matches</h3><p style="margin:0;color:var(--ink-soft);font-size:12.5px;">Try widening your search or changing a filter.</p></div>`
-      : `<div class="empty"><h3 style="margin:0 0 6px;font-size:15px;">Aucun bien ne correspond</h3><p style="margin:0;color:var(--ink-soft);font-size:12.5px;">Essayez d'élargir la recherche ou de changer de filtre.</p></div>`;
+    // Un cul-de-sac sans bouton : le message conseillait « élargissez votre
+    // recherche » sans donner de quoi le faire, et la liste vide se trouve à
+    // plus de mille pixels sous la barre de recherche. Sur téléphone, où le
+    // menu des catégories est masqué, il ne restait plus rien de cliquable à
+    // l'écran. On nomme donc ce qui filtre, et on offre le geste.
+    const criteresActifs = [];
+    if(state.search) criteresActifs.push(`« ${esc(state.search)} »`);
+    if(state.type !== 'Tous') criteresActifs.push(esc(t(state.type)));
+    if(state.op !== 'Tous') criteresActifs.push(esc(t(state.op)));
+    if(state.favOnly) criteresActifs.push(t('Mes favoris'));
+    const nbAvances = ADV_CRITERES.filter(c => state[c.cle]).length;
+    if(nbAvances) criteresActifs.push(state.lang==='en'
+      ? `${nbAvances} advanced filter${nbAvances>1?'s':''}`
+      : `${nbAvances} filtre${nbAvances>1?'s':''} avancé${nbAvances>1?'s':''}`);
+
+    const rappel = criteresActifs.length
+      ? (state.lang==='en' ? `Active right now: ${criteresActifs.join(' · ')}.`
+                           : `Filtres actifs : ${criteresActifs.join(' · ')}.`)
+      : '';
+    el.innerHTML = `<div class="empty">
+      <h3>${state.lang==='en' ? 'No property matches' : 'Aucun bien ne correspond'}</h3>
+      <p>${rappel || (state.lang==='en' ? 'Try widening your search.' : "Essayez d'élargir la recherche.")}</p>
+      <button type="button" class="btn btn-primary" id="videEffacerBtn">${state.lang==='en' ? 'View all properties' : 'Voir tous les biens'}</button>
+    </div>`;
+    document.getElementById('videEffacerBtn').onclick = () => reinitialiserRecherche({ remonterEnHaut: false });
     return;
   }
   // Découpage en pages. La borne est resserrée ici plutôt qu'au moment du
@@ -3300,7 +3385,7 @@ function openDrawer(p){
         <label class="sf-label" for="rdv_contact">${state.lang==='en'?'Phone or email':'Téléphone ou email'}</label>
         <input class="sf-input" id="rdv_contact" placeholder="${state.lang==='en'?'To confirm the appointment':'Pour vous confirmer le RDV'}"/>
         <div class="sf-row2">
-          <div><label class="sf-label" for="rdv_date">${state.lang==='en'?'Preferred date':'Date souhaitée'}</label><input class="sf-input" id="rdv_date" type="date" style="margin-bottom:0;"/></div>
+          <div><label class="sf-label" for="rdv_date">${state.lang==='en'?'Preferred date':'Date souhaitée'}</label><input class="sf-input" id="rdv_date" type="date" min="${dateDuJour()}" style="margin-bottom:0;"/></div>
           <div><label class="sf-label" for="rdv_time">${state.lang==='en'?'Time slot':'Créneau'}</label>
             <select class="sf-select" id="rdv_time" style="margin-bottom:0;">
               <option value="Matin">${state.lang==='en'?'Morning':'Matin'}</option>
@@ -3352,6 +3437,11 @@ function openDrawer(p){
     const message = document.getElementById('msg_text').value.trim();
     const errEl = document.getElementById('msgError');
     if(!name || !contact || !message){ errEl.textContent = state.lang==='en'?'Please fill in all fields.':'Merci de remplir tous les champs.'; return; }
+    if(!contactValide(contact)){
+      errEl.textContent = messageContactInvalide();
+      document.getElementById('msg_contact').focus();
+      return;
+    }
     errEl.textContent = '';
     const btn = document.getElementById('msgSubmitBtn');
     btn.disabled = true; btn.textContent = state.lang==='en'?'Sending…':'Envoi…';
@@ -3371,6 +3461,22 @@ function openDrawer(p){
     const message = document.getElementById('rdv_message').value.trim();
     const errEl = document.getElementById('rdvError');
     if(!name || !contact || !date){ errEl.textContent = state.lang==='en'?'Please fill in at least the name, contact and date.':'Merci de remplir au moins le nom, le contact et la date.'; return; }
+    if(!contactValide(contact)){
+      errEl.textContent = messageContactInvalide();
+      document.getElementById('rdv_contact').focus();
+      return;
+    }
+    // Le champ date n'avait aucune borne : on pouvait demander une visite au
+    // 1er janvier 2020. L'attribut min posé plus bas ferme la porte dans le
+    // sélecteur, mais une date reste saisissable au clavier — d'où ce second
+    // contrôle, le seul qui protège vraiment l'agenda de l'agence.
+    if(date < dateDuJour()){
+      errEl.textContent = state.lang==='en'
+        ? 'Please choose a date from today onwards.'
+        : "Merci de choisir une date à partir d'aujourd'hui.";
+      document.getElementById('rdv_date').focus();
+      return;
+    }
     errEl.textContent = '';
     const btn = document.getElementById('rdvSubmitBtn');
     btn.disabled = true; btn.textContent = state.lang==='en'?'Sending…':'Envoi…';
@@ -3624,6 +3730,36 @@ function messageErreurEnvoi(error, prefixe){
   return prefixe + ' ' + (error && error.message ? error.message : '');
 }
 
+// Le champ « téléphone ou email » n'acceptait aucun contrôle : « abc » passait,
+// le message partait, et « Message envoyé ! » s'affichait. La personne attendait
+// un rappel impossible, et l'agence recevait une piste injoignable — les deux
+// côtés y perdaient, sans que personne ne sache pourquoi.
+//
+// Le contrôle reste volontairement large. Un numéro sénégalais s'écrit de dix
+// façons — 77 849 41 11, +221778494111, 00221 77-849-41-11 — et refuser une
+// forme valide serait pire que le mal : on exige donc au moins neuf chiffres,
+// ce qu'aucune saisie fantaisiste n'atteint par hasard.
+function contactValide(v){
+  const t = (v || '').trim();
+  if(t.includes('@')) return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(t);
+  return (t.match(/\d/g) || []).length >= 9;
+}
+
+// Date du jour au format attendu par <input type="date">. On la lit sur
+// l'horloge locale plutôt qu'en UTC : à Dakar, toISOString() bascule au
+// lendemain dès minuit heure locale et interdirait alors le jour même.
+function dateDuJour(){
+  const d = new Date();
+  const deuxChiffres = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${deuxChiffres(d.getMonth() + 1)}-${deuxChiffres(d.getDate())}`;
+}
+
+function messageContactInvalide(){
+  return state.lang === 'en'
+    ? 'Please enter a valid phone number (at least 9 digits) or email address.'
+    : 'Merci d’indiquer un téléphone valide (au moins 9 chiffres) ou une adresse email.';
+}
+
 async function shareProperty(p){
   // On partage en priorité la fiche statique du bien : c'est la seule adresse
   // qui porte, dans son code source, les balises Open Graph de CE bien — sa
@@ -3673,11 +3809,51 @@ function openPropertyFromURL(){
   const ref = new URLSearchParams(window.location.search).get('bien');
   if(!ref) return;
   const p = PROPERTIES.find(x => x.ref === ref);
-  if(!p) return;
+  if(!p){
+    // Le bien a été vendu, loué ou retiré depuis que le lien a circulé. Sans
+    // un mot, on affichait le catalogue entier comme si de rien n'était : la
+    // personne qui vient de recevoir « regarde cette maison » sur WhatsApp
+    // croit alors s'être trompée de lien, ou que le site est cassé.
+    signalerBienIntrouvable(ref);
+    return;
+  }
   isRestoringFromURL = true;
   openDrawer(p);
   isRestoringFromURL = false;
   if(map && map.getSize().x > 0) map.setView([p.lat, p.lng], 13);
+}
+
+function signalerBienIntrouvable(ref){
+  const hote = document.getElementById('split');
+  if(!hote || document.getElementById('avisBienRetire')) return;
+  const bloc = document.createElement('div');
+  bloc.id = 'avisBienRetire';
+  bloc.className = 'avis-retire';
+  bloc.setAttribute('role', 'status');
+  bloc.innerHTML = `
+    <div>
+      <strong>${state.lang==='en' ? 'This property is no longer available' : "Ce bien n'est plus disponible"}</strong>
+      <p>${state.lang==='en'
+        ? `Reference ${esc(ref)} has been sold, rented or withdrawn. Here is everything available today.`
+        : `La référence ${esc(ref)} a été vendue, louée ou retirée. Voici tout ce qui est disponible aujourd'hui.`}</p>
+    </div>
+    <button type="button" class="avis-retire-fermer" aria-label="${state.lang==='en' ? 'Dismiss' : 'Fermer ce message'}">&times;</button>`;
+  hote.parentNode.insertBefore(bloc, hote);
+  bloc.querySelector('.avis-retire-fermer').onclick = () => {
+    bloc.remove();
+    // On nettoie aussi l'adresse : sans cela, un rechargement ou un partage
+    // de la page ferait réapparaître l'avertissement pour une référence morte.
+    const u = new URL(location.href);
+    u.searchParams.delete('bien');
+    history.replaceState({}, '', u);
+  };
+  // On vise l'avertissement lui-même, pas la liste : inséré juste au-dessus
+  // d'elle, il restait sinon hors de l'écran, et l'on retombait exactement sur
+  // le catalogue muet que ce message existe pour expliquer.
+  setTimeout(() => {
+    const doux = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    bloc.scrollIntoView({ behavior: doux ? 'smooth' : 'auto', block: 'start' });
+  }, 260);
 }
 
 window.addEventListener('popstate', () => {
@@ -3836,18 +4012,11 @@ function majBoutonFavoris(){
 
 document.getElementById('favFilterBtn').onclick = toggleFavOnly;
 
-// Accueil : remise à zéro complète plutôt qu'un simple retour en haut.
-// Quelqu'un qui clique « accueil » après s'être perdu dans les filtres veut
-// retrouver le site tel qu'il l'a trouvé, pas le haut d'une liste filtrée
-// qu'il ne comprend plus.
-document.getElementById('headerHomeBtn').onclick = () => {
-  // Depuis la fiche d'un bien, le comparateur ou la visionneuse, « accueil »
-  // doit d'abord refermer ce qu'on regarde : sans cela on remettait les
-  // filtres à zéro derrière un panneau qui, lui, restait ouvert.
-  if(!document.getElementById('galleryModal').classList.contains('hidden')) closePhotoGallery();
-  if(document.getElementById('compareDrawer').classList.contains('open')) closeCompareDrawer();
-  if(document.getElementById('drawer').classList.contains('open')) closeDrawer();
-
+// Remise à zéro de toute la recherche. Deux boutons y mènent — « accueil »
+// dans l'en-tête et « voir tous les biens » quand la liste est vide — et il
+// serait dangereux qu'ils divergent : oublier un critère dans l'un des deux
+// laisserait une liste toujours filtrée sous un bouton qui promet le contraire.
+function reinitialiserRecherche({ remonterEnHaut = true } = {}){
   const champ = document.getElementById('search');
   if(champ) champ.value = '';
   state.search = '';
@@ -3868,7 +4037,27 @@ document.getElementById('headerHomeBtn').onclick = () => {
   renderCategories();
   render();
   const douxAutorise = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  window.scrollTo({ top: 0, behavior: douxAutorise ? 'smooth' : 'auto' });
+  if(remonterEnHaut){
+    window.scrollTo({ top: 0, behavior: douxAutorise ? 'smooth' : 'auto' });
+  } else {
+    // Depuis la liste vide, remonter en haut ferait perdre le fil : on veut
+    // voir réapparaître les biens là où l'on regardait déjà.
+    defilerVersResultats(0);
+  }
+}
+
+// Accueil : remise à zéro complète plutôt qu'un simple retour en haut.
+// Quelqu'un qui clique « accueil » après s'être perdu dans les filtres veut
+// retrouver le site tel qu'il l'a trouvé, pas le haut d'une liste filtrée
+// qu'il ne comprend plus.
+document.getElementById('headerHomeBtn').onclick = () => {
+  // Depuis la fiche d'un bien, le comparateur ou la visionneuse, « accueil »
+  // doit d'abord refermer ce qu'on regarde : sans cela on remettait les
+  // filtres à zéro derrière un panneau qui, lui, restait ouvert.
+  if(!document.getElementById('galleryModal').classList.contains('hidden')) closePhotoGallery();
+  if(document.getElementById('compareDrawer').classList.contains('open')) closeCompareDrawer();
+  if(document.getElementById('drawer').classList.contains('open')) closeDrawer();
+  reinitialiserRecherche();
 };
 
 document.getElementById('langToggleBtn').onclick = () => definirLangue(state.lang === 'en' ? 'fr' : 'en');
