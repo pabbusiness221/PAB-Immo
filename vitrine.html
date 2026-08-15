@@ -1105,6 +1105,16 @@
   /* Utilitaire d'accessibilité : masque visuellement un libellé
      tout en le laissant lisible par les lecteurs d'écran. */
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+  /* Pastilles de regroupement de la carte. On remplace l'habillage par défaut
+     de la bibliothèque, dont les cercles vert clair jurent avec le bleu nuit
+     et l'or du site. Le contraste du chiffre sur le fond est de 12:1. */
+  .grappe{background:none;border:none;}
+  .grappe-pastille{
+    width:100%;height:100%;display:grid;place-items:center;border-radius:50%;
+    background:var(--primary);color:#fff;font-weight:800;font-size:13px;
+    border:2.5px solid #fff;box-shadow:0 3px 10px rgba(15,39,71,.45);
+  }
+  .leaflet-marker-icon.grappe:focus-visible .grappe-pastille{outline:3px solid var(--accent);outline-offset:2px;}
 
   /* ---------- Aperçu d'un bien au survol d'un marqueur ---------- */
   /* On neutralise l'habillage par défaut de l'infobulle Leaflet (fond blanc,
@@ -2428,6 +2438,54 @@ function openDrawerById(id){
   if(p){ openDrawer(p); highlightCard(p.id); if(map) map.closePopup(); }
 }
 
+// Nombre de marqueurs au-delà duquel on regroupe. En dessous, les épingles
+// individuelles restent plus lisibles et ne coûtent rien : mesuré à 16 ms pour
+// cent biens. C'est vers cinq cents que le temps devient sensible (119 ms).
+const SEUIL_REGROUPEMENT = 150;
+
+let groupeMarqueurs = null;
+let regroupementIndisponible = false;   // le CDN n'a pas répondu : on n'insiste pas
+let chargementRegroupement = null;      // promesse partagée, pour ne charger qu'une fois
+
+function regroupementDisponible(){
+  return typeof L !== 'undefined' && typeof L.markerClusterGroup === 'function';
+}
+
+// Chargement à la demande de Leaflet.markercluster, sur le modèle
+// d'ensureChartJs() du portefeuille. Les empreintes d'intégrité sont
+// obligatoires ici comme pour les autres scripts externes : un CDN compromis
+// ne doit pas pouvoir injecter du code dans la page.
+function chargerRegroupement(){
+  if(chargementRegroupement) return chargementRegroupement;
+  const BASE = 'https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/';
+  const FEUILLES = [
+    ['MarkerCluster.css',         'sha384-pmjIAcz2bAn0xukfxADbZIb3t8oRT9Sv0rvO+BR5Csr6Dhqq+nZs59P0pPKQJkEV'],
+    ['MarkerCluster.Default.css', 'sha384-wgw+aLYNQ7dlhK47ZPK7FRACiq7ROZwgFNg0m04avm4CaXS+Z9Y7nMu8yNjBKYC+']
+  ];
+  chargementRegroupement = new Promise(resolve => {
+    FEUILLES.forEach(([nom, empreinte]) => {
+      const lien = document.createElement('link');
+      lien.rel = 'stylesheet'; lien.href = BASE + nom;
+      lien.integrity = empreinte; lien.crossOrigin = 'anonymous';
+      document.head.appendChild(lien);
+    });
+    const s = document.createElement('script');
+    s.src = BASE + 'leaflet.markercluster.js';
+    s.integrity = 'sha384-eXVCORTRlv4FUUgS/xmOyr66XBVraen8ATNLMESp92FKXLAMiKkerixTiBvXriZr';
+    s.crossOrigin = 'anonymous'; s.async = true;
+    s.onload = () => resolve(regroupementDisponible());
+    s.onerror = () => {
+      // Le repli n'est pas une panne : sans la bibliothèque, on redessine des
+      // marqueurs individuels. La carte reste juste, seulement plus lente.
+      regroupementIndisponible = true;
+      console.warn('Regroupement des marqueurs indisponible : affichage individuel.');
+      resolve(false);
+    };
+    document.head.appendChild(s);
+  });
+  return chargementRegroupement;
+}
+
 // Vrai quand des marqueurs auraient dû être reconstruits pendant que la carte
 // était masquée : ils sont alors périmés, et il faut les refaire au moment où
 // la carte redevient visible.
@@ -2454,10 +2512,62 @@ function rebuildMarkers(list){
   // ne regarde. On note la dette et on la règle à l'affichage.
   if(!carteVisible()){ marqueursPerimes = true; return; }
 
+  // Au-delà du seuil, les marqueurs sont regroupés : au lieu de mille épingles
+  // superposées, quelques pastilles qui se déplient au zoom. La bibliothèque
+  // n'est chargée qu'à ce moment — inutile d'imposer trente-cinq kilo-octets à
+  // chaque visite pour un cas qui ne se présente qu'avec un gros portefeuille.
+  const regrouper = list.length > SEUIL_REGROUPEMENT;
+  if(regrouper && !regroupementDisponible() && !regroupementIndisponible){
+    marqueursPerimes = true;
+    chargerRegroupement().then(() => { if(carteVisible()) rebuildMarkers(filtered()); });
+    return;   // on ne dessine rien maintenant : ce serait le travail qu'on évite
+  }
+
+  if(groupeMarqueurs){ map.removeLayer(groupeMarqueurs); groupeMarqueurs = null; }
   Object.values(markers).forEach(m => map.removeLayer(m));
   markers = {};
+
+  // Les marqueurs vont dans le groupe quand il existe, sinon directement sur
+  // la carte. addTo() accepte les deux, le reste du code est inchangé.
+  const cible = (regrouper && regroupementDisponible())
+    ? (groupeMarqueurs = L.markerClusterGroup({
+        chunkedLoading: true,          // découpe la construction pour ne pas figer l'écran
+        showCoverageOnHover: false,
+        maxClusterRadius: 60,
+        // Les pastilles fournies par défaut n'affichent qu'un nombre nu. Elles
+        // sont pourtant focalisables au clavier : un lecteur d'écran annonçait
+        // « 47 », sans dire de quoi. axe ne le signale pas — la pastille est un
+        // div sans rôle déclaré — mais le défaut est réel. On garde donc le
+        // chiffre visible et on lui adjoint une phrase, lue mais non affichée.
+        iconCreateFunction: (cluster) => {
+          const n = cluster.getChildCount();
+          const taille = n < 10 ? 34 : n < 100 ? 40 : 46;
+          const phrase = state.lang === 'en'
+            ? `${n} properties in this area — zoom in to see them`
+            : `${n} biens dans ce secteur — agrandir pour les voir`;
+          return L.divIcon({
+            html: `<div class="grappe-pastille"><span aria-hidden="true">${n}</span>`
+                + `<span class="sr-only">${esc(phrase)}</span></div>`,
+            className: 'grappe',
+            iconSize: L.point(taille, taille)
+          });
+        }
+      }))
+    : map;
+
   list.forEach(p => {
-    const m = L.marker([p.lat,p.lng], { icon: markerIcon(p, p.id===state.selected) });
+    // Le nom passe par l'option title de Leaflet : avec le regroupement, un
+    // marqueur replié n'a aucun élément dans la page, et le lire après coup
+    // ne donnerait rien. Leaflet, lui, l'applique à chaque fois qu'il crée
+    // l'élément — y compris quand une pastille se déplie.
+    const nomAccessible = `${t(p.type)} — ${p.commune}, ${fcfa(p.price)}${p.operation==='Location' ? ' /'+t('mois') : ''}`;
+    const m = L.marker([p.lat,p.lng], { icon: markerIcon(p, p.id===state.selected), title: nomAccessible });
+    // Même raison pour aria-label, que Leaflet ne pose pas lui-même : on
+    // l'accroche à l'événement d'ajout, déclenché à chaque apparition.
+    m.on('add', () => {
+      const el = m.getElement();
+      if(el) el.setAttribute('aria-label', nomAccessible);
+    });
     if(IS_TOUCH){
       // Téléphone : le tap ouvre l'aperçu (popup), et l'aperçu ouvre la fiche.
       // Un tap ailleurs sur la carte le referme.
@@ -2475,18 +2585,10 @@ function rebuildMarkers(list){
                                             className:'map-prev-tip', sticky:false });
       m.on('click', () => openDrawerById(p.id));
     }
-    m.addTo(map);
-    // Leaflet rend chaque marqueur focusable avec role="button", mais ne lui
-    // donne aucun nom : au lecteur d'écran, la carte annonçait dix-huit fois
-    // « bouton », sans dire lequel. On lui donne ce que l'aperçu affiche déjà.
-    const el = m.getElement();
-    if(el){
-      const nom = `${t(p.type)} — ${p.commune}, ${fcfa(p.price)}${p.operation==='Location' ? ' /'+t('mois') : ''}`;
-      el.setAttribute('aria-label', nom);
-      el.title = nom;
-    }
+    m.addTo(cible);
     markers[p.id] = m;
   });
+  if(groupeMarqueurs) map.addLayer(groupeMarqueurs);
   marqueursPerimes = false;
 }
 
