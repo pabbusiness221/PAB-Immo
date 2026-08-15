@@ -688,6 +688,10 @@ function mapRow(r){
     archived_at: r.archived_at || null,
     owner_id: r.owner_id,
     created_at: r.created_at,
+    // Conservé pour le verrou optimiste de l'enregistrement : sans lui, la
+    // condition « la fiche n'a pas bougé » n'aurait rien à comparer et le
+    // garde-fou serait inerte.
+    updated_at: r.updated_at,
     verified_at: r.verified_at || null,
     availability_checked_at: r.availability_checked_at || null,
     sponsored_until: r.sponsored_until || null,
@@ -1926,8 +1930,25 @@ async function saveProperty(existing){
 
   let propertyId;
   if(existing){
-    const { data, error } = await db.from('properties').update(payload).eq('id', existing.id).select().single();
+    // Verrou optimiste. L'écriture ne portait aucune condition : si quelqu'un
+    // d'autre — ou soi-même dans un second onglet — avait modifié la fiche
+    // pendant qu'on remplissait le formulaire, on écrasait son travail sans
+    // que rien ne l'indique. On exige donc que la fiche n'ait pas bougé depuis
+    // son ouverture ; sinon la base ne renvoie aucune ligne, et l'on prévient
+    // au lieu d'effacer.
+    let requete = db.from('properties').update(payload).eq('id', existing.id);
+    if(existing.updated_at) requete = requete.eq('updated_at', existing.updated_at);
+    const { data, error } = await requete.select().maybeSingle();
     if(error){ errEl.textContent = "Échec de l'enregistrement : " + error.message; saveBtn.disabled=false; saveBtn.textContent='Enregistrer les modifications'; return; }
+    if(!data){
+      // Aucune ligne touchée : la fiche a changé entre-temps. On ne réessaie
+      // pas en force — ce serait exactement l'écrasement qu'on veut éviter.
+      errEl.textContent = "Cette fiche a été modifiée ailleurs pendant que vous la remplissiez. "
+        + "Rouvrez-la pour repartir de la version à jour — vos modifications n'ont pas été enregistrées.";
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Enregistrer les modifications';
+      return;
+    }
     propertyId = data.id;
   } else {
     const { data, error } = await db.from('properties').insert(payload).select().single();
@@ -2116,6 +2137,25 @@ function renderRdvItems(container, items){
       const id = e.target.closest('.inbox-item').dataset.id;
       const a = INBOX.appointments.find(x=>String(x.id)===id);
       const ancien = a ? a.status : null;
+
+      // Deux demandes sur le même créneau ne posent aucun problème : ce sont
+      // des souhaits, et c'est l'agence qui tranche. En CONFIRMER deux, en
+      // revanche, c'est se promettre à deux endroits à la fois. On prévient
+      // sans interdire — il arrive qu'on confirme sciemment deux visites
+      // rapprochées sur le même bien, et le logiciel n'a pas à en décider.
+      if(e.target.value === 'Confirmé' && a){
+        const collision = INBOX.appointments.find(x =>
+          String(x.id) !== id && x.status === 'Confirmé'
+          && x.preferred_date === a.preferred_date
+          && (x.preferred_time || '') === (a.preferred_time || ''));
+        if(collision){
+          const ou = collision.properties ? ` (${collision.properties.ref})` : '';
+          const suite = confirm(
+            `Un autre rendez-vous est déjà confirmé le ${fmtDateOnly(a.preferred_date)} `
+            + `au créneau « ${a.preferred_time || '—'} »${ou}.\n\nConfirmer celui-ci quand même ?`);
+          if(!suite){ sel.value = ancien; return; }
+        }
+      }
       // Le retour de la base n'était pas lu. Un refus — règle de sécurité,
       // réseau coupé — laissait l'écran afficher « Confirmé » alors que rien
       // n'était enregistré : le client n'était jamais confirmé, et personne ne
@@ -3712,7 +3752,39 @@ document.getElementById('logoutBtn').onclick = async () => {
   location.reload();
 };
 
-checkAuth();
+// ---- Expiration de session après inactivité ----
+//
+// Par défaut, Supabase garde la session dans le navigateur et la renouvelle
+// indéfiniment : une fois connecté, on le reste, même après avoir fermé
+// l'onglet. Pratique au quotidien, mais ce panneau donne accès aux noms, aux
+// téléphones et aux courriels de personnes réelles. Sur un poste partagé, un
+// ordinateur oublié dans un bureau ou un téléphone perdu, quiconque ouvre
+// l'adresse est administrateur.
+//
+// Trente minutes sans le moindre geste referment donc la session. Le seuil est
+// choisi pour ne pas gêner : remplir une fiche, téléverser des photos ou lire
+// la boîte de réception produit des événements bien plus souvent que cela.
+const INACTIVITE_MAX = 30 * 60 * 1000;
+let minuteurInactivite = null;
+
+async function fermerPourInactivite(){
+  await db.auth.signOut();
+  // On recharge plutôt que de masquer l'écran : cela vide aussi les données
+  // déjà chargées en mémoire, qui resteraient sinon lisibles dans la page.
+  location.reload();
+}
+
+function relancerMinuteurInactivite(){
+  clearTimeout(minuteurInactivite);
+  minuteurInactivite = setTimeout(fermerPourInactivite, INACTIVITE_MAX);
+}
+
+// passive : ces écouteurs ne font que réarmer un minuteur, ils ne doivent
+// jamais retarder le défilement ni la saisie.
+['pointerdown','keydown','scroll','touchstart'].forEach(ev =>
+  document.addEventListener(ev, relancerMinuteurInactivite, { passive: true }));
+
+checkAuth().then(relancerMinuteurInactivite);
 
 // Recherche temporisée : chaque frappe reconstruisait la liste et
 // détruisait puis recréait tous les marqueurs Leaflet. Taper « Dakar »
