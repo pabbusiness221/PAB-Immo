@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>House for rent in Tanghor, Sébikhotane (Dakar) | PAB Immo</title>
-<meta name="description" content="House for rent in Sébikhotane (Dakar) · 300 m² · 500 000 FCFA/mo · 4 bedrooms. Ref. MA-2026-7029, PAB Immo. House for rent in Tanghor, Sébikhotane, Dakar, with a surface area of 300 m². It includes 4 bedrooms, 2 living rooms, 3 bathrooms and an equipped kitchen. The property also has a garage and a " />
+<meta name="description" content="House for rent in Sébikhotane (Dakar) · 300 m² · 500 000 FCFA/mo · 4 bedrooms. Ref. MA-2026-7029, PAB Immo. House for rent in Tanghor, Sébikhotane…" />
 <link rel="canonical" href="https://pabbusiness221.github.io/PAB-Immo/bien/en/house-for-rent-sebikhotane-ma-2026-7029.html" />
 <link rel="alternate" hreflang="fr" href="https://pabbusiness221.github.io/PAB-Immo/bien/maison-a-louer-sebikhotane-ma-2026-7029.html" />
 <link rel="alternate" hreflang="en" href="https://pabbusiness221.github.io/PAB-Immo/bien/en/house-for-rent-sebikhotane-ma-2026-7029.html" />
@@ -15,7 +15,7 @@
 <meta property="og:site_name" content="PAB Immo" />
 <meta property="og:locale" content="en_GB" />
 <meta property="og:title" content="House for rent in Tanghor, Sébikhotane (Dakar)" />
-<meta property="og:description" content="House for rent in Sébikhotane (Dakar) · 300 m² · 500 000 FCFA/mo · 4 bedrooms. Ref. MA-2026-7029, PAB Immo. House for rent in Tanghor, Sébikhotane, Dakar, with a surface area of 300 m². It includes 4 bedrooms, 2 living rooms, 3 bathrooms and an equipped kitchen. The property also has a garage and a " />
+<meta property="og:description" content="House for rent in Sébikhotane (Dakar) · 300 m² · 500 000 FCFA/mo · 4 bedrooms. Ref. MA-2026-7029, PAB Immo. House for rent in Tanghor, Sébikhotane…" />
 <meta property="og:image" content="https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/0da3085d-a076-452d-abd1-bbabe6987d21/1784250302126-0-IMG_5856.jpeg?width=1200&amp;height=630&amp;resize=cover&amp;quality=75" />
 <meta property="og:image:secure_url" content="https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/0da3085d-a076-452d-abd1-bbabe6987d21/1784250302126-0-IMG_5856.jpeg?width=1200&amp;height=630&amp;resize=cover&amp;quality=75" />
 <meta property="og:image:type" content="image/jpeg" />
@@ -25,7 +25,7 @@
 <meta property="og:url" content="https://pabbusiness221.github.io/PAB-Immo/bien/en/house-for-rent-sebikhotane-ma-2026-7029.html" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="House for rent in Tanghor, Sébikhotane (Dakar)" />
-<meta name="twitter:description" content="House for rent in Sébikhotane (Dakar) · 300 m² · 500 000 FCFA/mo · 4 bedrooms. Ref. MA-2026-7029, PAB Immo. House for rent in Tanghor, Sébikhotane, Dakar, with a surface area of 300 m². It includes 4 bedrooms, 2 living rooms, 3 bathrooms and an equipped kitchen. The property also has a garage and a " />
+<meta name="twitter:description" content="House for rent in Sébikhotane (Dakar) · 300 m² · 500 000 FCFA/mo · 4 bedrooms. Ref. MA-2026-7029, PAB Immo. House for rent in Tanghor, Sébikhotane…" />
 <meta name="twitter:image" content="https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/0da3085d-a076-452d-abd1-bbabe6987d21/1784250302126-0-IMG_5856.jpeg?width=1200&amp;height=630&amp;resize=cover&amp;quality=75" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -60,6 +60,28 @@
   .photo img{width:100%;height:auto;display:block;border-radius:var(--radius-md);background:var(--surface-alt);}
   h2{font-family:'Manrope',sans-serif;font-size:17px;font-weight:800;margin:30px 0 12px;}
   .faits{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0;padding:0;list-style:none;}
+  /* Questions fréquentes. Repliées par défaut : la fiche doit rester courte à
+     l'œil, alors que la réponse doit exister dans la page pour être lue par
+     Google — <details> réunit les deux, sans JavaScript. */
+  .resume{font-size:15px;line-height:1.7;color:var(--ink);margin:0 0 6px;}
+  .etapes{margin:0;padding:0;list-style:none;counter-reset:etape;display:grid;gap:10px;}
+  .etapes li{counter-increment:etape;position:relative;padding-left:44px;}
+  .etapes li::before{content:counter(etape);position:absolute;left:0;top:0;width:30px;height:30px;
+    border-radius:50%;background:var(--night);color:#fff;display:grid;place-items:center;
+    font-weight:800;font-size:13px;}
+  .etapes li b{display:block;font-size:14px;color:var(--night);margin-bottom:2px;}
+  .etapes li span{font-size:13.5px;line-height:1.6;color:var(--ink-soft);}
+  .faq-bien details{border:1px solid var(--border);border-radius:10px;background:var(--surface);margin-bottom:8px;}
+  .faq-bien summary{cursor:pointer;padding:13px 16px;font-weight:700;font-size:14px;color:var(--night);list-style:none;}
+  .faq-bien summary::-webkit-details-marker{display:none;}
+  .faq-bien summary::after{content:'+';float:right;color:var(--accent);font-size:18px;line-height:1;}
+  .faq-bien details[open] summary::after{content:'\2212';}
+  .faq-bien summary:hover{color:var(--accent-dark);}
+  .faq-bien summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px;}
+  .faq-bien p{margin:0;padding:0 16px 14px;font-size:13.5px;line-height:1.65;color:var(--ink-soft);}
+  .guides-lies ul{margin:0;padding:0;list-style:none;display:grid;gap:8px;}
+  .guides-lies li a{display:block;padding:12px 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--night);text-decoration:none;font-weight:600;font-size:13.5px;}
+  .guides-lies li a:hover{border-color:var(--accent);color:var(--accent-dark);}
   .faits li{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;}
   .faits b{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);font-weight:700;}
   .faits span{font-size:15px;font-weight:800;}
@@ -108,50 +130,121 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "RealEstateListing",
-  "name": "House for rent in Tanghor, Sébikhotane (Dakar)",
-  "description": "House for rent in Sébikhotane (Dakar) · 300 m² · 500 000 FCFA/mo · 4 bedrooms. Ref. MA-2026-7029, PAB Immo. House for rent in Tanghor, Sébikhotane, Dakar, with a surface area of 300 m². It includes 4 bedrooms, 2 living rooms, 3 bathrooms and an equipped kitchen. The property also has a garage and a ",
-  "inLanguage": "en",
-  "url": "https://pabbusiness221.github.io/PAB-Immo/bien/en/house-for-rent-sebikhotane-ma-2026-7029.html",
-  "datePosted": "2026-07-22",
-  "identifier": "MA-2026-7029",
-  "image": [
-    "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/0da3085d-a076-452d-abd1-bbabe6987d21/1784250302126-0-IMG_5856.jpeg?width=1200&quality=70",
-    "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/0da3085d-a076-452d-abd1-bbabe6987d21/1784250302805-1-IMG_5857.jpeg?width=1200&quality=70",
-    "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/0da3085d-a076-452d-abd1-bbabe6987d21/1784250304256-2-IMG_5859.jpeg?width=1200&quality=70",
-    "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/0da3085d-a076-452d-abd1-bbabe6987d21/1784250304827-3-IMG_5858.jpeg?width=1200&quality=70"
-  ],
-  "address": {
-    "@type": "PostalAddress",
-    "addressLocality": "Sébikhotane",
-    "addressRegion": "Dakar",
-    "addressCountry": "SN",
-    "streetAddress": "Tanghor"
-  },
-  "geo": {
-    "@type": "GeoCoordinates",
-    "latitude": 14.734177,
-    "longitude": -17.143927
-  },
-  "offers": {
-    "@type": "Offer",
-    "price": 500000,
-    "priceCurrency": "XOF",
-    "availability": "https://schema.org/InStock",
-    "seller": {
-      "@type": "RealEstateAgent",
-      "name": "PAB Immo",
-      "telephone": "+221778494111",
-      "areaServed": "Dakar, Thiès, Sénégal"
+  "@graph": [
+    {
+      "@type": "RealEstateListing",
+      "name": "House for rent in Tanghor, Sébikhotane (Dakar)",
+      "description": "House for rent in Sébikhotane (Dakar) · 300 m² · 500 000 FCFA/mo · 4 bedrooms. Ref. MA-2026-7029, PAB Immo. House for rent in Tanghor, Sébikhotane…",
+      "inLanguage": "en",
+      "url": "https://pabbusiness221.github.io/PAB-Immo/bien/en/house-for-rent-sebikhotane-ma-2026-7029.html",
+      "datePosted": "2026-07-22",
+      "identifier": "MA-2026-7029",
+      "image": [
+        "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/0da3085d-a076-452d-abd1-bbabe6987d21/1784250302126-0-IMG_5856.jpeg?width=1200&quality=70",
+        "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/0da3085d-a076-452d-abd1-bbabe6987d21/1784250302805-1-IMG_5857.jpeg?width=1200&quality=70",
+        "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/0da3085d-a076-452d-abd1-bbabe6987d21/1784250304256-2-IMG_5859.jpeg?width=1200&quality=70",
+        "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/0da3085d-a076-452d-abd1-bbabe6987d21/1784250304827-3-IMG_5858.jpeg?width=1200&quality=70"
+      ],
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Sébikhotane",
+        "addressRegion": "Dakar",
+        "addressCountry": "SN",
+        "streetAddress": "Tanghor"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 14.734177,
+        "longitude": -17.143927
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": 500000,
+        "priceCurrency": "XOF",
+        "availability": "https://schema.org/InStock",
+        "seller": {
+          "@type": "RealEstateAgent",
+          "name": "PAB Immo",
+          "telephone": "+221778494111",
+          "areaServed": "Dakar, Thiès, Sénégal"
+        }
+      },
+      "floorSize": {
+        "@type": "QuantitativeValue",
+        "value": 300.0,
+        "unitCode": "MTK"
+      },
+      "numberOfBedrooms": 4,
+      "numberOfBathroomsTotal": 3
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "All properties",
+          "item": "https://pabbusiness221.github.io/PAB-Immo/bien/en/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "House"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Sébikhotane",
+          "item": "https://pabbusiness221.github.io/PAB-Immo/bien/en/house-for-rent-sebikhotane-ma-2026-7029.html"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How much does this house in Sébikhotane cost?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "This property is listed at 500 000 FCFA/mo. Reference MA-2026-7029."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How big is it?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "300 m²."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How is it laid out?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It has 4 bedrooms, 2 living rooms, 3 bathrooms."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is it still available?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Status at the last update: Available. Availability is checked regularly, and we confirm it by phone or WhatsApp before any visit."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How can I visit this property in Sébikhotane?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Visits are by appointment. Send reference MA-2026-7029 on WhatsApp at +221 77 849 41 11 or call us, and we will arrange a time — including evenings and weekends."
+          }
+        }
+      ]
     }
-  },
-  "floorSize": {
-    "@type": "QuantitativeValue",
-    "value": 300.0,
-    "unitCode": "MTK"
-  },
-  "numberOfBedrooms": 4,
-  "numberOfBathroomsTotal": 3
+  ]
 }
 </script>
 </head>
@@ -220,6 +313,8 @@
              loading="lazy" decoding="async" fetchpriority="auto" />
       </figure>
 
+  <p class="resume">This house is for rent in Tanghor, Sébikhotane, in the region of Dakar. It covers 300 m² and is listed at 500 000 FCFA/mo. It has 4 bedrooms. Reference MA-2026-7029, visits by appointment.</p>
+
   <h2>Features</h2>
   <ul class="faits">
     <li><b>Type</b><span>House</span></li>
@@ -233,6 +328,24 @@
   <h2>Description</h2><p class="texte">House for rent in Tanghor, Sébikhotane, Dakar, with a surface area of 300 m². It includes 4 bedrooms, 2 living rooms, 3 bathrooms and an equipped kitchen. The property also has a garage and a garden.
 
 The monthly rent is set at 500,000 FCFA. To obtain more details or schedule a visit, please contact PAB Immo.</p>
+
+  <h2>What happens next</h2>
+  <ol class="etapes">
+    <li><b>Visit the property in Sébikhotane</b><span>We arrange a time that suits you, including evenings and weekends.</span></li><li><b>Review the lease</b><span>Duration, deposit, advance rent and charges are agreed in writing before signature.</span></li><li><b>Inventory and handover</b><span>A written inventory protects both sides at move-in and at move-out.</span></li>
+  </ol>
+
+  <h2>Frequently asked questions</h2>
+  <div class="faq-bien">
+    <details><summary>How much does this house in Sébikhotane cost?</summary><p>This property is listed at 500 000 FCFA/mo. Reference MA-2026-7029.</p></details><details><summary>How big is it?</summary><p>300 m².</p></details><details><summary>How is it laid out?</summary><p>It has 4 bedrooms, 2 living rooms, 3 bathrooms.</p></details><details><summary>Is it still available?</summary><p>Status at the last update: Available. Availability is checked regularly, and we confirm it by phone or WhatsApp before any visit.</p></details><details><summary>How can I visit this property in Sébikhotane?</summary><p>Visits are by appointment. Send reference MA-2026-7029 on WhatsApp at +221 77 849 41 11 or call us, and we will arrange a time — including evenings and weekends.</p></details>
+  </div>
+
+  <section class="guides-lies">
+    <h2>Before you commit</h2>
+    <p>Practical guides on the questions this kind of property usually raises.</p>
+    <ul>
+      <li><a href="../guides/en/louer-logement-dakar-bail-caution.html">Renting a Home in Dakar: Lease and Deposit</a></li><li><a href="../guides/en/questions-frequentes.html">Frequently Asked Questions</a></li>
+    </ul>
+  </section>
 
   <section class="contact">
     <h2>Interested in this property?</h2>
@@ -260,14 +373,14 @@ The monthly rent is set at 500,000 FCFA. To obtain more details or schedule a vi
       <a class="voisin" href="studio-for-rent-thies-ouest-st-2026-6396.html">
         <span class="voisin-photo" style="background-image:url('https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/e2bc0178-cc98-4f29-9b72-bbc07e6ac91b/1784746446462-0-ChatGPT_Image_18_juil._2026__22_29_55.jpg?width=400&quality=70')"></span>
         <span class="voisin-txt">
-          <b>Studio for rent in Randouléne, Thiès Ouest (Thiès)</b>
+          <b>Studio for rent in Randouléne, Thiès Ouest</b>
           <em>75 000 FCFA/mo · 75 m²</em>
         </span>
       </a>
       <a class="voisin" href="studio-for-rent-communaute-rurale-de-keur-moussa-st-2026-8903.html">
         <span class="voisin-photo" style="background-image:url('https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/af40551e-50d7-4c76-843d-c1e6743940bb/1784989683859-0-1000405251.jpg?width=400&quality=70')"></span>
         <span class="voisin-txt">
-          <b>Studio for rent in Pouyéne, Communauté rurale de Keur Moussa (Thiès)</b>
+          <b>Studio for rent in Communauté rurale de Keur…</b>
           <em>50 000 FCFA/mo · 50 m²</em>
         </span>
       </a>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Land for sale in Gueule Tapée-Fass-Colobane, Dakar | PAB Immo</title>
+<title>Land for sale in Dakar | PAB Immo</title>
 <meta name="description" content="Land for sale in Dakar (Dakar) · 100 m² · 1 000 000 FCFA. Ref. TF-2026-2204, PAB Immo. TEST" />
 <link rel="canonical" href="https://pabbusiness221.github.io/PAB-Immo/bien/en/land-for-sale-dakar-tf-2026-2204.html" />
 <link rel="alternate" hreflang="fr" href="https://pabbusiness221.github.io/PAB-Immo/bien/terrain-a-vendre-dakar-tf-2026-2204.html" />
@@ -14,17 +14,17 @@
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="PAB Immo" />
 <meta property="og:locale" content="en_GB" />
-<meta property="og:title" content="Land for sale in Gueule Tapée-Fass-Colobane, Dakar" />
+<meta property="og:title" content="Land for sale in Dakar" />
 <meta property="og:description" content="Land for sale in Dakar (Dakar) · 100 m² · 1 000 000 FCFA. Ref. TF-2026-2204, PAB Immo. TEST" />
 <meta property="og:image" content="https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/327b60c1-9a65-43dd-b6be-1a18eff05265/1784390583552-0-Terrain_TF.jpg?width=1200&amp;height=630&amp;resize=cover&amp;quality=75" />
 <meta property="og:image:secure_url" content="https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/327b60c1-9a65-43dd-b6be-1a18eff05265/1784390583552-0-Terrain_TF.jpg?width=1200&amp;height=630&amp;resize=cover&amp;quality=75" />
 <meta property="og:image:type" content="image/jpeg" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="Land for sale in Gueule Tapée-Fass-Colobane, Dakar" />
+<meta property="og:image:alt" content="Land for sale in Dakar" />
 <meta property="og:url" content="https://pabbusiness221.github.io/PAB-Immo/bien/en/land-for-sale-dakar-tf-2026-2204.html" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Land for sale in Gueule Tapée-Fass-Colobane, Dakar" />
+<meta name="twitter:title" content="Land for sale in Dakar" />
 <meta name="twitter:description" content="Land for sale in Dakar (Dakar) · 100 m² · 1 000 000 FCFA. Ref. TF-2026-2204, PAB Immo. TEST" />
 <meta name="twitter:image" content="https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/327b60c1-9a65-43dd-b6be-1a18eff05265/1784390583552-0-Terrain_TF.jpg?width=1200&amp;height=630&amp;resize=cover&amp;quality=75" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -60,6 +60,28 @@
   .photo img{width:100%;height:auto;display:block;border-radius:var(--radius-md);background:var(--surface-alt);}
   h2{font-family:'Manrope',sans-serif;font-size:17px;font-weight:800;margin:30px 0 12px;}
   .faits{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0;padding:0;list-style:none;}
+  /* Questions fréquentes. Repliées par défaut : la fiche doit rester courte à
+     l'œil, alors que la réponse doit exister dans la page pour être lue par
+     Google — <details> réunit les deux, sans JavaScript. */
+  .resume{font-size:15px;line-height:1.7;color:var(--ink);margin:0 0 6px;}
+  .etapes{margin:0;padding:0;list-style:none;counter-reset:etape;display:grid;gap:10px;}
+  .etapes li{counter-increment:etape;position:relative;padding-left:44px;}
+  .etapes li::before{content:counter(etape);position:absolute;left:0;top:0;width:30px;height:30px;
+    border-radius:50%;background:var(--night);color:#fff;display:grid;place-items:center;
+    font-weight:800;font-size:13px;}
+  .etapes li b{display:block;font-size:14px;color:var(--night);margin-bottom:2px;}
+  .etapes li span{font-size:13.5px;line-height:1.6;color:var(--ink-soft);}
+  .faq-bien details{border:1px solid var(--border);border-radius:10px;background:var(--surface);margin-bottom:8px;}
+  .faq-bien summary{cursor:pointer;padding:13px 16px;font-weight:700;font-size:14px;color:var(--night);list-style:none;}
+  .faq-bien summary::-webkit-details-marker{display:none;}
+  .faq-bien summary::after{content:'+';float:right;color:var(--accent);font-size:18px;line-height:1;}
+  .faq-bien details[open] summary::after{content:'\2212';}
+  .faq-bien summary:hover{color:var(--accent-dark);}
+  .faq-bien summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px;}
+  .faq-bien p{margin:0;padding:0 16px 14px;font-size:13.5px;line-height:1.65;color:var(--ink-soft);}
+  .guides-lies ul{margin:0;padding:0;list-style:none;display:grid;gap:8px;}
+  .guides-lies li a{display:block;padding:12px 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--night);text-decoration:none;font-weight:600;font-size:13.5px;}
+  .guides-lies li a:hover{border-color:var(--accent);color:var(--accent-dark);}
   .faits li{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;}
   .faits b{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);font-weight:700;}
   .faits span{font-size:15px;font-weight:800;}
@@ -108,45 +130,108 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "RealEstateListing",
-  "name": "Land for sale in Gueule Tapée-Fass-Colobane, Dakar",
-  "description": "Land for sale in Dakar (Dakar) · 100 m² · 1 000 000 FCFA. Ref. TF-2026-2204, PAB Immo. TEST",
-  "inLanguage": "en",
-  "url": "https://pabbusiness221.github.io/PAB-Immo/bien/en/land-for-sale-dakar-tf-2026-2204.html",
-  "datePosted": "2026-07-22",
-  "identifier": "TF-2026-2204",
-  "image": [
-    "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/327b60c1-9a65-43dd-b6be-1a18eff05265/1784390583552-0-Terrain_TF.jpg?width=1200&quality=70"
-  ],
-  "address": {
-    "@type": "PostalAddress",
-    "addressLocality": "Dakar",
-    "addressRegion": "Dakar",
-    "addressCountry": "SN",
-    "streetAddress": "Gueule Tapée-Fass-Colobane"
-  },
-  "geo": {
-    "@type": "GeoCoordinates",
-    "latitude": 14.6935,
-    "longitude": -17.448
-  },
-  "offers": {
-    "@type": "Offer",
-    "price": 1000000,
-    "priceCurrency": "XOF",
-    "availability": "https://schema.org/InStock",
-    "seller": {
-      "@type": "RealEstateAgent",
-      "name": "PAB Immo",
-      "telephone": "+221778494111",
-      "areaServed": "Dakar, Thiès, Sénégal"
+  "@graph": [
+    {
+      "@type": "RealEstateListing",
+      "name": "Land for sale in Dakar",
+      "description": "Land for sale in Dakar (Dakar) · 100 m² · 1 000 000 FCFA. Ref. TF-2026-2204, PAB Immo. TEST",
+      "inLanguage": "en",
+      "url": "https://pabbusiness221.github.io/PAB-Immo/bien/en/land-for-sale-dakar-tf-2026-2204.html",
+      "datePosted": "2026-07-22",
+      "identifier": "TF-2026-2204",
+      "image": [
+        "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/327b60c1-9a65-43dd-b6be-1a18eff05265/1784390583552-0-Terrain_TF.jpg?width=1200&quality=70"
+      ],
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Dakar",
+        "addressRegion": "Dakar",
+        "addressCountry": "SN",
+        "streetAddress": "Gueule Tapée-Fass-Colobane"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 14.6935,
+        "longitude": -17.448
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": 1000000,
+        "priceCurrency": "XOF",
+        "availability": "https://schema.org/InStock",
+        "seller": {
+          "@type": "RealEstateAgent",
+          "name": "PAB Immo",
+          "telephone": "+221778494111",
+          "areaServed": "Dakar, Thiès, Sénégal"
+        }
+      },
+      "floorSize": {
+        "@type": "QuantitativeValue",
+        "value": 100.0,
+        "unitCode": "MTK"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "All properties",
+          "item": "https://pabbusiness221.github.io/PAB-Immo/bien/en/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Land"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Dakar",
+          "item": "https://pabbusiness221.github.io/PAB-Immo/bien/en/land-for-sale-dakar-tf-2026-2204.html"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How much does this land in Dakar cost?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "This property is listed at 1 000 000 FCFA. That works out to about 10 000 FCFA per m². Reference TF-2026-2204."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How big is it?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "100 m²."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is it still available?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Status at the last update: Available. Availability is checked regularly, and we confirm it by phone or WhatsApp before any visit."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How can I visit this property in Dakar?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Visits are by appointment. Send reference TF-2026-2204 on WhatsApp at +221 77 849 41 11 or call us, and we will arrange a time — including evenings and weekends."
+          }
+        }
+      ]
     }
-  },
-  "floorSize": {
-    "@type": "QuantitativeValue",
-    "value": 100.0,
-    "unitCode": "MTK"
-  }
+  ]
 }
 </script>
 </head>
@@ -168,7 +253,7 @@
     <a href="./">All properties</a> › Land › Dakar
   </nav>
 
-  <h1>Land for sale in Gueule Tapée-Fass-Colobane, Dakar</h1>
+  <h1>Land for sale in Dakar</h1>
   <p class="lieu">Gueule Tapée-Fass-Colobane, Dakar, region of Dakar</p>
   <p class="prix">1 000 000 FCFA</p>
   <p class="prix-secondaire">≈ 1 524 € · 1 667 $US</p>
@@ -191,6 +276,8 @@
              loading="eager" decoding="async" fetchpriority="high" />
       </figure>
 
+  <p class="resume">This land is for sale in Gueule Tapée-Fass-Colobane, Dakar, in the region of Dakar. It covers 100 m² and is listed at 1 000 000 FCFA. That is roughly 10 000 FCFA per m², a figure worth comparing with other listings in the same area. Reference TF-2026-2204, visits by appointment.</p>
+
   <h2>Features</h2>
   <ul class="faits">
     <li><b>Type</b><span>Land</span></li>
@@ -202,6 +289,24 @@
   </ul>
 
   <h2>Description</h2><p class="texte">TEST</p>
+
+  <h2>What happens next</h2>
+  <ol class="etapes">
+    <li><b>Visit the property in Dakar</b><span>By appointment, with someone who knows the file and can answer on site.</span></li><li><b>Check the documents</b><span>Land title, boundary survey and deeds are verified before any commitment, at the notary.</span></li><li><b>Work out the full cost</b><span>Registration duties and notary fees come on top of the asking price.</span></li><li><b>Sign at the notary</b><span>The sale is completed before a notary — the only act that makes the transfer enforceable.</span></li>
+  </ol>
+
+  <h2>Frequently asked questions</h2>
+  <div class="faq-bien">
+    <details><summary>How much does this land in Dakar cost?</summary><p>This property is listed at 1 000 000 FCFA. That works out to about 10 000 FCFA per m². Reference TF-2026-2204.</p></details><details><summary>How big is it?</summary><p>100 m².</p></details><details><summary>Is it still available?</summary><p>Status at the last update: Available. Availability is checked regularly, and we confirm it by phone or WhatsApp before any visit.</p></details><details><summary>How can I visit this property in Dakar?</summary><p>Visits are by appointment. Send reference TF-2026-2204 on WhatsApp at +221 77 849 41 11 or call us, and we will arrange a time — including evenings and weekends.</p></details>
+  </div>
+
+  <section class="guides-lies">
+    <h2>Before you commit</h2>
+    <p>Practical guides on the questions this kind of property usually raises.</p>
+    <ul>
+      <li><a href="../guides/en/verifier-titre-foncier-senegal.html">Checking Land Title Status in Senegal</a></li><li><a href="../guides/en/frais-achat-immobilier-senegal.html">Property Purchase Costs in Senegal</a></li><li><a href="../guides/en/construire-terrain-senegal-permis.html">Building on Your Land in Senegal</a></li>
+    </ul>
+  </section>
 
   <section class="contact">
     <h2>Interested in this property?</h2>

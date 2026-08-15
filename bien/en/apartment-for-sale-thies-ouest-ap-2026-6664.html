@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Apartment for sale in Randoulene, Thiès Ouest (Thiès) | PAB Immo</title>
-<meta name="description" content="Apartment for sale in Thiès Ouest (Thiès) · 100 m² · 130 000 FCFA · 3 bedrooms. Ref. AP-2026-6664, PAB Immo. Apartment with balcony facing the regional hospital" />
+<title>Apartment for sale in Randoulene, Thiès Ouest | PAB Immo</title>
+<meta name="description" content="Apartment for sale in Thiès Ouest (Thiès) · 100 m² · 130 000 FCFA · 3 bedrooms. Ref. AP-2026-6664, PAB Immo. Apartment with balcony facing the regional…" />
 <link rel="canonical" href="https://pabbusiness221.github.io/PAB-Immo/bien/en/apartment-for-sale-thies-ouest-ap-2026-6664.html" />
 <link rel="alternate" hreflang="fr" href="https://pabbusiness221.github.io/PAB-Immo/bien/appartement-a-vendre-thies-ouest-ap-2026-6664.html" />
 <link rel="alternate" hreflang="en" href="https://pabbusiness221.github.io/PAB-Immo/bien/en/apartment-for-sale-thies-ouest-ap-2026-6664.html" />
@@ -14,18 +14,18 @@
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="PAB Immo" />
 <meta property="og:locale" content="en_GB" />
-<meta property="og:title" content="Apartment for sale in Randoulene, Thiès Ouest (Thiès)" />
-<meta property="og:description" content="Apartment for sale in Thiès Ouest (Thiès) · 100 m² · 130 000 FCFA · 3 bedrooms. Ref. AP-2026-6664, PAB Immo. Apartment with balcony facing the regional hospital" />
+<meta property="og:title" content="Apartment for sale in Randoulene, Thiès Ouest" />
+<meta property="og:description" content="Apartment for sale in Thiès Ouest (Thiès) · 100 m² · 130 000 FCFA · 3 bedrooms. Ref. AP-2026-6664, PAB Immo. Apartment with balcony facing the regional…" />
 <meta property="og:image" content="https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/bc763fe2-2b40-4442-ba8a-0217f6d87886/1784657052852-0-Terrains_225m__Km50.jpg?width=1200&amp;height=630&amp;resize=cover&amp;quality=75" />
 <meta property="og:image:secure_url" content="https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/bc763fe2-2b40-4442-ba8a-0217f6d87886/1784657052852-0-Terrains_225m__Km50.jpg?width=1200&amp;height=630&amp;resize=cover&amp;quality=75" />
 <meta property="og:image:type" content="image/jpeg" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="Apartment for sale in Randoulene, Thiès Ouest (Thiès)" />
+<meta property="og:image:alt" content="Apartment for sale in Randoulene, Thiès Ouest" />
 <meta property="og:url" content="https://pabbusiness221.github.io/PAB-Immo/bien/en/apartment-for-sale-thies-ouest-ap-2026-6664.html" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Apartment for sale in Randoulene, Thiès Ouest (Thiès)" />
-<meta name="twitter:description" content="Apartment for sale in Thiès Ouest (Thiès) · 100 m² · 130 000 FCFA · 3 bedrooms. Ref. AP-2026-6664, PAB Immo. Apartment with balcony facing the regional hospital" />
+<meta name="twitter:title" content="Apartment for sale in Randoulene, Thiès Ouest" />
+<meta name="twitter:description" content="Apartment for sale in Thiès Ouest (Thiès) · 100 m² · 130 000 FCFA · 3 bedrooms. Ref. AP-2026-6664, PAB Immo. Apartment with balcony facing the regional…" />
 <meta name="twitter:image" content="https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/bc763fe2-2b40-4442-ba8a-0217f6d87886/1784657052852-0-Terrains_225m__Km50.jpg?width=1200&amp;height=630&amp;resize=cover&amp;quality=75" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -60,6 +60,28 @@
   .photo img{width:100%;height:auto;display:block;border-radius:var(--radius-md);background:var(--surface-alt);}
   h2{font-family:'Manrope',sans-serif;font-size:17px;font-weight:800;margin:30px 0 12px;}
   .faits{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0;padding:0;list-style:none;}
+  /* Questions fréquentes. Repliées par défaut : la fiche doit rester courte à
+     l'œil, alors que la réponse doit exister dans la page pour être lue par
+     Google — <details> réunit les deux, sans JavaScript. */
+  .resume{font-size:15px;line-height:1.7;color:var(--ink);margin:0 0 6px;}
+  .etapes{margin:0;padding:0;list-style:none;counter-reset:etape;display:grid;gap:10px;}
+  .etapes li{counter-increment:etape;position:relative;padding-left:44px;}
+  .etapes li::before{content:counter(etape);position:absolute;left:0;top:0;width:30px;height:30px;
+    border-radius:50%;background:var(--night);color:#fff;display:grid;place-items:center;
+    font-weight:800;font-size:13px;}
+  .etapes li b{display:block;font-size:14px;color:var(--night);margin-bottom:2px;}
+  .etapes li span{font-size:13.5px;line-height:1.6;color:var(--ink-soft);}
+  .faq-bien details{border:1px solid var(--border);border-radius:10px;background:var(--surface);margin-bottom:8px;}
+  .faq-bien summary{cursor:pointer;padding:13px 16px;font-weight:700;font-size:14px;color:var(--night);list-style:none;}
+  .faq-bien summary::-webkit-details-marker{display:none;}
+  .faq-bien summary::after{content:'+';float:right;color:var(--accent);font-size:18px;line-height:1;}
+  .faq-bien details[open] summary::after{content:'\2212';}
+  .faq-bien summary:hover{color:var(--accent-dark);}
+  .faq-bien summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px;}
+  .faq-bien p{margin:0;padding:0 16px 14px;font-size:13.5px;line-height:1.65;color:var(--ink-soft);}
+  .guides-lies ul{margin:0;padding:0;list-style:none;display:grid;gap:8px;}
+  .guides-lies li a{display:block;padding:12px 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--night);text-decoration:none;font-weight:600;font-size:13.5px;}
+  .guides-lies li a:hover{border-color:var(--accent);color:var(--accent-dark);}
   .faits li{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;}
   .faits b{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);font-weight:700;}
   .faits span{font-size:15px;font-weight:800;}
@@ -108,47 +130,118 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "RealEstateListing",
-  "name": "Apartment for sale in Randoulene, Thiès Ouest (Thiès)",
-  "description": "Apartment for sale in Thiès Ouest (Thiès) · 100 m² · 130 000 FCFA · 3 bedrooms. Ref. AP-2026-6664, PAB Immo. Apartment with balcony facing the regional hospital",
-  "inLanguage": "en",
-  "url": "https://pabbusiness221.github.io/PAB-Immo/bien/en/apartment-for-sale-thies-ouest-ap-2026-6664.html",
-  "datePosted": "2026-07-22",
-  "identifier": "AP-2026-6664",
-  "image": [
-    "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/bc763fe2-2b40-4442-ba8a-0217f6d87886/1784657052852-0-Terrains_225m__Km50.jpg?width=1200&quality=70"
-  ],
-  "address": {
-    "@type": "PostalAddress",
-    "addressLocality": "Thiès Ouest",
-    "addressRegion": "Thiès",
-    "addressCountry": "SN",
-    "streetAddress": "Randoulene"
-  },
-  "geo": {
-    "@type": "GeoCoordinates",
-    "latitude": 14.780104,
-    "longitude": -16.924283
-  },
-  "offers": {
-    "@type": "Offer",
-    "price": 130000,
-    "priceCurrency": "XOF",
-    "availability": "https://schema.org/InStock",
-    "seller": {
-      "@type": "RealEstateAgent",
-      "name": "PAB Immo",
-      "telephone": "+221778494111",
-      "areaServed": "Dakar, Thiès, Sénégal"
+  "@graph": [
+    {
+      "@type": "RealEstateListing",
+      "name": "Apartment for sale in Randoulene, Thiès Ouest",
+      "description": "Apartment for sale in Thiès Ouest (Thiès) · 100 m² · 130 000 FCFA · 3 bedrooms. Ref. AP-2026-6664, PAB Immo. Apartment with balcony facing the regional…",
+      "inLanguage": "en",
+      "url": "https://pabbusiness221.github.io/PAB-Immo/bien/en/apartment-for-sale-thies-ouest-ap-2026-6664.html",
+      "datePosted": "2026-07-22",
+      "identifier": "AP-2026-6664",
+      "image": [
+        "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/bc763fe2-2b40-4442-ba8a-0217f6d87886/1784657052852-0-Terrains_225m__Km50.jpg?width=1200&quality=70"
+      ],
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Thiès Ouest",
+        "addressRegion": "Thiès",
+        "addressCountry": "SN",
+        "streetAddress": "Randoulene"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 14.780104,
+        "longitude": -16.924283
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": 130000,
+        "priceCurrency": "XOF",
+        "availability": "https://schema.org/InStock",
+        "seller": {
+          "@type": "RealEstateAgent",
+          "name": "PAB Immo",
+          "telephone": "+221778494111",
+          "areaServed": "Dakar, Thiès, Sénégal"
+        }
+      },
+      "floorSize": {
+        "@type": "QuantitativeValue",
+        "value": 100.0,
+        "unitCode": "MTK"
+      },
+      "numberOfBedrooms": 3,
+      "numberOfBathroomsTotal": 1
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "All properties",
+          "item": "https://pabbusiness221.github.io/PAB-Immo/bien/en/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Apartment"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Thiès Ouest",
+          "item": "https://pabbusiness221.github.io/PAB-Immo/bien/en/apartment-for-sale-thies-ouest-ap-2026-6664.html"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How much does this apartment in Thiès Ouest cost?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "This property is listed at 130 000 FCFA. That works out to about 1 300 FCFA per m². Reference AP-2026-6664."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How big is it?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "100 m²."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How is it laid out?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It has 3 bedrooms, 1 living room, 1 bathroom."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is it still available?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Status at the last update: Available. Availability is checked regularly, and we confirm it by phone or WhatsApp before any visit."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How can I visit this property in Thiès Ouest?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Visits are by appointment. Send reference AP-2026-6664 on WhatsApp at +221 77 849 41 11 or call us, and we will arrange a time — including evenings and weekends."
+          }
+        }
+      ]
     }
-  },
-  "floorSize": {
-    "@type": "QuantitativeValue",
-    "value": 100.0,
-    "unitCode": "MTK"
-  },
-  "numberOfBedrooms": 3,
-  "numberOfBathroomsTotal": 1
+  ]
 }
 </script>
 </head>
@@ -170,7 +263,7 @@
     <a href="./">All properties</a> › Apartment › Thiès Ouest
   </nav>
 
-  <h1>Apartment for sale in Randoulene, Thiès Ouest (Thiès)</h1>
+  <h1>Apartment for sale in Randoulene, Thiès Ouest</h1>
   <p class="lieu">Randoulene, Thiès Ouest, region of Thiès</p>
   <p class="prix">130 000 FCFA</p>
   <p class="prix-secondaire">≈ 198 € · 217 $US</p>
@@ -193,6 +286,8 @@
              loading="eager" decoding="async" fetchpriority="high" />
       </figure>
 
+  <p class="resume">This apartment is for sale in Randoulene, Thiès Ouest, in the region of Thiès. It covers 100 m² and is listed at 130 000 FCFA. That is roughly 1 300 FCFA per m², a figure worth comparing with other listings in the same area. It has 3 bedrooms. Reference AP-2026-6664, visits by appointment.</p>
+
   <h2>Features</h2>
   <ul class="faits">
     <li><b>Type</b><span>Apartment</span></li>
@@ -204,6 +299,24 @@
   </ul>
 
   <h2>Description</h2><p class="texte">Apartment with balcony facing the regional hospital</p>
+
+  <h2>What happens next</h2>
+  <ol class="etapes">
+    <li><b>Visit the property in Thiès Ouest</b><span>By appointment, with someone who knows the file and can answer on site.</span></li><li><b>Check the documents</b><span>Land title, boundary survey and deeds are verified before any commitment, at the notary.</span></li><li><b>Work out the full cost</b><span>Registration duties and notary fees come on top of the asking price.</span></li><li><b>Sign at the notary</b><span>The sale is completed before a notary — the only act that makes the transfer enforceable.</span></li>
+  </ol>
+
+  <h2>Frequently asked questions</h2>
+  <div class="faq-bien">
+    <details><summary>How much does this apartment in Thiès Ouest cost?</summary><p>This property is listed at 130 000 FCFA. That works out to about 1 300 FCFA per m². Reference AP-2026-6664.</p></details><details><summary>How big is it?</summary><p>100 m².</p></details><details><summary>How is it laid out?</summary><p>It has 3 bedrooms, 1 living room, 1 bathroom.</p></details><details><summary>Is it still available?</summary><p>Status at the last update: Available. Availability is checked regularly, and we confirm it by phone or WhatsApp before any visit.</p></details><details><summary>How can I visit this property in Thiès Ouest?</summary><p>Visits are by appointment. Send reference AP-2026-6664 on WhatsApp at +221 77 849 41 11 or call us, and we will arrange a time — including evenings and weekends.</p></details>
+  </div>
+
+  <section class="guides-lies">
+    <h2>Before you commit</h2>
+    <p>Practical guides on the questions this kind of property usually raises.</p>
+    <ul>
+      <li><a href="../guides/en/frais-achat-immobilier-senegal.html">Property Purchase Costs in Senegal</a></li><li><a href="../guides/en/verifier-titre-foncier-senegal.html">Checking Land Title Status in Senegal</a></li><li><a href="../guides/en/acheter-terrain-senegal-depuis-etranger.html">Buying Land in Senegal from Abroad</a></li>
+    </ul>
+  </section>
 
   <section class="contact">
     <h2>Interested in this property?</h2>
@@ -238,7 +351,7 @@
       <a class="voisin" href="studio-for-rent-thies-ouest-st-2026-6396.html">
         <span class="voisin-photo" style="background-image:url('https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/e2bc0178-cc98-4f29-9b72-bbc07e6ac91b/1784746446462-0-ChatGPT_Image_18_juil._2026__22_29_55.jpg?width=400&quality=70')"></span>
         <span class="voisin-txt">
-          <b>Studio for rent in Randouléne, Thiès Ouest (Thiès)</b>
+          <b>Studio for rent in Randouléne, Thiès Ouest</b>
           <em>75 000 FCFA/mo · 75 m²</em>
         </span>
       </a>

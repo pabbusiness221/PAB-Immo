@@ -60,6 +60,28 @@
   .photo img{width:100%;height:auto;display:block;border-radius:var(--radius-md);background:var(--surface-alt);}
   h2{font-family:'Manrope',sans-serif;font-size:17px;font-weight:800;margin:30px 0 12px;}
   .faits{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0;padding:0;list-style:none;}
+  /* Questions fréquentes. Repliées par défaut : la fiche doit rester courte à
+     l'œil, alors que la réponse doit exister dans la page pour être lue par
+     Google — <details> réunit les deux, sans JavaScript. */
+  .resume{font-size:15px;line-height:1.7;color:var(--ink);margin:0 0 6px;}
+  .etapes{margin:0;padding:0;list-style:none;counter-reset:etape;display:grid;gap:10px;}
+  .etapes li{counter-increment:etape;position:relative;padding-left:44px;}
+  .etapes li::before{content:counter(etape);position:absolute;left:0;top:0;width:30px;height:30px;
+    border-radius:50%;background:var(--night);color:#fff;display:grid;place-items:center;
+    font-weight:800;font-size:13px;}
+  .etapes li b{display:block;font-size:14px;color:var(--night);margin-bottom:2px;}
+  .etapes li span{font-size:13.5px;line-height:1.6;color:var(--ink-soft);}
+  .faq-bien details{border:1px solid var(--border);border-radius:10px;background:var(--surface);margin-bottom:8px;}
+  .faq-bien summary{cursor:pointer;padding:13px 16px;font-weight:700;font-size:14px;color:var(--night);list-style:none;}
+  .faq-bien summary::-webkit-details-marker{display:none;}
+  .faq-bien summary::after{content:'+';float:right;color:var(--accent);font-size:18px;line-height:1;}
+  .faq-bien details[open] summary::after{content:'\2212';}
+  .faq-bien summary:hover{color:var(--accent-dark);}
+  .faq-bien summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px;}
+  .faq-bien p{margin:0;padding:0 16px 14px;font-size:13.5px;line-height:1.65;color:var(--ink-soft);}
+  .guides-lies ul{margin:0;padding:0;list-style:none;display:grid;gap:8px;}
+  .guides-lies li a{display:block;padding:12px 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--night);text-decoration:none;font-weight:600;font-size:13.5px;}
+  .guides-lies li a:hover{border-color:var(--accent);color:var(--accent-dark);}
   .faits li{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;}
   .faits b{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);font-weight:700;}
   .faits span{font-size:15px;font-weight:800;}
@@ -108,43 +130,114 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "RealEstateListing",
-  "name": "Apartment for sale in Point E (Dakar)",
-  "description": "Apartment for sale in Point E (Dakar) · 120 m² · 95 000 000 FCFA · 3 bedrooms. Ref. APT-2024-101, PAB Immo. High-standard F4 apartment on the top floor.",
-  "inLanguage": "en",
-  "url": "https://pabbusiness221.github.io/PAB-Immo/bien/en/apartment-for-sale-point-e-apt-2024-101.html",
-  "datePosted": "2026-07-22",
-  "identifier": "APT-2024-101",
-  "address": {
-    "@type": "PostalAddress",
-    "addressLocality": "Point E",
-    "addressRegion": "Dakar",
-    "addressCountry": "SN"
-  },
-  "geo": {
-    "@type": "GeoCoordinates",
-    "latitude": 14.6944,
-    "longitude": -17.4633
-  },
-  "offers": {
-    "@type": "Offer",
-    "price": 95000000,
-    "priceCurrency": "XOF",
-    "availability": "https://schema.org/InStock",
-    "seller": {
-      "@type": "RealEstateAgent",
-      "name": "PAB Immo",
-      "telephone": "+221778494111",
-      "areaServed": "Dakar, Thiès, Sénégal"
+  "@graph": [
+    {
+      "@type": "RealEstateListing",
+      "name": "Apartment for sale in Point E (Dakar)",
+      "description": "Apartment for sale in Point E (Dakar) · 120 m² · 95 000 000 FCFA · 3 bedrooms. Ref. APT-2024-101, PAB Immo. High-standard F4 apartment on the top floor.",
+      "inLanguage": "en",
+      "url": "https://pabbusiness221.github.io/PAB-Immo/bien/en/apartment-for-sale-point-e-apt-2024-101.html",
+      "datePosted": "2026-07-22",
+      "identifier": "APT-2024-101",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Point E",
+        "addressRegion": "Dakar",
+        "addressCountry": "SN"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 14.6944,
+        "longitude": -17.4633
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": 95000000,
+        "priceCurrency": "XOF",
+        "availability": "https://schema.org/InStock",
+        "seller": {
+          "@type": "RealEstateAgent",
+          "name": "PAB Immo",
+          "telephone": "+221778494111",
+          "areaServed": "Dakar, Thiès, Sénégal"
+        }
+      },
+      "floorSize": {
+        "@type": "QuantitativeValue",
+        "value": 120.0,
+        "unitCode": "MTK"
+      },
+      "numberOfBedrooms": 3,
+      "numberOfBathroomsTotal": 2
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "All properties",
+          "item": "https://pabbusiness221.github.io/PAB-Immo/bien/en/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Apartment"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Point E",
+          "item": "https://pabbusiness221.github.io/PAB-Immo/bien/en/apartment-for-sale-point-e-apt-2024-101.html"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How much does this apartment in Point E cost?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "This property is listed at 95 000 000 FCFA. That works out to about 791 667 FCFA per m². Reference APT-2024-101."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How big is it?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "120 m²."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How is it laid out?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "It has 3 bedrooms, 1 living room, 2 bathrooms."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is it still available?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Status at the last update: Available. Availability is checked regularly, and we confirm it by phone or WhatsApp before any visit."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How can I visit this property in Point E?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Visits are by appointment. Send reference APT-2024-101 on WhatsApp at +221 77 849 41 11 or call us, and we will arrange a time — including evenings and weekends."
+          }
+        }
+      ]
     }
-  },
-  "floorSize": {
-    "@type": "QuantitativeValue",
-    "value": 120.0,
-    "unitCode": "MTK"
-  },
-  "numberOfBedrooms": 3,
-  "numberOfBathroomsTotal": 2
+  ]
 }
 </script>
 </head>
@@ -181,6 +274,8 @@
 
   
 
+  <p class="resume">This apartment is for sale in Point E, in the region of Dakar. It covers 120 m² and is listed at 95 000 000 FCFA. That is roughly 791 667 FCFA per m², a figure worth comparing with other listings in the same area. It has 3 bedrooms. Reference APT-2024-101, visits by appointment.</p>
+
   <h2>Features</h2>
   <ul class="faits">
     <li><b>Type</b><span>Apartment</span></li>
@@ -192,6 +287,24 @@
   </ul>
 
   <h2>Description</h2><p class="texte">High-standard F4 apartment on the top floor.</p>
+
+  <h2>What happens next</h2>
+  <ol class="etapes">
+    <li><b>Visit the property in Point E</b><span>By appointment, with someone who knows the file and can answer on site.</span></li><li><b>Check the documents</b><span>Land title, boundary survey and deeds are verified before any commitment, at the notary.</span></li><li><b>Work out the full cost</b><span>Registration duties and notary fees come on top of the asking price.</span></li><li><b>Sign at the notary</b><span>The sale is completed before a notary — the only act that makes the transfer enforceable.</span></li>
+  </ol>
+
+  <h2>Frequently asked questions</h2>
+  <div class="faq-bien">
+    <details><summary>How much does this apartment in Point E cost?</summary><p>This property is listed at 95 000 000 FCFA. That works out to about 791 667 FCFA per m². Reference APT-2024-101.</p></details><details><summary>How big is it?</summary><p>120 m².</p></details><details><summary>How is it laid out?</summary><p>It has 3 bedrooms, 1 living room, 2 bathrooms.</p></details><details><summary>Is it still available?</summary><p>Status at the last update: Available. Availability is checked regularly, and we confirm it by phone or WhatsApp before any visit.</p></details><details><summary>How can I visit this property in Point E?</summary><p>Visits are by appointment. Send reference APT-2024-101 on WhatsApp at +221 77 849 41 11 or call us, and we will arrange a time — including evenings and weekends.</p></details>
+  </div>
+
+  <section class="guides-lies">
+    <h2>Before you commit</h2>
+    <p>Practical guides on the questions this kind of property usually raises.</p>
+    <ul>
+      <li><a href="../guides/en/frais-achat-immobilier-senegal.html">Property Purchase Costs in Senegal</a></li><li><a href="../guides/en/verifier-titre-foncier-senegal.html">Checking Land Title Status in Senegal</a></li><li><a href="../guides/en/acheter-terrain-senegal-depuis-etranger.html">Buying Land in Senegal from Abroad</a></li>
+    </ul>
+  </section>
 
   <section class="contact">
     <h2>Interested in this property?</h2>
@@ -219,7 +332,7 @@
       <a class="voisin" href="apartment-for-sale-thies-ouest-ap-2026-6664.html">
         <span class="voisin-photo" style="background-image:url('https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/bc763fe2-2b40-4442-ba8a-0217f6d87886/1784657052852-0-Terrains_225m__Km50.jpg?width=400&quality=70')"></span>
         <span class="voisin-txt">
-          <b>Apartment for sale in Randoulene, Thiès Ouest (Thiès)</b>
+          <b>Apartment for sale in Randoulene, Thiès Ouest</b>
           <em>130 000 FCFA · 100 m²</em>
         </span>
       </a>

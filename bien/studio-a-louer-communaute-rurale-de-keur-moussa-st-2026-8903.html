@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Studio à louer à Pouyéne, Communauté rurale de Keur Moussa (Thiès) | PAB Immo</title>
+<title>Studio à louer à Communauté rurale de Keur Moussa | PAB Immo</title>
 <meta name="description" content="Studio à louer à Communauté rurale de Keur Moussa (Thiès) · 50 m² · 50 000 FCFA/mois · 1 chambre. Réf. ST-2026-8903, PAB Immo. Studio" />
 <link rel="canonical" href="https://pabbusiness221.github.io/PAB-Immo/bien/studio-a-louer-communaute-rurale-de-keur-moussa-st-2026-8903.html" />
 <link rel="alternate" hreflang="fr" href="https://pabbusiness221.github.io/PAB-Immo/bien/studio-a-louer-communaute-rurale-de-keur-moussa-st-2026-8903.html" />
@@ -14,17 +14,17 @@
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="PAB Immo" />
 <meta property="og:locale" content="fr_FR" />
-<meta property="og:title" content="Studio à louer à Pouyéne, Communauté rurale de Keur Moussa (Thiès)" />
+<meta property="og:title" content="Studio à louer à Communauté rurale de Keur Moussa" />
 <meta property="og:description" content="Studio à louer à Communauté rurale de Keur Moussa (Thiès) · 50 m² · 50 000 FCFA/mois · 1 chambre. Réf. ST-2026-8903, PAB Immo. Studio" />
 <meta property="og:image" content="https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/af40551e-50d7-4c76-843d-c1e6743940bb/1784989683859-0-1000405251.jpg?width=1200&amp;height=630&amp;resize=cover&amp;quality=75" />
 <meta property="og:image:secure_url" content="https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/af40551e-50d7-4c76-843d-c1e6743940bb/1784989683859-0-1000405251.jpg?width=1200&amp;height=630&amp;resize=cover&amp;quality=75" />
 <meta property="og:image:type" content="image/jpeg" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="Studio à louer à Pouyéne, Communauté rurale de Keur Moussa (Thiès)" />
+<meta property="og:image:alt" content="Studio à louer à Communauté rurale de Keur Moussa" />
 <meta property="og:url" content="https://pabbusiness221.github.io/PAB-Immo/bien/studio-a-louer-communaute-rurale-de-keur-moussa-st-2026-8903.html" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Studio à louer à Pouyéne, Communauté rurale de Keur Moussa (Thiès)" />
+<meta name="twitter:title" content="Studio à louer à Communauté rurale de Keur Moussa" />
 <meta name="twitter:description" content="Studio à louer à Communauté rurale de Keur Moussa (Thiès) · 50 m² · 50 000 FCFA/mois · 1 chambre. Réf. ST-2026-8903, PAB Immo. Studio" />
 <meta name="twitter:image" content="https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/af40551e-50d7-4c76-843d-c1e6743940bb/1784989683859-0-1000405251.jpg?width=1200&amp;height=630&amp;resize=cover&amp;quality=75" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -60,6 +60,28 @@
   .photo img{width:100%;height:auto;display:block;border-radius:var(--radius-md);background:var(--surface-alt);}
   h2{font-family:'Manrope',sans-serif;font-size:17px;font-weight:800;margin:30px 0 12px;}
   .faits{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0;padding:0;list-style:none;}
+  /* Questions fréquentes. Repliées par défaut : la fiche doit rester courte à
+     l'œil, alors que la réponse doit exister dans la page pour être lue par
+     Google — <details> réunit les deux, sans JavaScript. */
+  .resume{font-size:15px;line-height:1.7;color:var(--ink);margin:0 0 6px;}
+  .etapes{margin:0;padding:0;list-style:none;counter-reset:etape;display:grid;gap:10px;}
+  .etapes li{counter-increment:etape;position:relative;padding-left:44px;}
+  .etapes li::before{content:counter(etape);position:absolute;left:0;top:0;width:30px;height:30px;
+    border-radius:50%;background:var(--night);color:#fff;display:grid;place-items:center;
+    font-weight:800;font-size:13px;}
+  .etapes li b{display:block;font-size:14px;color:var(--night);margin-bottom:2px;}
+  .etapes li span{font-size:13.5px;line-height:1.6;color:var(--ink-soft);}
+  .faq-bien details{border:1px solid var(--border);border-radius:10px;background:var(--surface);margin-bottom:8px;}
+  .faq-bien summary{cursor:pointer;padding:13px 16px;font-weight:700;font-size:14px;color:var(--night);list-style:none;}
+  .faq-bien summary::-webkit-details-marker{display:none;}
+  .faq-bien summary::after{content:'+';float:right;color:var(--accent);font-size:18px;line-height:1;}
+  .faq-bien details[open] summary::after{content:'\2212';}
+  .faq-bien summary:hover{color:var(--accent-dark);}
+  .faq-bien summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px;}
+  .faq-bien p{margin:0;padding:0 16px 14px;font-size:13.5px;line-height:1.65;color:var(--ink-soft);}
+  .guides-lies ul{margin:0;padding:0;list-style:none;display:grid;gap:8px;}
+  .guides-lies li a{display:block;padding:12px 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--night);text-decoration:none;font-weight:600;font-size:13.5px;}
+  .guides-lies li a:hover{border-color:var(--accent);color:var(--accent-dark);}
   .faits li{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;}
   .faits b{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);font-weight:700;}
   .faits span{font-size:15px;font-weight:800;}
@@ -108,48 +130,119 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "RealEstateListing",
-  "name": "Studio à louer à Pouyéne, Communauté rurale de Keur Moussa (Thiès)",
-  "description": "Studio à louer à Communauté rurale de Keur Moussa (Thiès) · 50 m² · 50 000 FCFA/mois · 1 chambre. Réf. ST-2026-8903, PAB Immo. Studio",
-  "inLanguage": "fr",
-  "url": "https://pabbusiness221.github.io/PAB-Immo/bien/studio-a-louer-communaute-rurale-de-keur-moussa-st-2026-8903.html",
-  "datePosted": "2026-07-25",
-  "identifier": "ST-2026-8903",
-  "image": [
-    "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/af40551e-50d7-4c76-843d-c1e6743940bb/1784989683859-0-1000405251.jpg?width=1200&quality=70",
-    "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/af40551e-50d7-4c76-843d-c1e6743940bb/1784989685005-1-1000405294.jpg?width=1200&quality=70"
-  ],
-  "address": {
-    "@type": "PostalAddress",
-    "addressLocality": "Communauté rurale de Keur Moussa",
-    "addressRegion": "Thiès",
-    "addressCountry": "SN",
-    "streetAddress": "Pouyéne"
-  },
-  "geo": {
-    "@type": "GeoCoordinates",
-    "latitude": 14.774775,
-    "longitude": -17.124776
-  },
-  "offers": {
-    "@type": "Offer",
-    "price": 50000,
-    "priceCurrency": "XOF",
-    "availability": "https://schema.org/InStock",
-    "seller": {
-      "@type": "RealEstateAgent",
-      "name": "PAB Immo",
-      "telephone": "+221778494111",
-      "areaServed": "Dakar, Thiès, Sénégal"
+  "@graph": [
+    {
+      "@type": "RealEstateListing",
+      "name": "Studio à louer à Communauté rurale de Keur Moussa",
+      "description": "Studio à louer à Communauté rurale de Keur Moussa (Thiès) · 50 m² · 50 000 FCFA/mois · 1 chambre. Réf. ST-2026-8903, PAB Immo. Studio",
+      "inLanguage": "fr",
+      "url": "https://pabbusiness221.github.io/PAB-Immo/bien/studio-a-louer-communaute-rurale-de-keur-moussa-st-2026-8903.html",
+      "datePosted": "2026-07-25",
+      "identifier": "ST-2026-8903",
+      "image": [
+        "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/af40551e-50d7-4c76-843d-c1e6743940bb/1784989683859-0-1000405251.jpg?width=1200&quality=70",
+        "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/af40551e-50d7-4c76-843d-c1e6743940bb/1784989685005-1-1000405294.jpg?width=1200&quality=70"
+      ],
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Communauté rurale de Keur Moussa",
+        "addressRegion": "Thiès",
+        "addressCountry": "SN",
+        "streetAddress": "Pouyéne"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 14.774775,
+        "longitude": -17.124776
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": 50000,
+        "priceCurrency": "XOF",
+        "availability": "https://schema.org/InStock",
+        "seller": {
+          "@type": "RealEstateAgent",
+          "name": "PAB Immo",
+          "telephone": "+221778494111",
+          "areaServed": "Dakar, Thiès, Sénégal"
+        }
+      },
+      "floorSize": {
+        "@type": "QuantitativeValue",
+        "value": 50.0,
+        "unitCode": "MTK"
+      },
+      "numberOfBedrooms": 1,
+      "numberOfBathroomsTotal": 1
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Tous les biens",
+          "item": "https://pabbusiness221.github.io/PAB-Immo/bien/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Studio"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Communauté rurale de Keur Moussa",
+          "item": "https://pabbusiness221.github.io/PAB-Immo/bien/studio-a-louer-communaute-rurale-de-keur-moussa-st-2026-8903.html"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Quel est le prix de ce studio à Communauté rurale de Keur Moussa ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Ce bien est proposé à 50 000 FCFA/mois. Référence ST-2026-8903."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Quelle est la superficie ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Ce bien fait 50 m²."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Comment est-il agencé ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Le bien comprend 1 chambre, 1 salon, 1 salle de bain."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Ce bien est-il encore disponible ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Statut à la dernière mise à jour : Disponible. La disponibilité est vérifiée régulièrement, et nous la confirmons par téléphone ou WhatsApp avant toute visite."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Comment visiter ce bien à Communauté rurale de Keur Moussa ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Les visites se font sur rendez-vous. Envoyez la référence ST-2026-8903 par WhatsApp au +221 77 849 41 11 ou appelez-nous, et nous conviendrons d'un créneau — y compris en soirée et le week-end."
+          }
+        }
+      ]
     }
-  },
-  "floorSize": {
-    "@type": "QuantitativeValue",
-    "value": 50.0,
-    "unitCode": "MTK"
-  },
-  "numberOfBedrooms": 1,
-  "numberOfBathroomsTotal": 1
+  ]
 }
 </script>
 </head>
@@ -171,7 +264,7 @@
     <a href="./">Tous les biens</a> › Studio › Communauté rurale de Keur Moussa
   </nav>
 
-  <h1>Studio à louer à Pouyéne, Communauté rurale de Keur Moussa (Thiès)</h1>
+  <h1>Studio à louer à Communauté rurale de Keur Moussa</h1>
   <p class="lieu">Pouyéne, Communauté rurale de Keur Moussa, région de Thiès</p>
   <p class="prix">50 000 FCFA<span> /mois</span></p>
   <p class="prix-secondaire">≈ 76 € · 83 $US/mois</p>
@@ -202,6 +295,8 @@
              loading="lazy" decoding="async" fetchpriority="auto" />
       </figure>
 
+  <p class="resume">Ce studio est à louer à Pouyéne, Communauté rurale de Keur Moussa, dans la région de Thiès. Il fait 50 m² et est proposé à 50 000 FCFA/mois. Il compte 1 chambre. Référence ST-2026-8903, visites sur rendez-vous.</p>
+
   <h2>Caractéristiques</h2>
   <ul class="faits">
     <li><b>Type</b><span>Studio</span></li>
@@ -213,6 +308,24 @@
   </ul>
 
   <h2>Description</h2><p class="texte">Studio</p>
+
+  <h2>Comment se passe la suite</h2>
+  <ol class="etapes">
+    <li><b>Visiter le bien à Communauté rurale de Keur Moussa</b><span>Nous convenons d'un créneau qui vous arrange, y compris en soirée et le week-end.</span></li><li><b>Examiner le bail</b><span>Durée, caution, avance de loyers et charges sont fixées par écrit avant toute signature.</span></li><li><b>État des lieux et remise des clés</b><span>Un état des lieux écrit protège les deux parties, à l'entrée comme à la sortie.</span></li>
+  </ol>
+
+  <h2>Questions fréquentes sur ce bien</h2>
+  <div class="faq-bien">
+    <details><summary>Quel est le prix de ce studio à Communauté rurale de Keur Moussa ?</summary><p>Ce bien est proposé à 50 000 FCFA/mois. Référence ST-2026-8903.</p></details><details><summary>Quelle est la superficie ?</summary><p>Ce bien fait 50 m².</p></details><details><summary>Comment est-il agencé ?</summary><p>Le bien comprend 1 chambre, 1 salon, 1 salle de bain.</p></details><details><summary>Ce bien est-il encore disponible ?</summary><p>Statut à la dernière mise à jour : Disponible. La disponibilité est vérifiée régulièrement, et nous la confirmons par téléphone ou WhatsApp avant toute visite.</p></details><details><summary>Comment visiter ce bien à Communauté rurale de Keur Moussa ?</summary><p>Les visites se font sur rendez-vous. Envoyez la référence ST-2026-8903 par WhatsApp au +221 77 849 41 11 ou appelez-nous, et nous conviendrons d'un créneau — y compris en soirée et le week-end.</p></details>
+  </div>
+
+  <section class="guides-lies">
+    <h2>Avant de vous engager</h2>
+    <p>Nos guides pratiques sur les questions que pose ce type de bien.</p>
+    <ul>
+      <li><a href="../guides/louer-logement-dakar-bail-caution.html">Louer un logement à Dakar : bail et caution</a></li><li><a href="../guides/questions-frequentes.html">Questions fréquentes sur l'immobilier au Sénégal</a></li>
+    </ul>
+  </section>
 
   <section class="contact">
     <h2>Intéressé par ce bien ?</h2>
@@ -240,7 +353,7 @@
       <a class="voisin" href="terrain-a-vendre-communaute-rurale-de-keur-moussa-tf-2026-5481.html">
         <span class="voisin-photo" style="background-image:url('https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/661fb3e6-335d-4e7e-adf9-790d03128906/1784989377406-0-1000387533.jpg?width=400&quality=70')"></span>
         <span class="voisin-txt">
-          <b>Terrain à vendre à Pouyéne, Communauté rurale de Keur Moussa (Thiès)</b>
+          <b>Terrain à vendre à Communauté rurale de Keur…</b>
           <em>2 500 000 FCFA · 300 m²</em>
         </span>
       </a>

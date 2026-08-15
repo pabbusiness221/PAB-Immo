@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Maison à louer à Tanghor, Sébikhotane (Dakar) | PAB Immo</title>
-<meta name="description" content="Maison à louer à Sébikhotane (Dakar) · 300 m² · 500 000 FCFA/mois · 4 chambres. Réf. MA-2026-7029, PAB Immo. Maison à louer à Tanghor, Sébikhotane, Dakar, d'une superficie de 300 m². Elle comprend 4 chambres, 2 salons, 3 salles de bain et une cuisine équipée. Le bien dispose également d'un garage et" />
+<meta name="description" content="Maison à louer à Sébikhotane (Dakar) · 300 m² · 500 000 FCFA/mois · 4 chambres. Réf. MA-2026-7029, PAB Immo. Maison à louer à Tanghor, Sébikhotane…" />
 <link rel="canonical" href="https://pabbusiness221.github.io/PAB-Immo/bien/maison-a-louer-sebikhotane-ma-2026-7029.html" />
 <link rel="alternate" hreflang="fr" href="https://pabbusiness221.github.io/PAB-Immo/bien/maison-a-louer-sebikhotane-ma-2026-7029.html" />
 <link rel="alternate" hreflang="en" href="https://pabbusiness221.github.io/PAB-Immo/bien/en/house-for-rent-sebikhotane-ma-2026-7029.html" />
@@ -15,7 +15,7 @@
 <meta property="og:site_name" content="PAB Immo" />
 <meta property="og:locale" content="fr_FR" />
 <meta property="og:title" content="Maison à louer à Tanghor, Sébikhotane (Dakar)" />
-<meta property="og:description" content="Maison à louer à Sébikhotane (Dakar) · 300 m² · 500 000 FCFA/mois · 4 chambres. Réf. MA-2026-7029, PAB Immo. Maison à louer à Tanghor, Sébikhotane, Dakar, d'une superficie de 300 m². Elle comprend 4 chambres, 2 salons, 3 salles de bain et une cuisine équipée. Le bien dispose également d'un garage et" />
+<meta property="og:description" content="Maison à louer à Sébikhotane (Dakar) · 300 m² · 500 000 FCFA/mois · 4 chambres. Réf. MA-2026-7029, PAB Immo. Maison à louer à Tanghor, Sébikhotane…" />
 <meta property="og:image" content="https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/0da3085d-a076-452d-abd1-bbabe6987d21/1784250302126-0-IMG_5856.jpeg?width=1200&amp;height=630&amp;resize=cover&amp;quality=75" />
 <meta property="og:image:secure_url" content="https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/0da3085d-a076-452d-abd1-bbabe6987d21/1784250302126-0-IMG_5856.jpeg?width=1200&amp;height=630&amp;resize=cover&amp;quality=75" />
 <meta property="og:image:type" content="image/jpeg" />
@@ -25,7 +25,7 @@
 <meta property="og:url" content="https://pabbusiness221.github.io/PAB-Immo/bien/maison-a-louer-sebikhotane-ma-2026-7029.html" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Maison à louer à Tanghor, Sébikhotane (Dakar)" />
-<meta name="twitter:description" content="Maison à louer à Sébikhotane (Dakar) · 300 m² · 500 000 FCFA/mois · 4 chambres. Réf. MA-2026-7029, PAB Immo. Maison à louer à Tanghor, Sébikhotane, Dakar, d'une superficie de 300 m². Elle comprend 4 chambres, 2 salons, 3 salles de bain et une cuisine équipée. Le bien dispose également d'un garage et" />
+<meta name="twitter:description" content="Maison à louer à Sébikhotane (Dakar) · 300 m² · 500 000 FCFA/mois · 4 chambres. Réf. MA-2026-7029, PAB Immo. Maison à louer à Tanghor, Sébikhotane…" />
 <meta name="twitter:image" content="https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/0da3085d-a076-452d-abd1-bbabe6987d21/1784250302126-0-IMG_5856.jpeg?width=1200&amp;height=630&amp;resize=cover&amp;quality=75" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -60,6 +60,28 @@
   .photo img{width:100%;height:auto;display:block;border-radius:var(--radius-md);background:var(--surface-alt);}
   h2{font-family:'Manrope',sans-serif;font-size:17px;font-weight:800;margin:30px 0 12px;}
   .faits{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0;padding:0;list-style:none;}
+  /* Questions fréquentes. Repliées par défaut : la fiche doit rester courte à
+     l'œil, alors que la réponse doit exister dans la page pour être lue par
+     Google — <details> réunit les deux, sans JavaScript. */
+  .resume{font-size:15px;line-height:1.7;color:var(--ink);margin:0 0 6px;}
+  .etapes{margin:0;padding:0;list-style:none;counter-reset:etape;display:grid;gap:10px;}
+  .etapes li{counter-increment:etape;position:relative;padding-left:44px;}
+  .etapes li::before{content:counter(etape);position:absolute;left:0;top:0;width:30px;height:30px;
+    border-radius:50%;background:var(--night);color:#fff;display:grid;place-items:center;
+    font-weight:800;font-size:13px;}
+  .etapes li b{display:block;font-size:14px;color:var(--night);margin-bottom:2px;}
+  .etapes li span{font-size:13.5px;line-height:1.6;color:var(--ink-soft);}
+  .faq-bien details{border:1px solid var(--border);border-radius:10px;background:var(--surface);margin-bottom:8px;}
+  .faq-bien summary{cursor:pointer;padding:13px 16px;font-weight:700;font-size:14px;color:var(--night);list-style:none;}
+  .faq-bien summary::-webkit-details-marker{display:none;}
+  .faq-bien summary::after{content:'+';float:right;color:var(--accent);font-size:18px;line-height:1;}
+  .faq-bien details[open] summary::after{content:'\2212';}
+  .faq-bien summary:hover{color:var(--accent-dark);}
+  .faq-bien summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px;}
+  .faq-bien p{margin:0;padding:0 16px 14px;font-size:13.5px;line-height:1.65;color:var(--ink-soft);}
+  .guides-lies ul{margin:0;padding:0;list-style:none;display:grid;gap:8px;}
+  .guides-lies li a{display:block;padding:12px 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--night);text-decoration:none;font-weight:600;font-size:13.5px;}
+  .guides-lies li a:hover{border-color:var(--accent);color:var(--accent-dark);}
   .faits li{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;}
   .faits b{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);font-weight:700;}
   .faits span{font-size:15px;font-weight:800;}
@@ -108,50 +130,121 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "RealEstateListing",
-  "name": "Maison à louer à Tanghor, Sébikhotane (Dakar)",
-  "description": "Maison à louer à Sébikhotane (Dakar) · 300 m² · 500 000 FCFA/mois · 4 chambres. Réf. MA-2026-7029, PAB Immo. Maison à louer à Tanghor, Sébikhotane, Dakar, d'une superficie de 300 m². Elle comprend 4 chambres, 2 salons, 3 salles de bain et une cuisine équipée. Le bien dispose également d'un garage et",
-  "inLanguage": "fr",
-  "url": "https://pabbusiness221.github.io/PAB-Immo/bien/maison-a-louer-sebikhotane-ma-2026-7029.html",
-  "datePosted": "2026-07-22",
-  "identifier": "MA-2026-7029",
-  "image": [
-    "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/0da3085d-a076-452d-abd1-bbabe6987d21/1784250302126-0-IMG_5856.jpeg?width=1200&quality=70",
-    "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/0da3085d-a076-452d-abd1-bbabe6987d21/1784250302805-1-IMG_5857.jpeg?width=1200&quality=70",
-    "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/0da3085d-a076-452d-abd1-bbabe6987d21/1784250304256-2-IMG_5859.jpeg?width=1200&quality=70",
-    "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/0da3085d-a076-452d-abd1-bbabe6987d21/1784250304827-3-IMG_5858.jpeg?width=1200&quality=70"
-  ],
-  "address": {
-    "@type": "PostalAddress",
-    "addressLocality": "Sébikhotane",
-    "addressRegion": "Dakar",
-    "addressCountry": "SN",
-    "streetAddress": "Tanghor"
-  },
-  "geo": {
-    "@type": "GeoCoordinates",
-    "latitude": 14.734177,
-    "longitude": -17.143927
-  },
-  "offers": {
-    "@type": "Offer",
-    "price": 500000,
-    "priceCurrency": "XOF",
-    "availability": "https://schema.org/InStock",
-    "seller": {
-      "@type": "RealEstateAgent",
-      "name": "PAB Immo",
-      "telephone": "+221778494111",
-      "areaServed": "Dakar, Thiès, Sénégal"
+  "@graph": [
+    {
+      "@type": "RealEstateListing",
+      "name": "Maison à louer à Tanghor, Sébikhotane (Dakar)",
+      "description": "Maison à louer à Sébikhotane (Dakar) · 300 m² · 500 000 FCFA/mois · 4 chambres. Réf. MA-2026-7029, PAB Immo. Maison à louer à Tanghor, Sébikhotane…",
+      "inLanguage": "fr",
+      "url": "https://pabbusiness221.github.io/PAB-Immo/bien/maison-a-louer-sebikhotane-ma-2026-7029.html",
+      "datePosted": "2026-07-22",
+      "identifier": "MA-2026-7029",
+      "image": [
+        "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/0da3085d-a076-452d-abd1-bbabe6987d21/1784250302126-0-IMG_5856.jpeg?width=1200&quality=70",
+        "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/0da3085d-a076-452d-abd1-bbabe6987d21/1784250302805-1-IMG_5857.jpeg?width=1200&quality=70",
+        "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/0da3085d-a076-452d-abd1-bbabe6987d21/1784250304256-2-IMG_5859.jpeg?width=1200&quality=70",
+        "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/0da3085d-a076-452d-abd1-bbabe6987d21/1784250304827-3-IMG_5858.jpeg?width=1200&quality=70"
+      ],
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Sébikhotane",
+        "addressRegion": "Dakar",
+        "addressCountry": "SN",
+        "streetAddress": "Tanghor"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 14.734177,
+        "longitude": -17.143927
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": 500000,
+        "priceCurrency": "XOF",
+        "availability": "https://schema.org/InStock",
+        "seller": {
+          "@type": "RealEstateAgent",
+          "name": "PAB Immo",
+          "telephone": "+221778494111",
+          "areaServed": "Dakar, Thiès, Sénégal"
+        }
+      },
+      "floorSize": {
+        "@type": "QuantitativeValue",
+        "value": 300.0,
+        "unitCode": "MTK"
+      },
+      "numberOfBedrooms": 4,
+      "numberOfBathroomsTotal": 3
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Tous les biens",
+          "item": "https://pabbusiness221.github.io/PAB-Immo/bien/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Maison"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Sébikhotane",
+          "item": "https://pabbusiness221.github.io/PAB-Immo/bien/maison-a-louer-sebikhotane-ma-2026-7029.html"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Quel est le prix de cette maison à Sébikhotane ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Ce bien est proposé à 500 000 FCFA/mois. Référence MA-2026-7029."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Quelle est la superficie ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Ce bien fait 300 m²."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Comment est-elle agencée ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Le bien comprend 4 chambres, 2 salons, 3 salles de bain."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Ce bien est-il encore disponible ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Statut à la dernière mise à jour : Disponible. La disponibilité est vérifiée régulièrement, et nous la confirmons par téléphone ou WhatsApp avant toute visite."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Comment visiter ce bien à Sébikhotane ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Les visites se font sur rendez-vous. Envoyez la référence MA-2026-7029 par WhatsApp au +221 77 849 41 11 ou appelez-nous, et nous conviendrons d'un créneau — y compris en soirée et le week-end."
+          }
+        }
+      ]
     }
-  },
-  "floorSize": {
-    "@type": "QuantitativeValue",
-    "value": 300.0,
-    "unitCode": "MTK"
-  },
-  "numberOfBedrooms": 4,
-  "numberOfBathroomsTotal": 3
+  ]
 }
 </script>
 </head>
@@ -220,6 +313,8 @@
              loading="lazy" decoding="async" fetchpriority="auto" />
       </figure>
 
+  <p class="resume">Cette maison est à louer à Tanghor, Sébikhotane, dans la région de Dakar. Elle fait 300 m² et est proposée à 500 000 FCFA/mois. Elle compte 4 chambres. Référence MA-2026-7029, visites sur rendez-vous.</p>
+
   <h2>Caractéristiques</h2>
   <ul class="faits">
     <li><b>Type</b><span>Maison</span></li>
@@ -233,6 +328,24 @@
   <h2>Description</h2><p class="texte">Maison à louer à Tanghor, Sébikhotane, Dakar, d'une superficie de 300 m². Elle comprend 4 chambres, 2 salons, 3 salles de bain et une cuisine équipée. Le bien dispose également d'un garage et d'un jardin.
 
 Le loyer mensuel est fixé à 500 000 FCFA. Pour obtenir plus de détails ou planifier une visite, veuillez contacter PAB Immo.</p>
+
+  <h2>Comment se passe la suite</h2>
+  <ol class="etapes">
+    <li><b>Visiter le bien à Sébikhotane</b><span>Nous convenons d'un créneau qui vous arrange, y compris en soirée et le week-end.</span></li><li><b>Examiner le bail</b><span>Durée, caution, avance de loyers et charges sont fixées par écrit avant toute signature.</span></li><li><b>État des lieux et remise des clés</b><span>Un état des lieux écrit protège les deux parties, à l'entrée comme à la sortie.</span></li>
+  </ol>
+
+  <h2>Questions fréquentes sur ce bien</h2>
+  <div class="faq-bien">
+    <details><summary>Quel est le prix de cette maison à Sébikhotane ?</summary><p>Ce bien est proposé à 500 000 FCFA/mois. Référence MA-2026-7029.</p></details><details><summary>Quelle est la superficie ?</summary><p>Ce bien fait 300 m².</p></details><details><summary>Comment est-elle agencée ?</summary><p>Le bien comprend 4 chambres, 2 salons, 3 salles de bain.</p></details><details><summary>Ce bien est-il encore disponible ?</summary><p>Statut à la dernière mise à jour : Disponible. La disponibilité est vérifiée régulièrement, et nous la confirmons par téléphone ou WhatsApp avant toute visite.</p></details><details><summary>Comment visiter ce bien à Sébikhotane ?</summary><p>Les visites se font sur rendez-vous. Envoyez la référence MA-2026-7029 par WhatsApp au +221 77 849 41 11 ou appelez-nous, et nous conviendrons d'un créneau — y compris en soirée et le week-end.</p></details>
+  </div>
+
+  <section class="guides-lies">
+    <h2>Avant de vous engager</h2>
+    <p>Nos guides pratiques sur les questions que pose ce type de bien.</p>
+    <ul>
+      <li><a href="../guides/louer-logement-dakar-bail-caution.html">Louer un logement à Dakar : bail et caution</a></li><li><a href="../guides/questions-frequentes.html">Questions fréquentes sur l'immobilier au Sénégal</a></li>
+    </ul>
+  </section>
 
   <section class="contact">
     <h2>Intéressé par ce bien ?</h2>
@@ -267,7 +380,7 @@ Le loyer mensuel est fixé à 500 000 FCFA. Pour obtenir plus de détails ou pla
       <a class="voisin" href="studio-a-louer-communaute-rurale-de-keur-moussa-st-2026-8903.html">
         <span class="voisin-photo" style="background-image:url('https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/af40551e-50d7-4c76-843d-c1e6743940bb/1784989683859-0-1000405251.jpg?width=400&quality=70')"></span>
         <span class="voisin-txt">
-          <b>Studio à louer à Pouyéne, Communauté rurale de Keur Moussa (Thiès)</b>
+          <b>Studio à louer à Communauté rurale de Keur Moussa</b>
           <em>50 000 FCFA/mois · 50 m²</em>
         </span>
       </a>

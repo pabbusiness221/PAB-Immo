@@ -60,6 +60,28 @@
   .photo img{width:100%;height:auto;display:block;border-radius:var(--radius-md);background:var(--surface-alt);}
   h2{font-family:'Manrope',sans-serif;font-size:17px;font-weight:800;margin:30px 0 12px;}
   .faits{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0;padding:0;list-style:none;}
+  /* Questions fréquentes. Repliées par défaut : la fiche doit rester courte à
+     l'œil, alors que la réponse doit exister dans la page pour être lue par
+     Google — <details> réunit les deux, sans JavaScript. */
+  .resume{font-size:15px;line-height:1.7;color:var(--ink);margin:0 0 6px;}
+  .etapes{margin:0;padding:0;list-style:none;counter-reset:etape;display:grid;gap:10px;}
+  .etapes li{counter-increment:etape;position:relative;padding-left:44px;}
+  .etapes li::before{content:counter(etape);position:absolute;left:0;top:0;width:30px;height:30px;
+    border-radius:50%;background:var(--night);color:#fff;display:grid;place-items:center;
+    font-weight:800;font-size:13px;}
+  .etapes li b{display:block;font-size:14px;color:var(--night);margin-bottom:2px;}
+  .etapes li span{font-size:13.5px;line-height:1.6;color:var(--ink-soft);}
+  .faq-bien details{border:1px solid var(--border);border-radius:10px;background:var(--surface);margin-bottom:8px;}
+  .faq-bien summary{cursor:pointer;padding:13px 16px;font-weight:700;font-size:14px;color:var(--night);list-style:none;}
+  .faq-bien summary::-webkit-details-marker{display:none;}
+  .faq-bien summary::after{content:'+';float:right;color:var(--accent);font-size:18px;line-height:1;}
+  .faq-bien details[open] summary::after{content:'\2212';}
+  .faq-bien summary:hover{color:var(--accent-dark);}
+  .faq-bien summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px;}
+  .faq-bien p{margin:0;padding:0 16px 14px;font-size:13.5px;line-height:1.65;color:var(--ink-soft);}
+  .guides-lies ul{margin:0;padding:0;list-style:none;display:grid;gap:8px;}
+  .guides-lies li a{display:block;padding:12px 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--night);text-decoration:none;font-weight:600;font-size:13.5px;}
+  .guides-lies li a:hover{border-color:var(--accent);color:var(--accent-dark);}
   .faits li{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;}
   .faits b{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);font-weight:700;}
   .faits span{font-size:15px;font-weight:800;}
@@ -108,44 +130,107 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "RealEstateListing",
-  "name": "Farmland for sale in Thiès",
-  "description": "Farmland for sale in Thiès (Thiès) · 2 ha · 10 000 000 FCFA. Ref. CH-2026-5515, PAB Immo. Fields",
-  "inLanguage": "en",
-  "url": "https://pabbusiness221.github.io/PAB-Immo/bien/en/farmland-for-sale-thies-ch-2026-5515.html",
-  "datePosted": "2026-07-25",
-  "identifier": "CH-2026-5515",
-  "image": [
-    "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/7a1018b5-a9fe-4306-b2d1-0068ef2369eb/1784989576198-0-1000347034.jpg?width=1200&quality=70"
-  ],
-  "address": {
-    "@type": "PostalAddress",
-    "addressLocality": "Thiès",
-    "addressRegion": "Thiès",
-    "addressCountry": "SN"
-  },
-  "geo": {
-    "@type": "GeoCoordinates",
-    "latitude": 14.786152,
-    "longitude": -16.931763
-  },
-  "offers": {
-    "@type": "Offer",
-    "price": 10000000,
-    "priceCurrency": "XOF",
-    "availability": "https://schema.org/InStock",
-    "seller": {
-      "@type": "RealEstateAgent",
-      "name": "PAB Immo",
-      "telephone": "+221778494111",
-      "areaServed": "Dakar, Thiès, Sénégal"
+  "@graph": [
+    {
+      "@type": "RealEstateListing",
+      "name": "Farmland for sale in Thiès",
+      "description": "Farmland for sale in Thiès (Thiès) · 2 ha · 10 000 000 FCFA. Ref. CH-2026-5515, PAB Immo. Fields",
+      "inLanguage": "en",
+      "url": "https://pabbusiness221.github.io/PAB-Immo/bien/en/farmland-for-sale-thies-ch-2026-5515.html",
+      "datePosted": "2026-07-25",
+      "identifier": "CH-2026-5515",
+      "image": [
+        "https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/7a1018b5-a9fe-4306-b2d1-0068ef2369eb/1784989576198-0-1000347034.jpg?width=1200&quality=70"
+      ],
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Thiès",
+        "addressRegion": "Thiès",
+        "addressCountry": "SN"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 14.786152,
+        "longitude": -16.931763
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": 10000000,
+        "priceCurrency": "XOF",
+        "availability": "https://schema.org/InStock",
+        "seller": {
+          "@type": "RealEstateAgent",
+          "name": "PAB Immo",
+          "telephone": "+221778494111",
+          "areaServed": "Dakar, Thiès, Sénégal"
+        }
+      },
+      "floorSize": {
+        "@type": "QuantitativeValue",
+        "value": 2.0,
+        "unitCode": "HAR"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "All properties",
+          "item": "https://pabbusiness221.github.io/PAB-Immo/bien/en/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Farmland"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Thiès",
+          "item": "https://pabbusiness221.github.io/PAB-Immo/bien/en/farmland-for-sale-thies-ch-2026-5515.html"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How much does this farmland in Thiès cost?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "This property is listed at 10 000 000 FCFA. That works out to about 5 000 000 FCFA per hectare. Reference CH-2026-5515."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How big is it?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "2 ha."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is it still available?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Status at the last update: Available. Availability is checked regularly, and we confirm it by phone or WhatsApp before any visit."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How can I visit this property in Thiès?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Visits are by appointment. Send reference CH-2026-5515 on WhatsApp at +221 77 849 41 11 or call us, and we will arrange a time — including evenings and weekends."
+          }
+        }
+      ]
     }
-  },
-  "floorSize": {
-    "@type": "QuantitativeValue",
-    "value": 2.0,
-    "unitCode": "HAR"
-  }
+  ]
 }
 </script>
 </head>
@@ -190,6 +275,8 @@
              loading="eager" decoding="async" fetchpriority="high" />
       </figure>
 
+  <p class="resume">This farmland is for sale in Thiès, in the region of Thiès. It covers 2 ha and is listed at 10 000 000 FCFA. That is roughly 5 000 000 FCFA per hectare, a figure worth comparing with other listings in the same area. Reference CH-2026-5515, visits by appointment.</p>
+
   <h2>Features</h2>
   <ul class="faits">
     <li><b>Type</b><span>Farmland</span></li>
@@ -201,6 +288,24 @@
   </ul>
 
   <h2>Description</h2><p class="texte">Fields</p>
+
+  <h2>What happens next</h2>
+  <ol class="etapes">
+    <li><b>Visit the property in Thiès</b><span>By appointment, with someone who knows the file and can answer on site.</span></li><li><b>Check the documents</b><span>Land title, boundary survey and deeds are verified before any commitment, at the notary.</span></li><li><b>Work out the full cost</b><span>Registration duties and notary fees come on top of the asking price.</span></li><li><b>Sign at the notary</b><span>The sale is completed before a notary — the only act that makes the transfer enforceable.</span></li>
+  </ol>
+
+  <h2>Frequently asked questions</h2>
+  <div class="faq-bien">
+    <details><summary>How much does this farmland in Thiès cost?</summary><p>This property is listed at 10 000 000 FCFA. That works out to about 5 000 000 FCFA per hectare. Reference CH-2026-5515.</p></details><details><summary>How big is it?</summary><p>2 ha.</p></details><details><summary>Is it still available?</summary><p>Status at the last update: Available. Availability is checked regularly, and we confirm it by phone or WhatsApp before any visit.</p></details><details><summary>How can I visit this property in Thiès?</summary><p>Visits are by appointment. Send reference CH-2026-5515 on WhatsApp at +221 77 849 41 11 or call us, and we will arrange a time — including evenings and weekends.</p></details>
+  </div>
+
+  <section class="guides-lies">
+    <h2>Before you commit</h2>
+    <p>Practical guides on the questions this kind of property usually raises.</p>
+    <ul>
+      <li><a href="../guides/en/verifier-titre-foncier-senegal.html">Checking Land Title Status in Senegal</a></li><li><a href="../guides/en/frais-achat-immobilier-senegal.html">Property Purchase Costs in Senegal</a></li><li><a href="../guides/en/construire-terrain-senegal-permis.html">Building on Your Land in Senegal</a></li>
+    </ul>
+  </section>
 
   <section class="contact">
     <h2>Interested in this property?</h2>
@@ -242,7 +347,7 @@
       <a class="voisin" href="farmland-for-sale-keur-moussa-ch-2026-8460.html">
         <span class="voisin-photo" style="background-image:url('https://avanktgaxepzpqmsiauz.supabase.co/storage/v1/render/image/public/property-photos/f2950adf-0dfa-4b94-9da2-2ff09de73372/1784650761253-0-ferme-avicole-5260m2-fandene-thies-senegal.jpeg?width=400&quality=70')"></span>
         <span class="voisin-txt">
-          <b>Farmland for sale in Mbirdiam, Keur Moussa (Thiès)</b>
+          <b>Farmland for sale in Mbirdiam, Keur Moussa</b>
           <em>100 000 000 FCFA · 4 ha</em>
         </span>
       </a>

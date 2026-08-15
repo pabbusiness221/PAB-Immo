@@ -381,6 +381,27 @@ def lire(chemin_api):
 # doivent contenir les mots qu'une personne tape réellement : « terrain à
 # vendre », la commune, la région.
 
+# Google coupe le titre autour de 60 caractères et la description autour de
+# 155. Au-delà, la fin est remplacée par des points de suspension : la phrase
+# se termine sur un mot tronqué, ce qui donne une impression de négligence
+# précisément là où il faut inspirer confiance.
+LIMITE_TITRE = 60
+LIMITE_DESCRIPTION = 155
+
+
+def couper_proprement(texte, limite, suffixe="…"):
+    """Coupe sur une frontière de mot, jamais au milieu. Renvoie le texte tel
+    quel s'il tient déjà, sans ajouter de points de suspension inutiles."""
+    texte = " ".join((texte or "").split())
+    if len(texte) <= limite:
+        return texte
+    coupe = texte[:limite - len(suffixe)]
+    espace = coupe.rfind(" ")
+    if espace > limite * 0.6:          # on ne remonte pas jusqu'à tout perdre
+        coupe = coupe[:espace]
+    return coupe.rstrip(" ,;:·—-") + suffixe
+
+
 def titre_bien(b, lang="fr"):
     """Le titre est ce que Google affiche en bleu dans ses résultats. Il doit
     contenir les mots réellement tapés, sans répéter deux fois le même lieu :
@@ -392,14 +413,29 @@ def titre_bien(b, lang="fr"):
     lieu = f"{quartier}, {commune}" if quartier and slug(quartier) != slug(commune) else commune
     # La région n'est ajoutée que si elle apporte une information : « Terrain à
     # vendre à Gueule Tapée, Dakar (Dakar) » n'aide personne.
-    if slug(region) not in {slug(m) for m in (commune, quartier) if m}:
-        lieu += f" ({region})"
+    region_utile = slug(region) not in {slug(m) for m in (commune, quartier) if m}
 
-    if lang == "en":
-        action = tr("à vendre" if b["operation"] == "Vente" else "à louer", "en")
-        return f'{tr(b["type"], "en")} {action} in {lieu}'
-    action = "à vendre" if b["operation"] == "Vente" else "à louer"
-    return f'{b["type"]} {action} à {lieu}'
+    def assembler(avec_region, avec_quartier=True):
+        base = commune
+        if avec_quartier and quartier and slug(quartier) != slug(commune):
+            base = f"{quartier}, {commune}"
+        if avec_region and region_utile:
+            base += f" ({region})"
+        if lang == "en":
+            action = tr("à vendre" if b["operation"] == "Vente" else "à louer", "en")
+            return f'{tr(b["type"], "en")} {action} in {base}'
+        action = "à vendre" if b["operation"] == "Vente" else "à louer"
+        return f'{b["type"]} {action} à {base}'
+
+    # Le titre affiché par Google porte en plus « | PAB Immo ». On raccourcit
+    # donc en sacrifiant d'abord la région, puis le quartier — les éléments les
+    # moins recherchés — plutôt qu'en tronquant la fin, ce qui amputerait le
+    # nom de la commune, c'est-à-dire le mot que les gens tapent.
+    marge = len(f" | {AGENCE}")
+    for candidat in (assembler(True), assembler(False), assembler(False, False)):
+        if len(candidat) + marge <= LIMITE_TITRE:
+            return candidat
+    return couper_proprement(assembler(False, False), LIMITE_TITRE - marge)
 
 
 def texte_description(b, lang):
@@ -437,7 +473,250 @@ def description_bien(b, lang="fr"):
     corps = texte_description(b, lang)
     if corps:
         txt += " " + " ".join(corps.split())
-    return txt[:300]
+    # La coupe brutale à 300 caractères finissait au milieu d'un mot — « d'une
+    # superfic… » — et dépassait de toute façon ce que Google affiche.
+    return couper_proprement(txt, LIMITE_DESCRIPTION)
+
+
+# « Maison » est le seul type féminin du catalogue. Sans cette table, les
+# phrases composées donnaient « ce maison » et « comment est-il agencé » sur
+# les fiches de maisons — une faute d'accord en toutes lettres, sur la page
+# même où l'agence demande qu'on lui fasse confiance.
+FEMININ = {"Maison"}
+
+
+def accords(b):
+    """Renvoie les formes accordées utilisées dans les phrases composées."""
+    f = b["type"] in FEMININ
+    return {
+        "ce": "cette" if f else "ce",
+        "il": "elle" if f else "il",
+        "Il": "Elle" if f else "Il",
+        "e": "e" if f else "",        # proposé / proposée, situé / située
+    }
+
+
+def prix_unitaire(b):
+    """Prix au m² (ou à l'hectare pour un champ). Calculé, jamais inventé :
+    c'est la première chose que compare un acheteur, et la fiche l'obligeait
+    jusqu'ici à sortir sa calculatrice."""
+    try:
+        s = float(b["surface"])
+        p = float(b["price"])
+    except (TypeError, ValueError, KeyError):
+        return None
+    if s <= 0 or p <= 0 or b["operation"] != "Vente":
+        return None
+    return int(round(p / s))
+
+
+def faq_bien(b, lang="fr"):
+    """Questions-réponses composées à partir des seules données du bien.
+
+    Deux bénéfices, pour un même texte. D'abord la page passe de cent
+    quarante mots à un contenu qui répond vraiment : « combien coûte le m² »,
+    « est-ce encore disponible » sont les questions réellement tapées. Ensuite
+    ces questions autorisent le balisage FAQPage, que Google déplie parfois
+    directement dans ses résultats.
+
+    Aucune réponse n'invente quoi que ce soit : chacune se déduit d'un champ
+    renseigné, et les questions sans donnée derrière sont simplement omises.
+    """
+    en = lang == "en"
+    lieu = lieu_court(b["commune"])
+    type_txt = tr(b["type"], lang)
+    q = []
+
+    prix_txt = fcfa(b["price"]) + (("/mo" if en else "/mois")
+                                   if b["operation"] == "Location" else "")
+    unitaire = prix_unitaire(b)
+    if unitaire:
+        unite_txt = "hectare" if b["type"] == "Champ agricole" else "m²"
+        detail = (f" That works out to about {fcfa(unitaire)} per {unite_txt}."
+                  if en else
+                  f" Cela représente environ {fcfa(unitaire)} le {unite_txt}.")
+    else:
+        detail = ""
+    a = accords(b)
+    q.append((
+        f"How much does this {type_txt.lower()} in {lieu} cost?" if en
+        else f"Quel est le prix de {a['ce'] if a['ce'] == 'cette' else 'ce'} {type_txt.lower()} à {lieu} ?",
+        (f"This property is listed at {prix_txt}.{detail} Reference {b['ref']}."
+         if en else
+         f"Ce bien est proposé à {prix_txt}.{detail} Référence {b['ref']}.")))
+
+    q.append((
+        f"How big is it?" if en else "Quelle est la superficie ?",
+        (f"{surface(b)}." if en else f"Ce bien fait {surface(b)}.")))
+
+    if b.get("chambres"):
+        pieces = []
+        if b.get("chambres"):    pieces.append(f'{b["chambres"]} ' + ("bedrooms" if en and b["chambres"] > 1 else "bedroom" if en else "chambres" if b["chambres"] > 1 else "chambre"))
+        if b.get("salons"):      pieces.append(f'{b["salons"]} ' + ("living rooms" if en and b["salons"] > 1 else "living room" if en else "salons" if b["salons"] > 1 else "salon"))
+        if b.get("salles_bain"): pieces.append(f'{b["salles_bain"]} ' + ("bathrooms" if en and b["salles_bain"] > 1 else "bathroom" if en else "salles de bain" if b["salles_bain"] > 1 else "salle de bain"))
+        q.append((
+            "How is it laid out?" if en
+            else f"Comment est-{a['il']} agencé{a['e']} ?",
+            ("It has " if en else "Le bien comprend ") + ", ".join(pieces) + "."))
+
+    if b.get("statut_foncier") and b["statut_foncier"] != "Non renseigné":
+        statut = tr(b["statut_foncier"], lang)
+        q.append((
+            "What is the land title status?" if en else "Quel est le statut foncier ?",
+            (f"This property is held under: {statut}. Our guide explains what "
+             f"each status means and how to check it before you commit."
+             if en else
+             f"Ce bien est sous le statut suivant : {statut}. Notre guide "
+             f"détaille ce que recouvre chaque statut et comment le vérifier "
+             f"avant de s'engager.")))
+
+    dispo = b.get("status") or "Disponible"
+    q.append((
+        "Is it still available?" if en else "Ce bien est-il encore disponible ?",
+        (f"Status at the last update: {tr(dispo, lang)}. Availability is "
+         f"checked regularly, and we confirm it by phone or WhatsApp before "
+         f"any visit." if en else
+         f"Statut à la dernière mise à jour : {tr(dispo, lang)}. La "
+         f"disponibilité est vérifiée régulièrement, et nous la confirmons par "
+         f"téléphone ou WhatsApp avant toute visite.")))
+
+    q.append((
+        f"How can I visit this property in {lieu}?" if en
+        else f"Comment visiter ce bien à {lieu} ?",
+        (f"Visits are by appointment. Send reference {b['ref']} on WhatsApp at "
+         f"{TEL_AFFICHE} or call us, and we will arrange a time — including "
+         f"evenings and weekends." if en else
+         f"Les visites se font sur rendez-vous. Envoyez la référence "
+         f"{b['ref']} par WhatsApp au {TEL_AFFICHE} ou appelez-nous, et nous "
+         f"conviendrons d'un créneau — y compris en soirée et le week-end.")))
+
+    return q
+
+
+def resume_bien(b, lang="fr"):
+    """Un paragraphe de synthèse, composé des seuls champs renseignés.
+
+    Il existe pour deux raisons. Un visiteur arrivé de Google veut savoir en
+    une phrase de quoi il s'agit, sans lire un tableau. Et une page qui ne
+    contient qu'une liste de valeurs ne dit rien à un moteur : ce sont les
+    phrases, pas les cellules, qui portent les mots qu'on tape.
+    """
+    en = lang == "en"
+    lieu = lieu_court(b["commune"])
+    quartier = lieu_court(b.get("quartier") or "")
+    region = lieu_court(b["region"])
+    type_txt = tr(b["type"], lang).lower()
+    action = tr("à vendre" if b["operation"] == "Vente" else "à louer", lang)
+    prix_txt = fcfa(b["price"]) + (("/mo" if en else "/mois")
+                                   if b["operation"] == "Location" else "")
+
+    situe = f"{quartier}, {lieu}" if quartier and slug(quartier) != slug(lieu) else lieu
+    if en:
+        p = (f"This {type_txt} is {action} in {situe}, in the region of "
+             f"{region}. It covers {surface(b)} and is listed at {prix_txt}.")
+    else:
+        a = accords(b)
+        p = (f"{a['ce'].capitalize()} {type_txt} est {action} à {situe}, dans "
+             f"la région de {region}. {a['Il']} fait {surface(b)} et est "
+             f"proposé{a['e']} à {prix_txt}.")
+
+    unitaire = prix_unitaire(b)
+    if unitaire:
+        unite_txt = "hectare" if b["type"] == "Champ agricole" else "m²"
+        p += (f" That is roughly {fcfa(unitaire)} per {unite_txt}, a figure worth "
+              f"comparing with other listings in the same area."
+              if en else
+              f" Soit environ {fcfa(unitaire)} le {unite_txt}, un repère utile "
+              f"pour comparer avec d'autres biens du même secteur.")
+
+    if b.get("chambres"):
+        p += (f" It has {b['chambres']} bedroom" + ("s" if b["chambres"] > 1 else "") + "."
+              if en else
+              f" {accords(b)['Il']} compte {b['chambres']} chambre"
+              + ("s" if b["chambres"] > 1 else "") + ".")
+
+    p += (f" Reference {b['ref']}, visits by appointment."
+          if en else f" Référence {b['ref']}, visites sur rendez-vous.")
+    return p
+
+
+def etapes_suivantes(b, lang="fr"):
+    """Ce qui se passe après un premier contact. Le parcours est réellement
+    différent selon qu'on achète ou qu'on loue ; le décrire évite la question
+    que tout le monde pose au téléphone, et donne à la page le contenu utile
+    qui lui manquait."""
+    en = lang == "en"
+    lieu = lieu_court(b["commune"])
+    if b["operation"] == "Location":
+        if en:
+            return [
+                (f"Visit the property in {lieu}",
+                 "We arrange a time that suits you, including evenings and weekends."),
+                ("Review the lease",
+                 "Duration, deposit, advance rent and charges are agreed in writing before signature."),
+                ("Inventory and handover",
+                 "A written inventory protects both sides at move-in and at move-out."),
+            ]
+        return [
+            (f"Visiter le bien à {lieu}",
+             "Nous convenons d'un créneau qui vous arrange, y compris en soirée et le week-end."),
+            ("Examiner le bail",
+             "Durée, caution, avance de loyers et charges sont fixées par écrit avant toute signature."),
+            ("État des lieux et remise des clés",
+             "Un état des lieux écrit protège les deux parties, à l'entrée comme à la sortie."),
+        ]
+    if en:
+        return [
+            (f"Visit the property in {lieu}",
+             "By appointment, with someone who knows the file and can answer on site."),
+            ("Check the documents",
+             "Land title, boundary survey and deeds are verified before any commitment, at the notary."),
+            ("Work out the full cost",
+             "Registration duties and notary fees come on top of the asking price."),
+            ("Sign at the notary",
+             "The sale is completed before a notary — the only act that makes the transfer enforceable."),
+        ]
+    return [
+        (f"Visiter le bien à {lieu}",
+         "Sur rendez-vous, avec quelqu'un qui connaît le dossier et répond aux questions sur place."),
+        ("Vérifier les documents",
+         "Statut foncier, bornage et titre sont contrôlés avant tout engagement, chez le notaire."),
+        ("Chiffrer le coût total",
+         "Au prix affiché s'ajoutent les droits d'enregistrement et les frais de notaire."),
+        ("Signer chez le notaire",
+         "La vente se conclut devant notaire, seul acte qui rend le transfert opposable."),
+    ]
+
+
+def guides_lies(b, lang="fr"):
+    """Les deux ou trois guides qui répondent aux questions que pose CE bien.
+
+    Un terrain à vendre appelle le statut foncier et les frais d'achat ; un
+    logement à louer appelle le bail et la caution. Ces liens servent autant le
+    visiteur, qui trouve la suite de sa question, que le référencement : ils
+    font circuler l'autorité entre les fiches et les guides, aujourd'hui reliés
+    dans un seul sens.
+    """
+    en = lang == "en"
+    choix = []
+    if b["operation"] == "Location":
+        choix = ["louer-logement-dakar-bail-caution", "questions-frequentes"]
+    elif b["type"] in ("Terrain", "Champ agricole"):
+        choix = ["verifier-titre-foncier-senegal", "frais-achat-immobilier-senegal",
+                 "construire-terrain-senegal-permis"]
+    else:
+        choix = ["frais-achat-immobilier-senegal", "verifier-titre-foncier-senegal",
+                 "acheter-terrain-senegal-depuis-etranger"]
+    par_slug = {g["slug"]: g for g in GUIDES}
+    sortie = []
+    for s in choix:
+        g = par_slug.get(s)
+        if not g:
+            continue
+        titre = g.get("titre_seo_en" if en else "titre_seo") or (g["titre_en"] if en else g["titre"])
+        chemin = f"../guides/en/{s}.html" if en else f"../guides/{s}.html"
+        sortie.append((chemin, titre))
+    return sortie
 
 
 def donnees_structurees(b, photos, url, publiee, lang="fr"):
@@ -484,8 +763,46 @@ def donnees_structurees(b, photos, url, publiee, lang="fr"):
         d["numberOfBedrooms"] = b["chambres"]
     if b.get("salles_bain"):
         d["numberOfBathroomsTotal"] = b["salles_bain"]
-    return json.dumps({k: v for k, v in d.items() if v is not None},
-                      ensure_ascii=False, indent=2)
+
+    # Fil d'Ariane. Il était déjà affiché en haut de la fiche, mais nulle part
+    # déclaré : faute de ce balisage, Google montre l'adresse brute sous le
+    # titre — « pabbusiness221.github.io › bien › appartement-a-louer… » — au
+    # lieu du chemin lisible « Tous les biens › Appartement › Mermoz ».
+    #
+    # Les trois échelons reprennent mot pour mot ceux du <nav class="fil"> :
+    # une piste de navigation déclarée qui ne correspond pas à celle qu'on voit
+    # est une erreur signalée par Google, et à juste titre.
+    # L'échelon du milieu — le type de bien — n'a pas encore de page à lui.
+    # Il restera sans adresse tant que les pages « terrains à vendre à Thiès »
+    # n'existent pas ; le jour où elles seront générées, c'est ici qu'elles se
+    # brancheront. Le dernier échelon pointe la fiche elle-même, ce qui évite
+    # de laisser deux maillons sans destination.
+    racine = f"{SITE}/bien/en/" if lang == "en" else f"{SITE}/bien/"
+    fil = [
+        {"@type": "ListItem", "position": 1,
+         "name": tr("Tous les biens", lang), "item": racine},
+        {"@type": "ListItem", "position": 2, "name": tr(b["type"], lang)},
+        {"@type": "ListItem", "position": 3,
+         "name": lieu_court(b["commune"]), "item": url},
+    ]
+    # Les questions déclarées ici sont exactement celles affichées plus bas sur
+    # la page. Déclarer une FAQ absente de l'écran est une infraction que Google
+    # sanctionne, et c'est de toute façon inutile : ce qu'on veut, c'est que la
+    # réponse visible soit celle qui remonte.
+    questions = faq_bien(b, lang)
+    graphe = {
+        "@context": "https://schema.org",
+        "@graph": [
+            {k: v for k, v in d.items() if v is not None and k != "@context"},
+            {"@type": "BreadcrumbList", "itemListElement": fil},
+            {"@type": "FAQPage", "mainEntity": [
+                {"@type": "Question", "name": q,
+                 "acceptedAnswer": {"@type": "Answer", "text": r}}
+                for q, r in questions
+            ]},
+        ],
+    }
+    return json.dumps(graphe, ensure_ascii=False, indent=2)
 
 
 # --- Gabarit de page --------------------------------------------------------
@@ -662,6 +979,28 @@ def page_bien(b, photos, voisins=(), publiee=None, lang="fr"):
   .photo img{{width:100%;height:auto;display:block;border-radius:var(--radius-md);background:var(--surface-alt);}}
   h2{{font-family:'Manrope',sans-serif;font-size:17px;font-weight:800;margin:30px 0 12px;}}
   .faits{{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0;padding:0;list-style:none;}}
+  /* Questions fréquentes. Repliées par défaut : la fiche doit rester courte à
+     l'œil, alors que la réponse doit exister dans la page pour être lue par
+     Google — <details> réunit les deux, sans JavaScript. */
+  .resume{{font-size:15px;line-height:1.7;color:var(--ink);margin:0 0 6px;}}
+  .etapes{{margin:0;padding:0;list-style:none;counter-reset:etape;display:grid;gap:10px;}}
+  .etapes li{{counter-increment:etape;position:relative;padding-left:44px;}}
+  .etapes li::before{{content:counter(etape);position:absolute;left:0;top:0;width:30px;height:30px;
+    border-radius:50%;background:var(--night);color:#fff;display:grid;place-items:center;
+    font-weight:800;font-size:13px;}}
+  .etapes li b{{display:block;font-size:14px;color:var(--night);margin-bottom:2px;}}
+  .etapes li span{{font-size:13.5px;line-height:1.6;color:var(--ink-soft);}}
+  .faq-bien details{{border:1px solid var(--border);border-radius:10px;background:var(--surface);margin-bottom:8px;}}
+  .faq-bien summary{{cursor:pointer;padding:13px 16px;font-weight:700;font-size:14px;color:var(--night);list-style:none;}}
+  .faq-bien summary::-webkit-details-marker{{display:none;}}
+  .faq-bien summary::after{{content:'+';float:right;color:var(--accent);font-size:18px;line-height:1;}}
+  .faq-bien details[open] summary::after{{content:'\\2212';}}
+  .faq-bien summary:hover{{color:var(--accent-dark);}}
+  .faq-bien summary:focus-visible{{outline:3px solid var(--accent);outline-offset:2px;}}
+  .faq-bien p{{margin:0;padding:0 16px 14px;font-size:13.5px;line-height:1.65;color:var(--ink-soft);}}
+  .guides-lies ul{{margin:0;padding:0;list-style:none;display:grid;gap:8px;}}
+  .guides-lies li a{{display:block;padding:12px 16px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--night);text-decoration:none;font-weight:600;font-size:13.5px;}}
+  .guides-lies li a:hover{{border-color:var(--accent);color:var(--accent-dark);}}
   .faits li{{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;}}
   .faits b{{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);font-weight:700;}}
   .faits span{{font-size:15px;font-weight:800;}}
@@ -735,6 +1074,8 @@ def page_bien(b, photos, voisins=(), publiee=None, lang="fr"):
 
   {f'<h2>{tr("Photos", lang)}</h2>' + galerie if photos else ''}
 
+  <p class="resume">{esc(resume_bien(b, lang))}</p>
+
   <h2>{tr("Caractéristiques", lang)}</h2>
   <ul class="faits">
     <li><b>{tr("Type", lang)}</b><span>{esc(tr(b["type"], lang))}</span></li>
@@ -746,6 +1087,24 @@ def page_bien(b, photos, voisins=(), publiee=None, lang="fr"):
   </ul>
 
   {f'<h2>{tr("Description", lang)}</h2><p class="texte">' + esc(texte_description(b, lang)) + '</p>' if texte_description(b, lang) else ''}
+
+  <h2>{'What happens next' if lang == 'en' else 'Comment se passe la suite'}</h2>
+  <ol class="etapes">
+    {"".join(f'<li><b>{esc(t)}</b><span>{esc(d)}</span></li>' for t, d in etapes_suivantes(b, lang))}
+  </ol>
+
+  <h2>{'Frequently asked questions' if lang == 'en' else 'Questions fréquentes sur ce bien'}</h2>
+  <div class="faq-bien">
+    {"".join(f'<details><summary>{esc(q)}</summary><p>{esc(r)}</p></details>' for q, r in faq_bien(b, lang))}
+  </div>
+
+  <section class="guides-lies">
+    <h2>{'Before you commit' if lang == 'en' else 'Avant de vous engager'}</h2>
+    <p>{'Practical guides on the questions this kind of property usually raises.' if lang == 'en' else 'Nos guides pratiques sur les questions que pose ce type de bien.'}</p>
+    <ul>
+      {"".join(f'<li><a href="{esc(c)}">{esc(t)}</a></li>' for c, t in guides_lies(b, lang))}
+    </ul>
+  </section>
 
   <section class="contact">
     <h2>{tr("Intéressé par ce bien ?", lang)}</h2>
@@ -867,9 +1226,10 @@ def page_index(biens, par_bien, lang="fr"):
     """
     prefixe = "../.." if lang == "en" else ".."
     dossier = "bien/en" if lang == "en" else "bien"
-    titre = (f"All our properties for sale and for rent in Dakar and Thiès | {AGENCE}"
-             if lang == "en" else
-             f"Tous nos biens à vendre et à louer à Dakar et Thiès | {AGENCE}")
+    # Resserré pour tenir dans les 60 caractères affichés par Google. « Dakar »
+    # et « Thiès » restent en tête : ce sont les mots qui décident du clic.
+    titre = (f"Immobilier à Dakar et Thiès | {AGENCE}" if lang != "en" else
+             f"Property in Dakar and Thiès | {AGENCE}")
     # Deux déclarations sur cette page : l'agence elle-même, qui n'était décrite
     # nulle part alors que c'est elle qu'on cherche en tapant « agence
     # immobilière Dakar » ; et la liste des annonces, qui dit à Google que cette
@@ -882,12 +1242,30 @@ def page_index(biens, par_bien, lang="fr"):
                 "name": AGENCE,
                 "url": f"{SITE}/{ACCUEIL}",
                 "telephone": TEL,
+                # L'email manquait : c'est, avec le téléphone, l'un des deux
+                # moyens de contact que Google rapproche d'une fiche
+                # d'établissement pour juger qu'il s'agit d'une vraie entreprise.
+                "email": EMAIL,
+                "image": f"{SITE}/assets/logo.png",
+                "logo": f"{SITE}/assets/logo.png",
+                # Numéros officiels : ils distinguent une agence enregistrée
+                # d'un particulier, sur un marché où la question se pose.
+                "taxID": NINEA,
+                "identifier": {"@type": "PropertyValue", "name": "RCCM",
+                               "value": RCCM},
+                "currenciesAccepted": "XOF",
                 "areaServed": [
                     {"@type": "AdministrativeArea", "name": "Dakar"},
                     {"@type": "AdministrativeArea", "name": "Thiès"},
                 ],
+                # addressLocality manquait. Sans ville, une adresse ne dit rien
+                # à un moteur qui cherche à rattacher l'agence à un endroit —
+                # c'est précisément ce que fait une recherche « agence
+                # immobilière Dakar ». Pas de rue déclarée : l'agence reçoit sur
+                # rendez-vous, et inventer une adresse postale serait pire que
+                # de n'en pas donner.
                 "address": {"@type": "PostalAddress", "addressCountry": "SN",
-                            "addressRegion": "Dakar"},
+                            "addressRegion": "Dakar", "addressLocality": "Dakar"},
                 # Joignable en permanence : c'est ce que Google lit pour
                 # afficher « Ouvert 24h/24 » dans un résultat local.
                 "openingHoursSpecification": {
@@ -919,6 +1297,7 @@ def page_index(biens, par_bien, lang="fr"):
             f"{len(biens)} terrains, maisons, appartements et champs agricoles "
             f"à vendre ou à louer à Dakar et Thiès. Prix, superficie et photos "
             f"pour chaque bien. {AGENCE}, visites sur rendez-vous.")
+    desc = couper_proprement(desc, LIMITE_DESCRIPTION)
     url = f"{SITE}/{dossier}/"
 
     sections = ""
@@ -1049,6 +1428,8 @@ GUIDES = [
     {
         "slug": "verifier-titre-foncier-senegal",
         "titre": "Titre foncier, bail ou délibération : comment vérifier le statut d'un terrain au Sénégal",
+        "titre_seo": "Vérifier le statut foncier d'un terrain au Sénégal",
+        "titre_seo_en": "Checking Land Title Status in Senegal",
         "description": "Titre foncier, bail, délibération : ce que signifie chaque statut, "
                         "pourquoi la différence compte avant d'acheter, et comment le vérifier "
                         "concrètement. Guide à jour pour un achat de terrain au Sénégal.",
@@ -1250,6 +1631,8 @@ GUIDES = [
     {
         "slug": "acheter-terrain-senegal-depuis-etranger",
         "titre": "Acheter un terrain au Sénégal depuis l'étranger : procuration, notaire, vérifications",
+        "titre_seo": "Acheter un terrain au Sénégal depuis l'étranger",
+        "titre_seo_en": "Buying Land in Senegal from Abroad",
         "description": "Vivre en France, en Italie ou ailleurs n'empêche pas d'acheter un "
                         "terrain au Sénégal. Voici comment fonctionne la procuration, ce que "
                         "vérifie un notaire, et les précautions propres à un achat à distance.",
@@ -1439,6 +1822,8 @@ GUIDES = [
     {
         "slug": "frais-achat-immobilier-senegal",
         "titre": "Ce que coûte vraiment un achat immobilier au Sénégal, au-delà du prix affiché",
+        "titre_seo": "Frais d'achat immobilier au Sénégal",
+        "titre_seo_en": "Property Purchase Costs in Senegal",
         "description": "Droits d'enregistrement, émoluments du notaire, publicité foncière, "
                         "bornage : le détail des frais qui s'ajoutent au prix de vente d'un "
                         "terrain ou d'une maison au Sénégal, et comment les chiffrer à l'avance.",
@@ -1610,6 +1995,8 @@ GUIDES = [
     {
         "slug": "louer-logement-dakar-bail-caution",
         "titre": "Louer un logement à Dakar : bail, caution, avance de loyers et état des lieux",
+        "titre_seo": "Louer un logement à Dakar : bail et caution",
+        "titre_seo_en": "Renting a Home in Dakar: Lease and Deposit",
         "description": "Ce que contient un bail au Sénégal, ce qu'on peut vous demander comme "
                         "caution et avance, comment se passe l'état des lieux et comment "
                         "récupérer son dépôt. Repères pratiques pour louer à Dakar et Thiès.",
@@ -1793,6 +2180,8 @@ GUIDES = [
     {
         "slug": "vendre-son-bien-senegal",
         "titre": "Vendre un terrain ou une maison au Sénégal : documents, prix, délais",
+        "titre_seo": "Vendre un terrain ou une maison au Sénégal",
+        "titre_seo_en": "Selling Land or a House in Senegal",
         "description": "Les documents à réunir avant de mettre en vente, comment fixer un prix "
                         "défendable, le rôle du notaire et les délais réalistes d'une vente "
                         "immobilière au Sénégal.",
@@ -1968,6 +2357,8 @@ GUIDES = [
     {
         "slug": "construire-terrain-senegal-permis",
         "titre": "Construire sur son terrain au Sénégal : viabilisation, permis de construire, délais",
+        "titre_seo": "Construire sur son terrain au Sénégal",
+        "titre_seo_en": "Building on Your Land in Senegal",
         "description": "Avant de poser la première pierre : vérifier le statut du terrain, "
                         "évaluer la viabilisation, obtenir le permis de construire et anticiper "
                         "les délais et surcoûts d'un chantier au Sénégal.",
@@ -2149,6 +2540,8 @@ GUIDES = [
     {
         "slug": "questions-frequentes",
         "titre": "Questions fréquentes sur l'achat, la vente et la location avec PAB Immo",
+        "titre_seo": "Questions fréquentes sur l'immobilier au Sénégal",
+        "titre_seo_en": "Frequently Asked Questions",
         "description": "Visites, annonces vérifiées, statut foncier, achat depuis l'étranger, "
                         "estimation d'un bien, alertes : les réponses aux questions que les "
                         "visiteurs nous posent le plus souvent à Dakar et à Thiès.",
@@ -2342,7 +2735,15 @@ def page_guide(g, lang="fr"):
     en = lang == "en"
     prefixe = "../.." if en else ".."
     titre = g["titre_en"] if en else g["titre"]
+    # Deux titres, deux rôles. Celui du H1 porte le sujet en entier — c'est ce
+    # qu'on lit une fois sur la page. Celui de l'onglet et des résultats Google
+    # doit tenir en 60 caractères, suffixe « | PAB Immo » compris : au-delà, la
+    # fin est remplacée par des points de suspension. Tronquer le premier aurait
+    # sacrifié la lisibilité de la page pour arranger le moteur.
+    cle_seo = "titre_seo_en" if en else "titre_seo"
+    titre_onglet = g.get(cle_seo) or couper_proprement(titre, LIMITE_TITRE - len(f" | {AGENCE}"))
     description = g["description_en"] if en else g["description"]
+    description = couper_proprement(description, LIMITE_DESCRIPTION)
     corps = g["corps_en"] if en else g["corps"]
     dossier = "guides/en" if en else "guides"
     url = f"{SITE}/{dossier}/{g['slug']}.html"
@@ -2409,7 +2810,7 @@ def page_guide(g, lang="fr"):
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>{esc(titre)} | {AGENCE}</title>
+<title>{esc(titre_onglet)} | {AGENCE}</title>
 <meta name="description" content="{esc(description)}" />
 <link rel="canonical" href="{url}" />
 <link rel="alternate" hreflang="fr" href="{url_fr}" />
