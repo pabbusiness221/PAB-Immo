@@ -2418,8 +2418,32 @@ function openDrawerById(id){
   if(p){ openDrawer(p); highlightCard(p.id); if(map) map.closePopup(); }
 }
 
+// Vrai quand des marqueurs auraient dû être reconstruits pendant que la carte
+// était masquée : ils sont alors périmés, et il faut les refaire au moment où
+// la carte redevient visible.
+let marqueursPerimes = false;
+
+// La carte est-elle réellement à l'écran ?
+//
+// On ne peut pas se fier à data-view : au-delà de 1023 px, la liste et la
+// carte sont côte à côte et la carte reste visible quel que soit l'onglet
+// choisi. Tester l'onglet aurait donc supprimé les marqueurs sur ordinateur.
+// On interroge la mise en page elle-même : offsetWidth vaut zéro dès qu'un
+// ancêtre est en display:none, ce qui est exactement le cas traité.
+function carteVisible(){
+  const el = document.getElementById('map');
+  return !!el && el.offsetWidth > 0 && el.offsetHeight > 0;
+}
+
 function rebuildMarkers(list){
   if(!map || typeof L === 'undefined') return; // carte indisponible
+
+  // Sur téléphone en vue liste, la carte est masquée. Construire ses
+  // marqueurs coûtait alors le plus clair du temps de rendu — mesuré à 205 ms
+  // sur 224 pour mille biens, soit 91 % dépensés pour un écran que personne
+  // ne regarde. On note la dette et on la règle à l'affichage.
+  if(!carteVisible()){ marqueursPerimes = true; return; }
+
   Object.values(markers).forEach(m => map.removeLayer(m));
   markers = {};
   list.forEach(p => {
@@ -2453,6 +2477,7 @@ function rebuildMarkers(list){
     }
     markers[p.id] = m;
   });
+  marqueursPerimes = false;
 }
 
 // sansAccents() et texteRecherche() — la recherche universelle (type,
@@ -4380,7 +4405,13 @@ document.querySelectorAll('#viewToggle button').forEach(b=>{
     b.classList.add('active');
     b.setAttribute('aria-pressed','true');
     document.getElementById('split').dataset.view = b.dataset.view;
-    if(b.dataset.view==='map' && map) setTimeout(()=>map.invalidateSize(), 100);
+    if(b.dataset.view==='map' && map) setTimeout(()=>{
+      map.invalidateSize();
+      // Les filtres ont pu changer pendant que la carte était masquée : on
+      // règle ici la dette laissée par rebuildMarkers, sinon la carte
+      // afficherait les marqueurs d'une recherche précédente.
+      if(marqueursPerimes) rebuildMarkers(filtered());
+    }, 100);
     // La carte s'affichait bien, mais 760 px plus bas que le bouton qu'on
     // venait de cliquer : on croyait qu'il ne s'était rien passé. Même
     // remède que pour les filtres, et pour la même raison.
