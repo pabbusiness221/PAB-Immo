@@ -189,7 +189,16 @@ def main():
         # gestionnaire associe plante au premier clic.
         ids_statiques = set(re.findall(r'\bid="([A-Za-z0-9_\-]+)"', statique))
         ids_gabarits = set(re.findall(r"""id=["'`]?\$?\{?([A-Za-z0-9_\-]+)""", html))
-        connus = ids_statiques | ids_gabarits
+        # Un element cree en JS recoit son identifiant par affectation
+        # (bloc.id = 'monBloc') et non par un attribut : sans cette lecture,
+        # le controle le declarait introuvable et signalait une panne
+        # imaginaire a chaque bandeau construit a la volee.
+        ids_affectes = set(re.findall(
+            r"""\.id\s*=\s*['"]([A-Za-z0-9_\-]+)['"]""", html))
+        # Meme cas pour setAttribute('id', ...), plus rare mais equivalent.
+        ids_affectes |= set(re.findall(
+            r"""setAttribute\(\s*['"]id['"]\s*,\s*['"]([A-Za-z0-9_\-]+)['"]""", html))
+        connus = ids_statiques | ids_gabarits | ids_affectes
         references = set(re.findall(
             r"""getElementById\(\s*['"]([A-Za-z0-9_\-]+)['"]\s*\)""", html))
         orphelines = sorted(references - connus)
