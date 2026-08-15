@@ -1439,17 +1439,33 @@ function renderPhotoGrid(){
       editingPhotos = editingPhotos.filter(x=>String(x.id)!==String(id));
       // Trier par position pour s'assurer que l'ordre est correct
       editingPhotos.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-      // Recalculer les positions des photos restantes
+      // Recalculer les positions des photos restantes.
+      //
+      // Les renumérotations partaient une par une, en série : dix photos
+      // valaient dix allers-retours enchaînés, sur un réseau où chacun se
+      // paie. Elles sont indépendantes, donc lancées ensemble.
+      const renumerotations = [];
       for(let idx=0; idx<editingPhotos.length; idx++){
         if(editingPhotos[idx].position !== idx){
-          await db.from('property_photos').update({ position: idx }).eq('id', editingPhotos[idx].id);
+          renumerotations.push(
+            db.from('property_photos').update({ position: idx }).eq('id', editingPhotos[idx].id));
           editingPhotos[idx].position = idx;
         }
       }
       // Si la photo supprimée était la couverture, la première photo restante en hérite
       if(wasCover && editingPhotos.length){
-        await db.from('property_photos').update({ is_cover:true }).eq('id', editingPhotos[0].id);
+        renumerotations.push(
+          db.from('property_photos').update({ is_cover:true }).eq('id', editingPhotos[0].id));
         editingPhotos[0].is_cover = true;
+      }
+      // Le résultat n'était pas regardé. Une renumérotation refusée laissait
+      // l'ordre affiché et l'ordre enregistré diverger jusqu'au rechargement
+      // suivant, sans que rien ne le signale.
+      const retours = await Promise.all(renumerotations);
+      const echecs = retours.filter(r => r && r.error);
+      if(echecs.length){
+        console.error('Renumérotation des photos :', echecs.map(r => r.error));
+        alert("L'ordre des photos n'a pas pu être entièrement enregistré. Rouvrez la fiche pour vérifier.");
       }
       renderPhotoGrid();
     };
@@ -2098,8 +2114,21 @@ function renderRdvItems(container, items){
   container.querySelectorAll('[data-action="status"]').forEach(sel=>{
     sel.onchange = async (e) => {
       const id = e.target.closest('.inbox-item').dataset.id;
-      await db.from('appointments').update({ status: e.target.value }).eq('id', id);
       const a = INBOX.appointments.find(x=>String(x.id)===id);
+      const ancien = a ? a.status : null;
+      // Le retour de la base n'était pas lu. Un refus — règle de sécurité,
+      // réseau coupé — laissait l'écran afficher « Confirmé » alors que rien
+      // n'était enregistré : le client n'était jamais confirmé, et personne ne
+      // l'apprenait avant qu'il ne se déplace pour rien.
+      sel.disabled = true;
+      const { error } = await db.from('appointments')
+        .update({ status: e.target.value }).eq('id', id);
+      sel.disabled = false;
+      if(error){
+        alert("Le statut du rendez-vous n'a pas pu être enregistré : " + error.message);
+        if(ancien !== null) sel.value = ancien;   // l'écran redit la vérité
+        return;
+      }
       if(a) a.status = e.target.value;
       loadInboxCounts();
       renderInboxList();   // rafraîchit filtre + couleurs en vue Liste ET Calendrier
@@ -2109,7 +2138,10 @@ function renderRdvItems(container, items){
     btn.onclick = async (e) => {
       const id = e.target.closest('.inbox-item').dataset.id;
       if(!confirm('Supprimer cette demande de RDV ?')) return;
-      await db.from('appointments').delete().eq('id', id);
+      btn.disabled = true;
+      const { error } = await db.from('appointments').delete().eq('id', id);
+      btn.disabled = false;
+      if(error){ alert("Suppression impossible : " + error.message); return; }
       INBOX.appointments = INBOX.appointments.filter(x=>String(x.id)!==id);
       loadInboxCounts();
       renderInboxList();
@@ -2205,7 +2237,15 @@ function renderInboxList(){
       btn.onclick = async (e) => {
         const id = e.target.closest('.inbox-item').dataset.id;
         const m = INBOX.messages.find(x=>String(x.id)===id);
-        await db.from('contact_messages').update({ is_read: !m.is_read }).eq('id', id);
+        if(!m) return;
+        // Le verrou n'est pas décoratif ici : sans lui, deux clics rapides
+        // lancent deux bascules concurrentes et l'état affiché finit par
+        // contredire celui de la base.
+        btn.disabled = true;
+        const { error } = await db.from('contact_messages')
+          .update({ is_read: !m.is_read }).eq('id', id);
+        btn.disabled = false;
+        if(error){ alert("Le message n'a pas pu être marqué : " + error.message); return; }
         m.is_read = !m.is_read;
         renderInboxList(); loadInboxCounts();
       };
@@ -2214,7 +2254,10 @@ function renderInboxList(){
       btn.onclick = async (e) => {
         const id = e.target.closest('.inbox-item').dataset.id;
         if(!confirm('Supprimer ce message ?')) return;
-        await db.from('contact_messages').delete().eq('id', id);
+        btn.disabled = true;
+        const { error } = await db.from('contact_messages').delete().eq('id', id);
+        btn.disabled = false;
+        if(error){ alert("Suppression impossible : " + error.message); return; }
         INBOX.messages = INBOX.messages.filter(x=>String(x.id)!==id);
         renderInboxList(); loadInboxCounts();
       };
@@ -2251,7 +2294,10 @@ function renderInboxList(){
       btn.onclick = async (e) => {
         const id = e.target.closest('.inbox-item').dataset.id;
         if(!confirm('Supprimer cette inscription ?')) return;
-        await db.from('alert_subscriptions').delete().eq('id', id);
+        btn.disabled = true;
+        const { error } = await db.from('alert_subscriptions').delete().eq('id', id);
+        btn.disabled = false;
+        if(error){ alert("Suppression impossible : " + error.message); return; }
         INBOX.alerts = INBOX.alerts.filter(x=>String(x.id)!==id);
         renderInboxList(); loadInboxCounts();
       };
@@ -3172,12 +3218,41 @@ function proposerDemandeAvis(prospect){
   window.open(`https://wa.me/${numero}?text=${encodeURIComponent(message)}`, '_blank', 'noopener');
 }
 
-async function ajusterClientsAccompagnes(delta){
-  const { data: reglage } = await db.from('site_settings')
+// Un seul ajustement à la fois. Deux passages à « Conclu » rapprochés lisaient
+// tous deux l'ancienne valeur et écrivaient le même chiffre : un client
+// disparaissait du compteur. Le verrou sérialise les appels — insuffisant si un
+// jour deux personnes travaillent en même temps, mais il couvre le cas réel,
+// celui d'une seule personne qui enchaîne les dossiers.
+let ajustementEnCours = Promise.resolve();
+
+function ajusterClientsAccompagnes(delta){
+  ajustementEnCours = ajustementEnCours.then(() => appliquerAjustementClients(delta));
+  return ajustementEnCours;
+}
+
+async function appliquerAjustementClients(delta){
+  const { data: reglage, error: erreurLecture } = await db.from('site_settings')
     .select('value').eq('key','clients_accompagnes').maybeSingle();
+
+  // L'erreur de lecture n'était pas regardée. Une requête ratée — réseau
+  // coupé, jeton expiré — renvoyait « rien », qu'on prenait pour un compteur
+  // à zéro : le chiffre affiché en page d'accueil retombait alors de treize à
+  // un. Un compteur perdu ne se retrouve pas ; on préfère ne rien écrire et
+  // le dire.
+  if(erreurLecture){
+    console.error('Compteur clients : lecture impossible, ajustement abandonné', erreurLecture);
+    alert("Le compteur « clients accompagnés » n'a pas pu être mis à jour.\n\nL'étape du prospect, elle, est bien enregistrée.");
+    return;
+  }
+
   const actuel = reglage && reglage.value != null ? Number(reglage.value) : 0;
   const suivant = Math.max(0, actuel + delta);
-  await db.from('site_settings').upsert({ key:'clients_accompagnes', value: suivant }, { onConflict:'key' });
+  const { error: erreurEcriture } = await db.from('site_settings')
+    .upsert({ key:'clients_accompagnes', value: suivant }, { onConflict:'key' });
+  if(erreurEcriture){
+    console.error('Compteur clients : écriture impossible', erreurEcriture);
+    alert("Le compteur « clients accompagnés » n'a pas pu être mis à jour : " + erreurEcriture.message);
+  }
 }
 
 async function majNotesProspect(id, notes, champ){
