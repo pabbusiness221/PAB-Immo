@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Page introuvable — PAB Immo</title>
+<meta name="description" content="Cette page n'existe pas ou plus. Revenez à l'accueil de PAB Immo ou joignez-nous directement." />
+<meta name="robots" content="noindex, nofollow" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* Autonome comme la page de maintenance : servie à la place de n'importe
+     quelle adresse manquante, elle doit s'afficher même si le reste du site
+     est indisponible. Aucun appel réseau, aucune image externe. */
+  :root{
+    --night:#0C1613; --night-2:#14261F; --accent:#E2A22C; --accent-dark:#C8871A;
+    --ease:cubic-bezier(.4,0,.2,1);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased;
+    color:#fff; display:flex; align-items:center; justify-content:center;
+    padding:24px;
+    background:
+      radial-gradient(900px 420px at 78% -10%, rgba(226,162,44,0.16), transparent 62%),
+      linear-gradient(155deg, var(--night) 0%, var(--night-2) 58%, #1A1710 100%);
+  }
+  body::after{
+    content:''; position:fixed; inset:0; pointer-events:none;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 34px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 34px);
+  }
+  .carte{position:relative; z-index:1; max-width:520px; width:100%; text-align:center;}
+  .code{
+    font-family:'Manrope',sans-serif; font-size:clamp(56px,14vw,86px); font-weight:800;
+    line-height:1; letter-spacing:-0.04em; color:rgba(255,255,255,0.14); margin:0 0 6px;
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:9px; margin:0 0 14px;
+    color:var(--accent); font-size:11px; font-weight:800; letter-spacing:.16em; text-transform:uppercase;
+  }
+  .eyebrow::before{content:''; width:22px; height:1.5px; background:var(--accent); opacity:.8;}
+  h1{
+    font-family:'Manrope',sans-serif; font-size:clamp(26px,5.4vw,36px); font-weight:800;
+    letter-spacing:-0.025em; line-height:1.15; margin:0 0 14px;
+  }
+  h1 em{font-style:normal; color:var(--accent);}
+  p.intro{color:rgba(255,255,255,0.74); font-size:15.5px; line-height:1.6; margin:0 0 30px;}
+  .actions{display:flex; gap:10px; flex-wrap:wrap; justify-content:center;}
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:9px;
+    border:none; border-radius:999px; padding:14px 24px; min-height:48px;
+    font-family:'Inter',sans-serif; font-size:14px; font-weight:700;
+    text-decoration:none; cursor:pointer;
+    transition:transform .2s var(--ease), filter .2s var(--ease), background-color .2s var(--ease);
+  }
+  .btn:hover{transform:translateY(-1px);}
+  .btn:focus-visible{outline:3px solid var(--accent); outline-offset:3px;}
+  .btn-accueil{background:var(--accent); color:#1E1607;}
+  .btn-accueil:hover{background:var(--accent-dark);}
+  .btn-whatsapp{background:#25D366; color:#fff;}
+  .btn-whatsapp:hover{filter:brightness(.95);}
+  .pied{margin:32px 0 0; color:rgba(255,255,255,0.42); font-size:12.5px; line-height:1.6;}
+  @media (max-width:520px){ .actions .btn{flex:1 1 100%;} }
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important;} }
+</style>
+</head>
+<body>
+  <main class="carte">
+    <p class="code" aria-hidden="true">404</p>
+    <p class="eyebrow">PAB Immo</p>
+    <h1>Cette page <em>n'existe plus.</em></h1>
+    <p class="intro">
+      Le lien est peut-être ancien, ou le bien a été vendu ou loué depuis.
+      Revenez à l'accueil pour voir ce qui est disponible aujourd'hui, ou
+      écrivez-nous : on vous répond vite.
+    </p>
+
+    <div class="actions">
+      <!-- Le site est publié dans un sous-dossier (…github.io/PAB-Immo/), mais
+           cette page est aussi servie pour une adresse manquante située plus
+           profond, comme /bien/xxx.html. Un lien relatif y pointerait alors à
+           côté, et un lien commençant par « / » sortirait du sous-dossier.
+           L'adresse est donc recomposée à partir du chemin réellement servi. -->
+      <a class="btn btn-accueil" id="lienAccueil" href="/">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+        Retour à l'accueil
+      </a>
+      <a class="btn btn-whatsapp" href="https://wa.me/221778494111" target="_blank" rel="noopener">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.2-1.7-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.7 1-.9 1.2-.2.2-.3.2-.6.1-1.7-.9-2.9-1.6-4-3.5-.3-.5.3-.5.9-1.6.1-.2 0-.4 0-.5 0-.2-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5 1.9.8 2.6.9 3.5.7.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3z"/><path d="M12 2a10 10 0 00-8.6 15L2 22l5.2-1.4A10 10 0 1012 2zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1112 20.2z"/></svg>
+        Écrire sur WhatsApp
+      </a>
+    </div>
+
+    <p class="pied">
+      +221 77 849 41 11 — Dakar &amp; Thiès<br />
+      Terrains · Maisons · Appartements · Champs agricoles
+    </p>
+  </main>
+
+<script>
+  // Reconstruit le lien d'accueil : on garde le premier segment du chemin
+  // quand le site vit dans un sous-dossier de github.io, sinon la racine.
+  (function(){
+    var lien = document.getElementById('lienAccueil');
+    var hote = location.hostname;
+    var segments = location.pathname.split('/').filter(Boolean);
+    var base = (/\.github\.io$/i.test(hote) && segments.length) ? '/' + segments[0] + '/' : '/';
+    lien.setAttribute('href', base);
+  })();
+</script>
+</body>
+</html>
