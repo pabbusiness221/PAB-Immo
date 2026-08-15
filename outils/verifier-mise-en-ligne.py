@@ -92,19 +92,39 @@ def main():
         anomalies.append("Le dossier bien/ n'existe pas. Lancer generer-pages.py.")
         return rendre_verdict()
 
-    fiches = sorted(f for f in os.listdir(DOSSIER)
+    # bien/ contient deux familles de pages depuis l'ajout des pages de
+    # destination. Elles ne se distinguent pas au nom de fichier — les deux
+    # ressemblent à « terrains-a-vendre-dakar… » — mais elles se déclarent :
+    # une fiche est un RealEstateListing, un regroupement une CollectionPage.
+    # Sans cette distinction, le contrôle réclamait que « terrains à vendre à
+    # Dakar » figure au manifeste des biens et soit pointée par un lien
+    # « voisin », deux choses qui n'ont aucun sens pour une page de catégorie.
+    def est_destination(dossier, nom):
+        return '"CollectionPage"' in lire(os.path.join(dossier, nom))
+
+    toutes = sorted(f for f in os.listdir(DOSSIER)
                     if f.endswith(".html") and f != "index.html")
-    print(f"{len(fiches)} fiches dans bien/")
+    destinations = [f for f in toutes if est_destination(DOSSIER, f)]
+    fiches = [f for f in toutes if f not in destinations]
+    print(f"{len(fiches)} fiches dans bien/"
+          + (f" + {len(destinations)} page(s) de destination" if destinations else ""))
     controle(bool(fiches), "Aucune fiche générée : le catalogue serait invisible.")
 
     # Depuis les fiches bilingues, bien/en/ contient un exemplaire anglais de
     # chaque fiche. Les mêmes contrôles s'y appliquent : une page anglaise mal
     # formée est aussi invisible qu'une page française mal formée.
     dossier_en = os.path.join(DOSSIER, "en")
-    fiches_en = sorted(f for f in os.listdir(dossier_en)
+    toutes_en = sorted(f for f in os.listdir(dossier_en)
                        if f.endswith(".html") and f != "index.html") \
         if os.path.isdir(dossier_en) else []
-    print(f"{len(fiches_en)} fiches dans bien/en/")
+    destinations_en = [f for f in toutes_en if est_destination(dossier_en, f)]
+    fiches_en = [f for f in toutes_en if f not in destinations_en]
+    print(f"{len(fiches_en)} fiches dans bien/en/"
+          + (f" + {len(destinations_en)} page(s) de destination" if destinations_en else ""))
+    controle(len(destinations_en) == len(destinations),
+             f"bien/en/ contient {len(destinations_en)} pages de destination "
+             f"pour {len(destinations)} en français : chaque regroupement doit "
+             f"exister dans les deux langues.")
     controle(len(fiches_en) == len(fiches),
              f"bien/en/ contient {len(fiches_en)} fiches pour {len(fiches)} en "
              f"français : chaque bien doit exister dans les deux langues.")
@@ -172,6 +192,22 @@ def main():
                  f"{prefixe} : {len(orphelines)} fiche(s) qu'aucun lien n'atteint : "
                  + ", ".join(sorted(orphelines)[:5]))
 
+    # Les pages de destination ne sont pas reliées par des liens « voisin »
+    # mais depuis l'index, qui est leur point d'entrée. Une page de catégorie
+    # que rien n'atteint ne vaut pas mieux qu'une fiche orpheline : Google la
+    # trouverait par le sitemap sans jamais comprendre qu'elle compte.
+    for dossier, prefixe, lot in ((DOSSIER, "bien", destinations),
+                                  (dossier_en, "bien/en", destinations_en)):
+        if not lot:
+            continue
+        index = os.path.join(dossier, "index.html")
+        html = lire(index) if os.path.exists(index) else ""
+        absentes = [f for f in lot if f'href="{f}"' not in html]
+        controle(not absentes,
+                 f"{prefixe}/index.html ne renvoie pas vers "
+                 f"{len(absentes)} page(s) de destination : "
+                 + ", ".join(sorted(absentes)[:5]))
+
     # --- 4. Manifeste -------------------------------------------------------
     chemin_manifeste = os.path.join(DOSSIER, "index.json")
     if controle(os.path.exists(chemin_manifeste),
@@ -215,8 +251,13 @@ def main():
         declarees = {a.rsplit("/bien/", 1)[1] for a in adresses
                      if "/bien/" in a and "/bien/en/" not in a
                      and not a.endswith("/bien/")}
-        for etiquette, decl, sur_disque in (("bien", declarees, presentes),
-                                            ("bien/en", declarees_en, presentes_en)):
+        # Le sitemap déclare aussi les pages de destination : elles sont sur le
+        # disque au même titre que les fiches, et les omettre ici ferait crier
+        # à l'absence de pages parfaitement présentes.
+        sur_disque_fr = presentes | set(destinations)
+        sur_disque_en = presentes_en | set(destinations_en)
+        for etiquette, decl, sur_disque in (("bien", declarees, sur_disque_fr),
+                                            ("bien/en", declarees_en, sur_disque_en)):
             controle(decl <= sur_disque,
                      f"Le sitemap annonce des fiches {etiquette} absentes du disque : "
                      f"{sorted(decl - sur_disque)[:5]}. C'est le symptôme d'un "
