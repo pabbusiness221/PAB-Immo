@@ -23,7 +23,7 @@
      complètement faux faute des règles de positionnement de Leaflet — une
      panne détectée et corrigée après coup), et le contrôle de calques de
      Leaflet charge son icône depuis le même CDN. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://avanktgaxepzpqmsiauz.supabase.co https://*.tile.openstreetmap.org https://server.arcgisonline.com https://cdn.jsdelivr.net; connect-src 'self' https://avanktgaxepzpqmsiauz.supabase.co https://nominatim.openstreetmap.org; object-src 'none'; base-uri 'self';" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://avanktgaxepzpqmsiauz.supabase.co https://*.tile.openstreetmap.org https://server.arcgisonline.com https://cdn.jsdelivr.net; connect-src 'self' https://avanktgaxepzpqmsiauz.supabase.co https://nominatim.openstreetmap.org https://fonts.googleapis.com https://fonts.gstatic.com; object-src 'none'; base-uri 'self';" />
 <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
 <link rel="icon" type="image/png" href="assets/logo.png">
 <title>PAB Immo - Biens à vendre &amp; à louer - Dakar &amp; Thiès</title>
@@ -65,7 +65,13 @@
                              les polices se chargent en mode anonyme)
      Les tuiles OpenStreetMap ne sont volontairement PAS préconnectées : la
      carte n'est pas toujours ouverte, et une connexion inutile est un coût
-     net. -->
+     net.
+
+     Les deux domaines de police figurent aussi dans connect-src de la CSP.
+     Le navigateur range en effet preconnect sous cette directive, et non sous
+     style-src ou font-src : sans elle, le préchauffage était refusé à chaque
+     visite — deux erreurs en console, et le gain de connexion perdu, alors
+     même que les polices finissaient par se charger par le lien ci-dessous. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
@@ -2204,8 +2210,36 @@ async function loadProperties(){
     chargerFiches()   // en parallèle : son absence ne doit jamais retarder la liste
   ]);
   if(e1 || e2){
-    const msg = (e1 || e2).message;
-    document.getElementById('list').innerHTML = `<div class="empty"><h3 style="margin:0 0 6px;font-size:15px;">Impossible de charger les biens</h3><p style="margin:0;color:var(--ink-soft);font-size:12.5px;">${msg}</p></div>`;
+    // On affichait le message d'exception brut : « TypeError: Failed to fetch ».
+    // Personne ne sait quoi en faire, et rien ne proposait de réessayer — il
+    // fallait deviner qu'il fallait recharger. Sur une connexion mobile qui
+    // décroche, c'est-à-dire le cas le plus fréquent, cela suffit à faire
+    // partir le visiteur. Le détail technique part en console, où il sert à
+    // qui saura le lire.
+    const erreur = e1 || e2;
+    console.error('Chargement des biens échoué :', erreur);
+    const reseauCoupe = !navigator.onLine
+      || /fetch|network|timeout|réseau/i.test(erreur.message || '');
+    const explication = reseauCoupe
+      ? (state.lang === 'en'
+          ? 'Your connection seems to have dropped. Check your network, then try again.'
+          : 'La connexion semble interrompue. Vérifiez votre réseau, puis réessayez.')
+      : (state.lang === 'en'
+          ? 'Listings are temporarily unavailable. Please try again in a moment.'
+          : 'Les annonces sont momentanément indisponibles. Réessayez dans un instant.');
+    document.getElementById('list').innerHTML = `<div class="empty">
+      <h3>${state.lang === 'en' ? 'Unable to load the listings' : 'Impossible de charger les biens'}</h3>
+      <p>${esc(explication)}</p>
+      <button type="button" class="btn btn-primary" id="rechargerBiensBtn">${state.lang === 'en' ? 'Try again' : 'Réessayer'}</button>
+    </div>`;
+    document.getElementById('rechargerBiensBtn').onclick = () => {
+      const btn = document.getElementById('rechargerBiensBtn');
+      // Sans ce verrou, un visiteur impatient lance autant de chargements
+      // qu'il donne de clics, et chacun réécrit la liste à son retour.
+      btn.disabled = true;
+      btn.textContent = state.lang === 'en' ? 'Loading…' : 'Chargement…';
+      loadProperties();
+    };
     return;
   }
   const photosByProperty = {};
