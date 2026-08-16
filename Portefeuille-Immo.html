@@ -10,7 +10,7 @@
 <meta name="robots" content="noindex, nofollow" />
 <!-- Voir vitrine.html pour le détail des choix : même politique sur les deux
      pages, pour ne pas les laisser diverger. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://avanktgaxepzpqmsiauz.supabase.co https://*.tile.openstreetmap.org https://server.arcgisonline.com https://cdn.jsdelivr.net; connect-src 'self' https://avanktgaxepzpqmsiauz.supabase.co https://nominatim.openstreetmap.org https://fonts.googleapis.com https://fonts.gstatic.com; object-src 'none'; base-uri 'self';" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://avanktgaxepzpqmsiauz.supabase.co https://*.tile.openstreetmap.org https://server.arcgisonline.com https://cdn.jsdelivr.net; connect-src 'self' https://avanktgaxepzpqmsiauz.supabase.co https://nominatim.openstreetmap.org https://fonts.googleapis.com https://fonts.gstatic.com; object-src 'none'; base-uri 'self';" />
 <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
 <link rel="icon" type="image/png" href="assets/logo.png">
 <title>PAB Immo - Mon Portefeuille - Immobilier</title>
@@ -3477,12 +3477,24 @@ function topPropertiesList(counts, emptyLabel){
 const CHART_COLORS = { primary:'#0F2747', success:'#397042', warning:'#F2AE05', danger:'#C4432F', ink:'#111827', soft:'#5A6B84', border:'#E4E9F2' };
 
 // Chargement résilient de Chart.js : si le CDN principal a échoué (script blanc,
-// blocage réseau, URL obsolète), on tente d'autres sources avant d'abandonner.
+// blocage réseau, URL obsolète), on tente une autre source avant d'abandonner.
 // C'est ce qui empêchait les graphiques de s'afficher (Chart était introuvable).
-function loadScriptOnce(src){
+//
+// CHAQUE SOURCE PORTE SON EMPREINTE (audit du 16 août 2026)
+// La balise <script> statique plus haut a la sienne, mais ce chemin de repli
+// n'en posait aucune : il suffisait qu'un repli réponde à la place du CDN
+// principal pour que du code non vérifié s'exécute — dans la page même où une
+// session d'administration lit les prospects, les téléphones et les messages.
+// Les empreintes diffèrent car unpkg ne publie que la version non minifiée.
+//
+// cdnjs a été retiré de la liste : il n'héberge pas la version 4.4.4 (404
+// vérifié), ce repli ne pouvait donc jamais aboutir. Deux sources suffisent, et
+// l'origine disparaît du même coup de la CSP.
+function loadScriptOnce(src, empreinte){
   return new Promise((resolve, reject) => {
     const s = document.createElement('script');
     s.src = src; s.async = true;
+    if(empreinte){ s.integrity = empreinte; s.crossOrigin = 'anonymous'; }
     s.onload = () => resolve(src);
     s.onerror = () => reject(new Error('Échec de chargement : ' + src));
     document.head.appendChild(s);
@@ -3491,12 +3503,13 @@ function loadScriptOnce(src){
 async function ensureChartJs(){
   if(typeof Chart !== 'undefined') return true;
   const sources = [
-    'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js',
-    'https://unpkg.com/chart.js@4.4.4/dist/chart.umd.js',
-    'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js'
+    ['https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js',
+     'sha384-NrKB+u6Ts6AtkIhwPixiKTzgSKNblyhlk0Sohlgar9UHUBzai/sgnNNWWd291xqt'],
+    ['https://unpkg.com/chart.js@4.4.4/dist/chart.umd.js',
+     'sha384-G436+Z2nlA8+PNoeRvWdxKbvOf8E/y+lYxqht2iBwNHTQDV5CJr3+AGVj8fGZi5t'],
   ];
-  for(const src of sources){
-    try{ await loadScriptOnce(src); if(typeof Chart !== 'undefined') return true; }
+  for(const [src, empreinte] of sources){
+    try{ await loadScriptOnce(src, empreinte); if(typeof Chart !== 'undefined') return true; }
     catch(e){ /* source suivante */ }
   }
   return typeof Chart !== 'undefined';

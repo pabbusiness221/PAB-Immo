@@ -5,13 +5,23 @@
 # Si RESEND_API_KEY expire, si un quota est dépassé ou si une fonction Edge
 # se met à échouer, rien ne le signale : les prospects continuent d'écrire,
 # mais PAB Immo ne le sait jamais. Cette action interroge périodiquement
-# public.sante_notifications() — un point de contrôle qui ne renvoie que des
-# compteurs agrégés, jamais de contenu personnel — et échoue volontairement
-# si un problème est détecté. Une action en échec envoie un email à
-# l'adresse GitHub du dépôt : c'est le signal.
+# public.sante_notifications_publique() et échoue volontairement si un problème
+# est détecté. Une action en échec envoie un email à l'adresse GitHub du
+# dépôt : c'est le signal.
 #
-# Aucun secret n'est nécessaire : sante_notifications() se lit avec la même
-# clé publique que le reste du site.
+# Aucun secret n'est nécessaire : la fonction se lit avec la même clé publique
+# que le reste du site.
+#
+# POURQUOI LA VERSION « PUBLIQUE » ET PAS sante_notifications()
+# Le veilleur appelait la fonction détaillée. Le durcissement du 9 août 2026 lui
+# a retiré ce droit sans toucher à ce fichier : depuis, l'appel renvoyait 401 et
+# l'action échouait toutes les six heures — un veilleur qui crie pour une raison
+# étrangère à ce qu'il surveille, donc qu'on apprend à ne plus écouter.
+# La fonction détaillée est désormais réservée à l'administration (audit du
+# 16 août : elle renseignait tout compte authentifié, et l'inscription publique
+# est ouverte). Celle appelée ici ne renvoie qu'un booléen et une phrase
+# générique — les journaux d'une GitHub Action sont publics sur un dépôt public,
+# ce qui exclut d'y écrire des volumes d'activité.
 
 name: Surveiller les notifications
 
@@ -29,7 +39,7 @@ jobs:
       - name: Interroger la santé des notifications
         run: |
           reponse=$(curl -s -X POST \
-            'https://avanktgaxepzpqmsiauz.supabase.co/rest/v1/rpc/sante_notifications' \
+            'https://avanktgaxepzpqmsiauz.supabase.co/rest/v1/rpc/sante_notifications_publique' \
             -H "apikey: sb_publishable_nAQnS82ru9h-beIDPKMqPA_JO_aSYc-" \
             -H "Content-Type: application/json" \
             -d '{}')

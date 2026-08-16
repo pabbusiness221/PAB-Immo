@@ -4304,9 +4304,17 @@ function appliquerParams(p){
   const champ = document.getElementById('search');
   if(champ) champ.value = state.search;
   ADV_CRITERES.forEach(c => {
-    const v = p.get(c.cle.toLowerCase()) || '';
-    state[c.cle] = v;
+    let v = p.get(c.cle.toLowerCase()) || '';
     const el = document.getElementById(c.champ);
+    // Une URL se trafique à la main. Un critère chiffré qui reçoit du texte
+    // donnait une puce « à partir de NaN FCFA » dans le résumé : on écarte la
+    // valeur plutôt que d'afficher un non-nombre. Le type du champ fait foi,
+    // pour n'avoir pas à tenir une seconde liste des critères numériques.
+    if(el && el.type === 'number' && v !== ''){
+      const n = Number(v);
+      if(!Number.isFinite(n) || n < 0) v = '';
+    }
+    state[c.cle] = v;
     if(el) el.value = v;
   });
   const lat = parseFloat(p.get('lat')), lng = parseFloat(p.get('lng')), rayon = parseFloat(p.get('rayon'));
