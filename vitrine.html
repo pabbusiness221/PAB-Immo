@@ -378,7 +378,7 @@
   .divider{width:1px;height:28px;background:var(--border);}
 
   .view-toggle{display:none;gap:6px;background:var(--surface-alt);border-radius:999px;padding:4px;width:fit-content;}
-  .view-toggle button{border:none;background:transparent;border-radius:999px;padding:9px 20px;font-size:12.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s var(--ease);}
+  .view-toggle button{border:none;background:transparent;border-radius:999px;padding:9px 20px;font-size:12.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;font-family:'Inter',sans-serif;transition:background-color .2s var(--ease), box-shadow .2s var(--ease), color .2s var(--ease), transform .2s var(--ease);}
   .view-toggle button.active{background:var(--primary);color:#fff;box-shadow:0 6px 14px -8px rgba(15,39,71,0.8);}
 
   /* ---------- Résumé des résultats ---------- */
@@ -650,7 +650,7 @@
 
   /* ---------- Formulaires (message / RDV / alertes) ---------- */
   .subform-tabs{display:flex;gap:8px;margin-top:26px;}
-  .subform-tab{flex:1;border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:11px 8px;font-size:12.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s var(--ease);}
+  .subform-tab{flex:1;border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:11px 8px;font-size:12.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;font-family:'Inter',sans-serif;transition:background-color .2s var(--ease), border-color .2s var(--ease), color .2s var(--ease), transform .2s var(--ease);}
   .subform-tab:hover{border-color:#C9D3E0;color:var(--ink);}
   .subform-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);}
   .subform-panel{margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;}
@@ -774,7 +774,7 @@
   .avis-plus:empty{display:none;}
   .avis-plus-btn{background:var(--surface);border:1.5px solid var(--border);color:var(--ink);
     border-radius:999px;padding:11px 24px;font-size:13.5px;font-weight:700;cursor:pointer;
-    font-family:'Inter',sans-serif;transition:all .2s var(--ease);}
+    font-family:'Inter',sans-serif;transition:background-color .2s var(--ease), border-color .2s var(--ease), color .2s var(--ease);}
   .avis-plus-btn:hover{border-color:var(--accent);color:var(--gold);background:var(--accent-soft);}
   .avis-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 24px 24px;margin-top:16px;}
   .avis-form.hidden{display:none;}
@@ -930,7 +930,7 @@
   .footer-links a{font-size:13px;text-decoration:none;transition:color .2s var(--ease);}
   .footer-links a:hover{color:var(--accent-clair);}
   .footer-social{display:flex;gap:10px;margin-top:18px;}
-  .footer-social a{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;color:rgba(255,255,255,0.72);background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.11);transition:all .2s var(--ease);}
+  .footer-social a{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;color:rgba(255,255,255,0.72);background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.11);transition:background-color .2s var(--ease), border-color .2s var(--ease), color .2s var(--ease), transform .2s var(--ease);}
   .footer-social a:hover{color:var(--accent-clair);border-color:rgba(221,168,60,0.55);background:rgba(221,168,60,0.12);transform:translateY(-2px);}
   .footer-social svg{width:18px;height:18px;}
   /* 0.42 donnait 3,82:1 sur le bleu nuit du pied de page — sous AA. 0.55
