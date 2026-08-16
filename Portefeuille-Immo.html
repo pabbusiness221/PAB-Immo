@@ -230,6 +230,10 @@
   .auth-box{background:var(--surface);border-radius:var(--radius-xl);padding:34px 30px;width:100%;max-width:380px;box-shadow:var(--shadow-lg);animation:fadeInUp .4s var(--ease);}
   .auth-box h2{font-size:21px;margin:0 0 6px;letter-spacing:-0.02em;}
   .auth-box p{font-size:12.5px;color:var(--ink-soft);margin:0 0 22px;line-height:1.55;}
+  /* Étiquettes des champs de connexion. Discrètes, mais présentes à l'écran :
+     le placeholder seul s'efface dès la première frappe. */
+  .auth-label{display:block;font-size:11px;font-weight:800;color:var(--ink-soft);
+    margin:0 0 5px;letter-spacing:.02em;}
   .auth-input{width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:12px 15px;font-size:13.5px;font-family:'Inter',sans-serif;color:var(--ink);outline:none;margin-bottom:10px;transition:border-color .2s var(--ease), box-shadow .2s var(--ease);}
   .auth-input:focus{border-color:var(--accent);box-shadow:var(--focus-ring);}
   .auth-error{color:var(--danger);font-size:12px;margin:8px 0 0;min-height:14px;}
@@ -443,8 +447,15 @@
   @media (max-width: 1180px){
     .searchbar{max-width:260px;min-width:0;}
     /* Les libellés des boutons partent avant la recherche : les icônes
-       restent explicites et l'en-tête tient sur une seule ligne. */
-    .btn-label{display:none;}
+       restent explicites et l'en-tête tient sur une seule ligne.
+       Masqués À L'ŒIL SEULEMENT, et non par display:none. Ce dernier les
+       retirait de l'arbre d'accessibilité : sous 1 180 px — donc sur toute
+       tablette et beaucoup de portables — « Ajouter un bien » s'annonçait
+       « bouton », sans plus. Ses trois voisins s'en tiraient par un title de
+       secours, mécanisme faible que les lecteurs d'écran n'exposent pas tous ;
+       lui n'en avait aucun. Cette écriture rend leur nom aux quatre. */
+    .btn-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+      overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
   }
   /* Voir vitrine.html : 1023.98 ferme l'intervalle que laissait « 1023 » sur
      les écrans à rapport de pixels fractionnaire. */
@@ -541,10 +552,19 @@
   <div class="auth-box">
     <h2>Connexion</h2>
     <p>Espace privé — connectez-vous avec le compte créé dans Supabase Authentication.</p>
-    <input class="auth-input" id="authEmail" type="email" placeholder="Email" />
-    <input class="auth-input" id="authPassword" type="password" placeholder="Mot de passe" />
+    <!-- De vraies étiquettes, et pas le seul placeholder : celui-ci disparaît
+         dès la première frappe, et l'on ne sait plus quel champ on remplit.
+         autocomplete rouvre la porte aux gestionnaires de mots de passe, ce
+         qui sert d'abord ceux pour qui saisir coûte le plus. -->
+    <label class="auth-label" for="authEmail">Email</label>
+    <input class="auth-input" id="authEmail" type="email" autocomplete="email"
+           placeholder="vous@exemple.com" />
+    <label class="auth-label" for="authPassword">Mot de passe</label>
+    <input class="auth-input" id="authPassword" type="password" autocomplete="current-password" />
     <button class="btn btn-primary" id="authSubmit" style="width:100%;justify-content:center;">Se connecter</button>
-    <p class="auth-error" id="authError"></p>
+    <!-- role="alert" : l'échec de connexion s'affichait sans être annoncé,
+         alors que tous les formulaires de la vitrine le font. -->
+    <p class="auth-error" role="alert" id="authError"></p>
     <!-- Sans ce lien, qui arrive ici par erreur reste coincé devant un mur de
          connexion, sans aucun moyen de rejoindre le site public. -->
     <a class="auth-retour" href="Biens-Immo.html">← Retour au site public</a>
@@ -641,7 +661,11 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 001 1h12a1 1 0 001-1V8"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
         <span id="archiveToggleLabel">Archives</span>
       </button>
-      <select id="statusFilter">
+      <!-- Ce menu n'a pas d'étiquette visible : dans une barre d'outils
+           compacte, elle doublerait la première option. aria-label nomme donc
+           le contrôle sans rien changer à l'écran. Sans lui, il s'annonçait
+           « menu déroulant, Tous les statuts » — sans jamais dire de quoi. -->
+      <select id="statusFilter" aria-label="Filtrer les biens par statut">
         <option value="Tous">Tous les statuts</option>
         <option value="Disponible">Disponible</option>
         <option value="Réservé">Réservé</option>

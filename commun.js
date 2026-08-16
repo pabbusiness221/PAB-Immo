@@ -365,7 +365,19 @@ function closePhotoGallery(){
 document.addEventListener('keydown', e => {
   const modal = document.getElementById('galleryModal');
   if(!modal || modal.classList.contains('hidden')) return;
-  if(e.key === 'Escape'){ closePhotoGallery(); return; }
+  if(e.key === 'Escape'){
+    // stopImmediatePropagation et non stopPropagation : le gestionnaire d'Échap
+    // du tiroir de fiche est posé sur le MÊME nœud (document), si bien qu'il
+    // n'y a aucune propagation à interrompre — seulement une liste d'écouteurs
+    // à arrêter. Sans cela, les deux s'exécutaient sur la même touche : la
+    // galerie se fermait, puis la fiche aussi, et l'on se retrouvait dans la
+    // liste des résultats après avoir simplement regardé une photo. Un
+    // utilisateur de souris ne voyait rien de tout cela, le bouton × étant
+    // correct ; c'était une perte de repère propre au clavier.
+    e.stopImmediatePropagation();
+    closePhotoGallery();
+    return;
+  }
   if(e.key === 'ArrowLeft'){ modal.querySelector('[data-action="prev"]:not([disabled])')?.click(); return; }
   if(e.key === 'ArrowRight'){ modal.querySelector('[data-action="next"]:not([disabled])')?.click(); return; }
   if(e.key !== 'Tab') return;
