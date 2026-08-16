@@ -8,13 +8,34 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#127969;</text></svg>">
 <title>Guide PAB Immo &#8212; Administrateur, Collaborateur &amp; Client</title>
 <style>
+  /* DEUX VARIABLES DÉDIÉES, ET POURQUOI
+     --gold-ink et --on-good existent parce qu'une même couleur ne peut pas
+     toujours servir d'encre ET de fond. Mesuré :
+
+     · --gold-deep #B8821C sert de texte (numéros de section, badges, étapes) et
+       de fond dans des dégradés surmontés de #241A06. Il n'était défini que dans
+       :root, donc identique dans les deux thèmes, et échouait comme texte des
+       deux côtés — 3:1 en clair, 3,78:1 en sombre. L'assombrir assez pour le
+       texte clair (#8F6516) faisait tomber le dégradé à 3,30:1. D'où la
+       séparation : --gold-deep garde son rôle de fond, inchangé, et --gold-ink
+       porte le texte, avec une valeur par thème.
+
+     · --good sous du texte blanc (.st) exige d'être sombre, mais --good comme
+       texte sur --good-bg exige d'être clair. En thème sombre les deux ne
+       peuvent coexister : blanc sur #4FA574 donnait 3,01:1. --on-good porte donc
+       l'encre du badge, blanche en clair et #0C1613 en sombre (6,40:1).
+
+     Le reste a simplement été assombri à teinte constante. axe : 0 violation
+     dans les deux thèmes, contre 16 en clair et 4 en sombre auparavant.
+     Ne pas éclaircir ces valeurs sans revérifier LES DEUX thèmes. */
   :root{
     --canvas:#F4F2EE; --panel:#FFFFFF; --panel-2:#FBFAF7;
     --ink:#16211D; --ink-soft:#5E6B64; --line:#E5E1D8;
     --night:#0C1613; --night-2:#16281F;
     --gold:#E2A22C; --gold-deep:#B8821C; --forest:#123027;
-    --good:#2F7A4E; --warn:#B8842A; --bad:#C0492C;
-    --good-bg:rgba(47,122,78,.12); --warn-bg:rgba(184,132,42,.14); --bad-bg:rgba(192,73,44,.10);
+    --good:#2E774C; --warn:#B8842A; --bad:#AB4127;
+    --good-bg:rgba(46,119,76,.12); --warn-bg:rgba(184,132,42,.14); --bad-bg:rgba(171,65,39,.10);
+    --gold-ink:#8F6516; --on-good:#FFFFFF;
     --link:#B8821C;
     --shadow:0 1px 2px rgba(16,33,29,.04), 0 8px 24px -14px rgba(16,33,29,.22);
     --radius:14px; --radius-sm:9px;
@@ -27,8 +48,9 @@
     :root{
       --canvas:#0C1613; --panel:#14211C; --panel-2:#111E19;
       --ink:#ECEBE5; --ink-soft:#9EA89F; --line:#26382F;
-      --good:#4FA574; --warn:#D3A24A; --bad:#E0765A;
-      --good-bg:rgba(79,165,116,.14); --warn-bg:rgba(211,162,74,.15); --bad-bg:rgba(224,118,90,.13);
+      --good:#51A977; --warn:#D3A24A; --bad:#E0765A;
+      --good-bg:rgba(81,169,119,.14); --warn-bg:rgba(211,162,74,.15); --bad-bg:rgba(224,118,90,.13);
+      --gold-ink:#CD911F; --on-good:#0C1613;
       --link:#E9B24A;
       --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px -16px rgba(0,0,0,.6);
     }
@@ -36,16 +58,18 @@
   :root[data-theme="dark"]{
     --canvas:#0C1613; --panel:#14211C; --panel-2:#111E19;
     --ink:#ECEBE5; --ink-soft:#9EA89F; --line:#26382F;
-    --good:#4FA574; --warn:#D3A24A; --bad:#E0765A;
-    --good-bg:rgba(79,165,116,.14); --warn-bg:rgba(211,162,74,.15); --bad-bg:rgba(224,118,90,.13);
+    --good:#51A977; --warn:#D3A24A; --bad:#E0765A;
+    --good-bg:rgba(81,169,119,.14); --warn-bg:rgba(211,162,74,.15); --bad-bg:rgba(224,118,90,.13);
+    --gold-ink:#CD911F; --on-good:#0C1613;
     --link:#E9B24A;
     --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 30px -16px rgba(0,0,0,.6);
   }
   :root[data-theme="light"]{
     --canvas:#F4F2EE; --panel:#FFFFFF; --panel-2:#FBFAF7;
     --ink:#16211D; --ink-soft:#5E6B64; --line:#E5E1D8;
-    --good:#2F7A4E; --warn:#B8842A; --bad:#C0492C;
-    --good-bg:rgba(47,122,78,.12); --warn-bg:rgba(184,132,42,.14); --bad-bg:rgba(192,73,44,.10);
+    --good:#2E774C; --warn:#B8842A; --bad:#AB4127;
+    --good-bg:rgba(46,119,76,.12); --warn-bg:rgba(184,132,42,.14); --bad-bg:rgba(171,65,39,.10);
+    --gold-ink:#8F6516; --on-good:#FFFFFF;
     --link:#B8821C;
     --shadow:0 1px 2px rgba(16,33,29,.04), 0 8px 24px -14px rgba(16,33,29,.22);
   }
@@ -112,7 +136,7 @@
   section{scroll-margin-top:16px;padding:14px 0 30px;border-top:1px solid var(--line);}
   main > section:first-of-type{border-top:0;}
   .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:800;
-    text-transform:uppercase;letter-spacing:.13em;color:var(--gold-deep);margin:0 0 8px;}
+    text-transform:uppercase;letter-spacing:.13em;color:var(--gold-ink);margin:0 0 8px;}
   .eyebrow .n{font-family:var(--font-mono);}
   h2.sec{font-family:var(--font-display);font-weight:800;letter-spacing:-.02em;line-height:1.15;
     font-size:clamp(21px,3vw,27px);margin:0 0 14px;text-wrap:balance;}
@@ -172,13 +196,13 @@
   .card .ph{height:130px;background:linear-gradient(135deg,#2E4A61,#161B22);position:relative;}
   .card .ph .op{position:absolute;top:10px;left:10px;background:rgba(255,255,255,.92);color:#16211D;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;}
   .card .ph .spo{position:absolute;top:44px;right:10px;background:var(--night);color:var(--gold);font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid rgba(226,162,44,.45);}
-  .card .ph .st{position:absolute;bottom:10px;left:10px;background:var(--good);color:#fff;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;}
+  .card .ph .st{position:absolute;bottom:10px;left:10px;background:var(--good);color:var(--on-good);font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;}
   .card .bd{padding:12px 13px;}
   .card h4{font-family:var(--font-display);margin:0 0 7px;font-size:15px;font-weight:800;}
   .badges{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0;}
   .bdg{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:999px;}
   .bdg.v{background:var(--good-bg);color:var(--good);}
-  .bdg.d{background:rgba(226,162,44,.15);color:var(--gold-deep);}
+  .bdg.d{background:rgba(226,162,44,.15);color:var(--gold-ink);}
   .bdg.a{background:var(--forest);color:#CFE3D8;}
   .card .foot{display:flex;justify-content:space-between;align-items:baseline;margin-top:8px;}
   .card .foot .sf{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);}
@@ -187,7 +211,7 @@
   .pipe{display:flex;flex-wrap:wrap;gap:0;align-items:stretch;padding:18px;background:var(--panel-2);}
   .step{flex:1;min-width:92px;text-align:center;padding:11px 8px;font-size:12px;font-weight:700;position:relative;}
   .step .k{display:block;width:24px;height:24px;border-radius:50%;margin:0 auto 7px;display:grid;place-items:center;
-    background:var(--panel);border:2px solid var(--gold);color:var(--gold-deep);font-family:var(--font-mono);font-size:11px;}
+    background:var(--panel);border:2px solid var(--gold);color:var(--gold-ink);font-family:var(--font-mono);font-size:11px;}
   .step:not(:last-child)::after{content:"";position:absolute;top:23px;right:-2px;width:calc(100% - 26px);height:2px;background:var(--line);}
   .step.end .k{border-color:var(--good);color:var(--good);}
   .step.lost .k{border-color:var(--ink-soft);color:var(--ink-soft);}
