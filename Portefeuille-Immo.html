@@ -133,7 +133,12 @@
   .header-actions{display:flex;align-items:center;gap:9px;flex-wrap:nowrap;flex-shrink:0;margin-left:auto;}
   .searchbar:focus-within{border-color:var(--accent);background:rgba(255,255,255,0.13);box-shadow:var(--focus-ring);}
   .searchbar svg{stroke:rgba(255,255,255,0.55);flex-shrink:0;}
-  .searchbar input{border:none;outline:none;font-size:13px;width:100%;background:transparent;font-family:'Inter',sans-serif;color:#fff;}
+  /* Le champ ne faisait que 18 px de haut, sous le minimum de 24 px, et un clic
+     dans le haut de la barre ne l'atteignait pas. Contrairement à la vitrine,
+     align-self:stretch ne suffit pas ici : la barre elle-même ne fait que 39 px
+     et sa hauteur DÉCOULE de celle du champ — l'étirer ne l'agrandit donc pas.
+     D'où une hauteur minimale explicite, qui fait passer la barre à 44 px. */
+  .searchbar input{border:none;outline:none;font-size:13px;width:100%;min-height:24px;align-self:stretch;background:transparent;font-family:'Inter',sans-serif;color:#fff;}
   .searchbar input::placeholder{color:rgba(255,255,255,0.42);}
 
   /* ---------- Filtres & indicateurs ---------- */
@@ -185,7 +190,14 @@
   .card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:#D6D1C6;}
   .card-icon{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .card-body{flex:1;min-width:0;}
+  .saut-contenu{position:absolute;left:-9999px;top:0;z-index:9999;background:var(--primary);color:#fff;
+    padding:12px 20px;border-radius:0 0 var(--radius-sm) 0;font-size:14px;font-weight:700;text-decoration:none;}
+  .saut-contenu:focus{left:0;}
   .card-top h3{font-size:15px;font-weight:800;margin:0;letter-spacing:-0.012em;}
+  /* Le bouton hérite tout du titre : il ouvre le bien au clavier sans rien
+     changer à l'apparence. */
+  .card-open{background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;text-align:left;cursor:pointer;}
+  .card-open:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:3px;}
   .ref{font-size:10.5px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;}
   .pill{font-size:10.5px;font-weight:800;padding:4px 10px;border-radius:999px;white-space:nowrap;}
   .card-meta{display:flex;align-items:center;gap:6px;color:var(--ink-soft);font-size:12.5px;margin-top:6px;}
@@ -585,6 +597,11 @@
   </div>
 </div>
 
+<!-- Sans lien d'evitement, il fallait traverser une vingtaine de
+     controles d'en-tete et de filtres avant d'atteindre la liste des
+     biens, a chaque chargement. Meme motif que la vitrine. -->
+<a class="saut-contenu" href="#contenu">Aller au contenu</a>
+
 <header>
   <div class="header-inner">
     <div class="brand">
@@ -619,32 +636,32 @@
         <span class="btn-label">Menu</span>
         <span class="inbox-badge" id="toolsMenuBadge" style="display:none;"></span>
       </button>
-      <div class="tools-menu" id="toolsMenu" role="menu" hidden>
-        <button class="menu-item" id="agencesBtn" role="menuitem" style="display:none;">
+      <div class="tools-menu" id="toolsMenu" hidden>
+        <button class="menu-item" id="agencesBtn" style="display:none;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M10 21v-6h4v6"/></svg>
           <span class="mi-label">Agences</span>
           <span class="menu-badge" id="agencesBadge" style="display:none;"></span>
         </button>
-        <button class="menu-item" id="avisBtn" role="menuitem" style="display:none;">
+        <button class="menu-item" id="avisBtn" style="display:none;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17.3l-6.2 3.7 1.6-7L2 9.2l7.1-.6L12 2l2.9 6.6 7.1.6-5.4 4.8 1.6 7z"/></svg>
           <span class="mi-label">Avis clients</span>
           <span class="menu-badge" id="avisBadge" style="display:none;"></span>
         </button>
-        <button class="menu-item" id="journalBtn" role="menuitem" style="display:none;">
+        <button class="menu-item" id="journalBtn" style="display:none;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
           <span class="mi-label">Journal d'activité</span>
         </button>
-        <button class="menu-item" id="analyticsBtn" role="menuitem" style="display:none;">
+        <button class="menu-item" id="analyticsBtn" style="display:none;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
           <span class="mi-label">Statistiques</span>
         </button>
         <div class="menu-sep"></div>
-        <a class="menu-item" id="vitrineBtn" role="menuitem" href="vitrine.html" title="Voir la vitrine (hors ligne pendant les travaux)">
+        <a class="menu-item" id="vitrineBtn" href="vitrine.html" title="Voir la vitrine (hors ligne pendant les travaux)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 010 18a15 15 0 010-18z"/></svg>
           <span class="mi-label">Voir la vitrine</span>
         </a>
         <div class="menu-sep"></div>
-        <button class="menu-item menu-item-danger" id="logoutBtn" role="menuitem">
+        <button class="menu-item menu-item-danger" id="logoutBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
           <span class="mi-label">Déconnexion</span>
         </button>
@@ -657,6 +674,10 @@
     </div>
   </div>
 </header>
+
+<!-- La page n'avait aucun repere principal : la navigation par landmarks
+     ne permettait pas de rejoindre le contenu. -->
+<main id="contenu">
 
 <!-- Alerte de panne d'envoi. Masquée par défaut, remplie par checkNotificationHealth().
      Placée avant tout le reste : une panne d'email doit sauter aux yeux. -->
@@ -712,6 +733,8 @@
     </div>
   </div>
 </div>
+
+</main>
 
 <div class="overlay" id="overlay"></div>
 <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Détail du bien"></div>
@@ -918,7 +941,17 @@ function rebuildMarkers(list){
   Object.values(markers).forEach(m => map.removeLayer(m));
   markers = {};
   list.forEach(p => {
-    const m = L.marker([p.lat,p.lng], { icon: markerIcon(p, String(p.id)===String(state.selected)) });
+    // Leaflet pose role="button" et tabindex="0" sur ses marqueurs, mais aucun
+    // nom : vingt-trois boutons s'annoncaient « bouton » sans plus. Le nom passe
+    // par l'option title, que Leaflet applique a chaque creation de l'element,
+    // et par aria-label accroche a l'evenement d'ajout — meme traitement que la
+    // vitrine, ou ce defaut avait ete corrige.
+    const nomAccessible = `${p.type} — ${p.commune}, ${fcfa(p.price)}${p.operation==='Location' ? ' /mois' : ''}`;
+    const m = L.marker([p.lat,p.lng], { icon: markerIcon(p, String(p.id)===String(state.selected)), title: nomAccessible });
+    m.on('add', () => {
+      const el = m.getElement();
+      if(el) el.setAttribute('aria-label', nomAccessible);
+    });
     m.bindPopup(popupContent(p), { maxWidth:220 });
     m.on('click', () => { highlightCard(p.id); });
     m.addTo(map);
@@ -1005,7 +1038,14 @@ function renderList(){
         <div class="card-top">
           <div>
             <div class="ref mono">${esc(p.ref)}</div>
-            <h3>${p.type} — ${esc(p.commune)}</h3>
+            <!-- Le titre est un vrai bouton. La carte etait un <div onclick>
+                 non focalisable, sans role et sans aucun element focalisable a
+                 l'interieur : au clavier, AUCUN bien ne pouvait etre ouvert —
+                 ni consulte, ni modifie. Meme motif que la vitrine.
+                 Aucun gestionnaire propre : le clic du bouton remonte a celui
+                 de .card, deja pose plus bas. Un seul chemin, donc pas de
+                 double ouverture. -->
+            <h3><button type="button" class="card-open">${p.type} — ${esc(p.commune)}</button></h3>
           </div>
           <span class="pill" style="background:${STATUS_COLOR[p.status]}22;color:${STATUS_COLOR[p.status]}">${p.status}</span>
         </div>
@@ -1424,7 +1464,7 @@ function renderRoomsSection(existingRooms){
   if(type === 'Terrain' || type === 'Champ agricole'){
     el.innerHTML = `
     <div class="form-field full">
-      <label class="form-label">Équipements ou Contenus (séparés par des virgules)</label>
+      <label class="form-label" for="f_equip">Équipements ou Contenus (séparés par des virgules)</label>
       <input class="form-input" id="f_equip" value="${esc((r.autres||[]).join(', '))}" placeholder="Clôturé, Puits, Arbres fruitiers, Accès route"/>
     </div>`;
     return;
@@ -1432,21 +1472,21 @@ function renderRoomsSection(existingRooms){
   el.innerHTML = `
     <div class="section-title">Caractéristiques</div>
     <div class="form-grid">
-      <div class="form-field"><label class="form-label">Chambres</label><input class="form-input" id="f_chambres" type="number" min="0" value="${r.chambres??''}"/></div>
-      <div class="form-field"><label class="form-label">Salons</label><input class="form-input" id="f_salons" type="number" min="0" value="${r.salons??''}"/></div>
-      <div class="form-field"><label class="form-label">Salles de bain</label><input class="form-input" id="f_sdb" type="number" min="0" value="${r.sdb??''}"/></div>
-      <div class="form-field"><label class="form-label">Cuisine</label>
+      <div class="form-field"><label class="form-label" for="f_chambres">Chambres</label><input class="form-input" id="f_chambres" type="number" min="0" value="${r.chambres??''}"/></div>
+      <div class="form-field"><label class="form-label" for="f_salons">Salons</label><input class="form-input" id="f_salons" type="number" min="0" value="${r.salons??''}"/></div>
+      <div class="form-field"><label class="form-label" for="f_sdb">Salles de bain</label><input class="form-input" id="f_sdb" type="number" min="0" value="${r.sdb??''}"/></div>
+      <div class="form-field"><label class="form-label" for="f_cuisine">Cuisine</label>
         <select class="form-select" id="f_cuisine">
           <option value="Équipée" ${r.cuisine==='Équipée'?'selected':''}>Équipée</option>
           <option value="Simple" ${r.cuisine==='Simple'?'selected':''}>Simple</option>
         </select>
       </div>
       ${(type === 'Appartement' || type === 'Studio') ? `
-      <div class="form-field"><label class="form-label">Étage</label><input class="form-input" id="f_etage" placeholder="RDC, 3e étage sur 5…" value="${esc(r.etage||'')}"/></div>` : ''}
-      <div class="form-field"><label class="form-label">Année de construction</label><input class="form-input" id="f_annee" type="number" min="1900" max="2100" value="${r.annee_construction??''}"/></div>
+      <div class="form-field"><label class="form-label" for="f_etage">Étage</label><input class="form-input" id="f_etage" placeholder="RDC, 3e étage sur 5…" value="${esc(r.etage||'')}"/></div>` : ''}
+      <div class="form-field"><label class="form-label" for="f_annee">Année de construction</label><input class="form-input" id="f_annee" type="number" min="1900" max="2100" value="${r.annee_construction??''}"/></div>
     </div>
     <div class="form-field full">
-      <label class="form-label">Équipements ou Contenus (séparés par des virgules)</label>
+      <label class="form-label" for="f_equip">Équipements ou Contenus (séparés par des virgules)</label>
       <input class="form-input" id="f_equip" value="${esc((r.autres||[]).join(', '))}" placeholder="Garage, Jardin clôturé"/>
     </div>`;
 }
@@ -1477,15 +1517,15 @@ function renderLocationSection(p){
   el.innerHTML = `
     <div class="section-title">Conditions de location</div>
     <div class="form-grid">
-      <div class="form-field"><label class="form-label">Meublé</label>
+      <div class="form-field"><label class="form-label" for="f_meuble">Meublé</label>
         <select class="form-select" id="f_meuble">
           <option value="">Non renseigné</option>
           <option value="Meublé" ${meubleActuel==='Meublé'?'selected':''}>Meublé</option>
           <option value="Non meublé" ${meubleActuel==='Non meublé'?'selected':''}>Non meublé</option>
         </select>
       </div>
-      <div class="form-field"><label class="form-label">Charges (FCFA/mois, optionnel)</label><input class="form-input" id="f_charges" type="number" min="0" value="${esc(String(chargesActuel))}"/></div>
-      <div class="form-field"><label class="form-label">Caution (FCFA, optionnel)</label><input class="form-input" id="f_caution" type="number" min="0" value="${esc(String(cautionActuel))}"/></div>
+      <div class="form-field"><label class="form-label" for="f_charges">Charges (FCFA/mois, optionnel)</label><input class="form-input" id="f_charges" type="number" min="0" value="${esc(String(chargesActuel))}"/></div>
+      <div class="form-field"><label class="form-label" for="f_caution">Caution (FCFA, optionnel)</label><input class="form-input" id="f_caution" type="number" min="0" value="${esc(String(cautionActuel))}"/></div>
     </div>`;
 }
 
@@ -1792,37 +1832,37 @@ function openForm(existing){
       </div>
 
       <div class="form-grid" style="margin-top:16px;">
-        <div class="form-field"><label class="form-label">Référence</label><input class="form-input" id="f_ref" value="${esc(initialRef)}" placeholder="TF-2024-XXXX"/></div>
-        <div class="form-field"><label class="form-label">Type</label>
+        <div class="form-field"><label class="form-label" for="f_ref">Référence</label><input class="form-input" id="f_ref" value="${esc(initialRef)}" placeholder="TF-2024-XXXX"/></div>
+        <div class="form-field"><label class="form-label" for="f_type">Type</label>
           <select class="form-select" id="f_type">${['Terrain','Maison','Appartement','Studio','Champ agricole'].map(t=>`<option value="${t}" ${p.type===t?'selected':''}>${t}</option>`).join('')}</select>
         </div>
-        <div class="form-field"><label class="form-label">Opération</label>
+        <div class="form-field"><label class="form-label" for="f_operation">Opération</label>
           <select class="form-select" id="f_operation">${['Vente','Location'].map(t=>`<option value="${t}" ${p.operation===t?'selected':''}>${t}</option>`).join('')}</select>
         </div>
-        <div class="form-field"><label class="form-label">Statut</label>
+        <div class="form-field"><label class="form-label" for="f_status">Statut</label>
           <select class="form-select" id="f_status">${(STATUS_OPTIONS[p.operation]||STATUS_OPTIONS.Vente).map(s=>`<option value="${s}" ${p.status===s?'selected':''}>${s}</option>`).join('')}</select>
         </div>
-        <div class="form-field"><label class="form-label">Statut foncier</label>
+        <div class="form-field"><label class="form-label" for="f_statut_foncier">Statut foncier</label>
           <select class="form-select" id="f_statut_foncier">${['Titre foncier','Bail','Délibération','Non renseigné'].map(s=>`<option value="${s}" ${(p.statut_foncier||'Non renseigné')===s?'selected':''}>${s}</option>`).join('')}</select>
         </div>
-        <div class="form-field"><label class="form-label">Région</label>
+        <div class="form-field"><label class="form-label" for="f_region">Région</label>
           <select class="form-select" id="f_region">${p.region ? '' : '<option value="" disabled selected>— Choisir —</option>'}${regionOptions(p.region, false)}</select>
         </div>
-        <div class="form-field"><label class="form-label">Département</label><input class="form-input" id="f_departement" list="departement_list" required value="${esc(p.departement||'')}"/>
+        <div class="form-field"><label class="form-label" for="f_departement">Département</label><input class="form-input" id="f_departement" list="departement_list" required value="${esc(p.departement||'')}"/>
           <datalist id="departement_list"><option value="Dakar"><option value="Guédiawaye"><option value="Pikine"><option value="Rufisque"><option value="Thiès"><option value="Mbour"><option value="Tivaouane"></datalist>
         </div>
-        <div class="form-field"><label class="form-label">Commune</label><input class="form-input" id="f_commune" value="${esc(p.commune||'')}"/></div>
-        <div class="form-field"><label class="form-label">Quartier (optionnel)</label><input class="form-input" id="f_quartier" value="${esc(p.quartier||'')}"/></div>
-        <div class="form-field"><label class="form-label">Latitude</label><input class="form-input" id="f_lat" type="number" step="any" value="${p.lat??''}"/></div>
-        <div class="form-field"><label class="form-label">Longitude</label><input class="form-input" id="f_lng" type="number" step="any" value="${p.lng??''}"/></div>
-        <div class="form-field"><label class="form-label" id="f_surfaceLabel">Superficie (${surfaceUnit(p.type)})</label><input class="form-input" id="f_surface" type="number" step="any" value="${p.surface??''}"/></div>
-        <div class="form-field"><label class="form-label">Prix (FCFA)</label><input class="form-input" id="f_price" type="number" step="any" value="${p.price??''}"/></div>
-        <div class="form-field"><label class="form-label">Disponible à partir du (optionnel)</label><input class="form-input" id="f_date_dispo" type="date" value="${esc(p.date_disponibilite||'')}"/></div>
+        <div class="form-field"><label class="form-label" for="f_commune">Commune</label><input class="form-input" id="f_commune" value="${esc(p.commune||'')}"/></div>
+        <div class="form-field"><label class="form-label" for="f_quartier">Quartier (optionnel)</label><input class="form-input" id="f_quartier" value="${esc(p.quartier||'')}"/></div>
+        <div class="form-field"><label class="form-label" for="f_lat">Latitude</label><input class="form-input" id="f_lat" type="number" step="any" value="${p.lat??''}"/></div>
+        <div class="form-field"><label class="form-label" for="f_lng">Longitude</label><input class="form-input" id="f_lng" type="number" step="any" value="${p.lng??''}"/></div>
+        <div class="form-field"><label class="form-label" id="f_surfaceLabel" for="f_surface">Superficie (${surfaceUnit(p.type)})</label><input class="form-input" id="f_surface" type="number" step="any" value="${p.surface??''}"/></div>
+        <div class="form-field"><label class="form-label" for="f_price">Prix (FCFA)</label><input class="form-input" id="f_price" type="number" step="any" value="${p.price??''}"/></div>
+        <div class="form-field"><label class="form-label" for="f_date_dispo">Disponible à partir du (optionnel)</label><input class="form-input" id="f_date_dispo" type="date" value="${esc(p.date_disponibilite||'')}"/></div>
       </div>
 
       <div class="form-field full" style="margin-top:4px;">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-          <label class="form-label" style="margin:0;">Description</label>
+          <label class="form-label" style="margin:0;" for="f_desc">Description</label>
           <button type="button" class="btn" id="f_descIA" style="padding:5px 12px;font-size:11.5px;background:var(--surface);border:1.5px solid var(--primary);color:var(--primary);">Générer avec l'IA</button>
         </div>
         <textarea class="form-textarea" id="f_desc">${esc(p.desc||'')}</textarea>
@@ -1830,7 +1870,7 @@ function openForm(existing){
       </div>
 
       <div class="form-field full">
-        <label class="form-label">Localisation sur la carte</label>
+        <label class="form-label" for="f_geocode">Localisation sur la carte</label>
         <div style="display:flex;gap:6px;margin-bottom:6px;">
           <input class="form-input" id="f_geocode" placeholder="Rechercher une adresse, un quartier, une commune…" style="flex:1;"/>
           <button type="button" class="btn btn-primary" id="f_geocodeBtn" style="padding:9px 14px;white-space:nowrap;">Rechercher</button>
@@ -1855,7 +1895,7 @@ function openForm(existing){
       <div class="photo-grid" id="photoGrid"></div>
       <input type="file" id="photoInput" accept="image/*" multiple style="display:none;" />
 
-      <p class="form-error" id="formError"></p>
+      <p class="form-error" role="alert" id="formError"></p>
       <button class="btn btn-primary" id="formSave" style="width:100%;justify-content:center;margin-top:16px;">${isEdit ? 'Enregistrer les modifications' : 'Ajouter ce bien'}</button>
     </div>`;
 
@@ -2470,7 +2510,19 @@ function focoliserPanneauAdmin(panneauId){
   if(cible) cible.focus();
 }
 function rendreFocusApresPanneauAdmin(){
-  if(_elementAvantPanneauAdmin){ _elementAvantPanneauAdmin.focus(); _elementAvantPanneauAdmin = null; }
+  const cible = _elementAvantPanneauAdmin;
+  _elementAvantPanneauAdmin = null;
+  if(!cible) return;
+  // Le panneau des statistiques s'ouvre depuis le menu des outils, qui se
+  // referme dans la foulée : l'élément mémorisé n'est alors plus affiché, et
+  // .focus() échoue SANS erreur — le focus retombait sur <body> et la
+  // tabulation suivante repartait du haut de la page. Les trois autres
+  // panneaux, ouverts depuis un bouton qui reste visible, n'avaient pas le
+  // problème. On vérifie donc que la cible est encore là avant d'y revenir,
+  // et on se rabat sur le bouton du menu, qui l'est toujours.
+  const utilisable = cible.isConnected && cible.offsetParent !== null;
+  const repli = document.getElementById('toolsMenuBtn');
+  (utilisable ? cible : repli)?.focus();
 }
 function panneauAdminOuvert(){
   const analytics = document.getElementById('analyticsOverlay');
@@ -3731,11 +3783,30 @@ function renderAnalytics(d){
     return;
   }
 
+  // Un <canvas> est opaque aux technologies d'assistance : cinq graphiques de
+  // données commerciales n'existaient tout simplement pas pour qui ne les voit
+  // pas. On construit la description À PARTIR DES MÊMES DONNÉES que le tracé,
+  // plutôt que d'écrire un libellé générique qui se démoderait au premier
+  // changement de jeu de données. Le titre vient du <h3> du cadre.
+  const decrireGraphique = (el, config) => {
+    try{
+      const titre = (el.closest('.chart-card')?.querySelector('h3')?.textContent || 'Graphique').trim();
+      const etiquettes = config.data?.labels || [];
+      const series = (config.data?.datasets || []).map(jeu => {
+        const points = etiquettes.map((lab, i) => `${lab} ${jeu.data[i]}`).join(', ');
+        return (jeu.label ? jeu.label + ' : ' : '') + points;
+      });
+      el.setAttribute('role', 'img');
+      el.setAttribute('aria-label', titre + '. ' + series.join('. ') + '.');
+    }catch(e){ /* une description manquante ne doit pas empêcher le tracé */ }
+  };
+
   const mk = (id, config) => {
     const el = document.getElementById(id);
     if(!el) return;
     try{
       analyticsCharts.push(new Chart(el, config));
+      decrireGraphique(el, config);
     }catch(e){
       console.error('Erreur création du graphique ' + id + ' :', e);
       const msg = document.createElement('p');
