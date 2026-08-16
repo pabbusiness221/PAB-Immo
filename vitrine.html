@@ -3034,12 +3034,23 @@ function renderFeatured(){
   const host = document.getElementById('vedettesRail');
   const section = document.getElementById('vedettesSection');
   if(!host || !section) return;
-  // Même ordre que la liste principale : les mises en avant payantes d'abord,
-  // puis les plus récentes — pas de deuxième tri inventé pour ce rail.
-  const items = ordonner(PROPERTIES).slice(0, 8);
+  const estRecent = p => { const j = joursDepuis(p.created_at); return j !== null && j <= 14; };
+  // Le rail affichait « ordonner(PROPERTIES).slice(0, 8) » — exactement les huit
+  // premiers de la liste située juste en dessous, avec le même tri. Le visiteur
+  // faisait donc défiler deux fois le même contenu.
+  //
+  // Il ne montre plus que des biens portant une distinction : sponsorisé,
+  // vérifié, ou publié depuis moins de quinze jours. « Sélection du moment »
+  // redevient vrai, et l'étiquette de chaque vignette dit pourquoi le bien s'y
+  // trouve. Le tri, lui, reste celui de la liste : aucun second classement
+  // inventé pour ce rail.
+  //
+  // Plafond à sept vignettes, plancher à trois biens distingués — en dessous,
+  // la vitrine serait plus vide que la liste qu'elle annonce.
+  const distingues = PROPERTIES.filter(p => p.sponsorisee || p.verified_at || estRecent(p));
+  const items = distingues.length >= 3 ? ordonner(distingues).slice(0, 7) : [];
   section.hidden = !items.length;
   if(!items.length) return;
-  const estRecent = p => { const j = joursDepuis(p.created_at); return j !== null && j <= 14; };
   host.innerHTML = items.map(p=>{
     const cover = coverUrl(p, 420, 68);
     return `
