@@ -46,7 +46,12 @@ const REGIONS = ['Dakar', 'Thiès'];
 function regionOptions(selection, avecToutes){
   const connues = REGIONS.slice();
   if(selection && !connues.includes(selection)) connues.push(selection);
-  const tete = avecToutes ? '<option value="">Toutes régions</option>' : '';
+  // Ce fichier sert aussi le portefeuille, qui est monolingue et ne définit
+  // pas t(). D'où le test : la vitrine traduit « Toutes régions », l'espace de
+  // gestion garde la chaîne telle quelle. Les noms de régions, eux, sont des
+  // noms propres et ne se traduisent dans aucun des deux.
+  const toutes = typeof t === 'function' ? t('Toutes régions') : 'Toutes régions';
+  const tete = avecToutes ? `<option value="">${toutes}</option>` : '';
   return tete + connues.map(r =>
     `<option value="${esc(r)}"${r === selection ? ' selected' : ''}>${esc(r)}</option>`
   ).join('');

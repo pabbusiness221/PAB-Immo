@@ -273,7 +273,12 @@
      passait de 0 à 21 px et poussait tout le reste de la page vers le bas :
      à lui seul, il pesait 0,465 de CLS sur un total mesuré à 1,45. Réserver
      la ligne coûte 21 px de vide pendant un instant, et supprime la secousse. */
-  .hero-stat{color:rgba(255,255,255,0.72);font-size:12.5px;margin-top:18px;display:flex;align-items:center;gap:6px;min-height:21px;}
+  /* 0,88 et non 0,72 : ce texte est posé sur la photo, pas sur un aplat. Au
+     pixel le plus clair du cadrage — zoom heroZoom compris, qui découvre du
+     ciel — 0,72 ne donnait que 3,89:1 pour un seuil de 4,5. 0,88 atteint
+     4,91:1. Ailleurs la même teinte passe (8,42:1 dans le tiroir) : c'est le
+     fond photographique, et lui seul, qui impose de monter. */
+  .hero-stat{color:rgba(255,255,255,0.88);font-size:12.5px;margin-top:18px;display:flex;align-items:center;gap:6px;min-height:21px;}
   .hero-stat b{color:var(--accent);font-family:'Manrope',sans-serif;font-size:15px;font-variant-numeric:tabular-nums;}
   /* La phrase qui défile dans le titre change de longueur : « au bon prix. »
      tient sur une ligne, « sans mauvaise surprise. » en prend une de plus. Le
@@ -851,7 +856,7 @@
   /* ---------- Pied de page ---------- */
   footer{background:var(--night);color:rgba(255,255,255,0.62);margin-top:8px;}
   .footer-inner{max-width:1400px;margin:0 auto;padding:44px 20px 36px;display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:32px;}
-  .footer-inner h4{font-family:'Manrope',sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-clair);margin:0 0 14px;font-weight:800;}
+  .footer-inner h2{font-family:'Manrope',sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-clair);margin:0 0 14px;font-weight:800;}
   .footer-inner p{margin:0 0 8px;font-size:13px;line-height:1.6;}
   .footer-brand strong{color:#fff;font-family:'Manrope',sans-serif;font-size:16px;display:block;margin-bottom:8px;}
   .footer-links{display:flex;flex-direction:column;gap:9px;align-items:flex-start;}
@@ -1299,11 +1304,13 @@
         <span class="ti"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg></span>
         <div><strong>Annonces vérifiées</strong><span>Gérées personnellement</span></div>
       </div>
-      <div class="trust-item" id="trustClients">
+      <!-- data-stat survit au cloneNode du carrousel : les copies décoratives
+           suivent donc le changement de langue en même temps que l'original. -->
+      <div class="trust-item" id="trustClients" data-stat="clients">
         <span class="ti"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg></span>
         <div><strong>Clients accompagnés</strong><span>Du premier contact à la remise des clés</span></div>
       </div>
-      <div class="trust-item" id="trustAgences">
+      <div class="trust-item" id="trustAgences" data-stat="agences">
         <span class="ti"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M10 21v-6h4v6"/></svg></span>
         <div><strong>Collaborateurs de confiance</strong><span>Agences vérifiées par PAB Immo</span></div>
       </div>
@@ -1583,7 +1590,10 @@
      bannière occupait auparavant le haut du catalogue, avant même que le
      visiteur ait vu un seul bien. Le déclencheur de l'en-tête a laissé la
      place à la recherche. -->
-<div class="alert-banner">
+<!-- Une <section> nommée, comme ses voisines : un <div> nu n'est pas un repère,
+     et ce bloc restait le seul contenu de la page qu'une navigation par
+     repères ne pouvait pas atteindre. -->
+<section class="alert-banner" aria-label="Alerte nouveaux biens">
   <div class="alert-card">
     <div class="ai"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg></div>
     <div class="at"><strong>Aucun bien ne correspond aujourd'hui ?</strong><p>Laissez votre email, on vous préviendra pour les prochains biens qui correspondent.</p></div>
@@ -1592,7 +1602,7 @@
   <div class="alert-form hidden" id="alertForm">
     <div class="alert-form-inner">
       <div class="form-field full alert-form-mobile-title"><strong style="font-family:'Manrope',sans-serif;font-size:13.5px;">Être alerté(e) de nouveaux biens</strong><p style="margin:2px 0 0;font-size:12px;color:var(--ink-soft);">Laissez votre email, on vous préviendra dès qu'un bien correspond.</p></div>
-      <div class="form-field full"><label class="sf-label" for="alert_email">Email</label><input class="sf-input" id="alert_email" type="email" placeholder="vous@email.com" style="margin-bottom:0;"/></div>
+      <div class="form-field full"><label class="sf-label" for="alert_email">Email</label><input class="sf-input" id="alert_email" type="email" autocomplete="email" placeholder="vous@email.com" style="margin-bottom:0;"/></div>
       <div class="hp-field" aria-hidden="true"><label for="alert_website">Site web</label><input type="text" id="alert_website" name="website" tabindex="-1" autocomplete="off"/></div>
       <div class="form-field"><label class="sf-label" for="alert_type">Type de bien</label>
         <select class="sf-select" id="alert_type" style="margin-bottom:0;">
@@ -1628,7 +1638,7 @@
       </div>
     </div>
   </div>
-</div>
+</section>
 
 <section class="collab-band reveal-band" id="collaborateur" aria-labelledby="collabTitre">
   <div class="collab-inner">
@@ -1653,7 +1663,12 @@
       </div>
       <div class="form-field">
         <label class="sf-label" for="collab_contact">Téléphone ou email</label>
-        <input class="sf-input" id="collab_contact" style="margin-bottom:0;" placeholder="Pour vous répondre" />
+        <!-- Champ à double usage : aucun jeton autocomplete ne couvre
+             « téléphone ou email ». On retient tel, cas de loin le plus
+             fréquent ici, plutôt que de laisser le champ muet au remplissage
+             automatique — c'est lui qui sert les personnes pour qui saisir
+             coûte le plus. -->
+        <input class="sf-input" id="collab_contact" autocomplete="tel" style="margin-bottom:0;" placeholder="Pour vous répondre" />
       </div>
       <div class="form-field">
         <label class="sf-label" for="collab_zone">Zone d'activité</label>
@@ -1709,7 +1724,7 @@
       </div>
     </div>
     <div>
-      <h4>Nos biens</h4>
+      <h2>Nos biens</h2>
       <div class="footer-links">
         <a href="#split" data-type="Terrain">Terrains</a>
         <a href="#split" data-type="Maison">Maisons</a>
@@ -1720,14 +1735,14 @@
       </div>
     </div>
     <div>
-      <h4>Professionnels</h4>
+      <h2>Professionnels</h2>
       <div class="footer-links">
         <a href="#collaborateur">Devenir collaborateur</a>
         <a href="Portefeuille-Immo.html">Espace collaborateur</a>
       </div>
     </div>
     <div>
-      <h4>Nous contacter</h4>
+      <h2>Nous contacter</h2>
       <div class="footer-links">
         <a href="tel:+221778494111">+221 77 849 41 11</a>
         <a href="https://wa.me/221778494111" target="_blank" rel="noopener">WhatsApp</a>
@@ -1887,6 +1902,46 @@ const I18N_EN = {
   'Retirer du comparateur':'Remove from comparison',
   // Partage
   'Lien copié ✓':'Link copied ✓',
+
+  // ---- Ajouts : ce qui restait en français sous lang="en" -----------------
+  // Sous un attribut lang qui annonce l'anglais, un lecteur d'écran applique la
+  // phonétique anglaise au français resté en place. Les noms de lieux
+  // sénégalais (Thiès, Sébikhotane…) sont exemptés par la norme et restent
+  // évidemment tels quels : seuls les libellés d'interface sont traduits.
+  'Aller au contenu':'Skip to content',
+  '— biens immobiliers à Dakar et Thiès':'— real estate in Dakar and Thiès',
+  'Rechercher et parcourir les biens disponibles':'Search and browse available properties',
+  "Annonces mises en avant par l'agence":'Listings featured by the agency',
+  // Badges de confiance : ces titres vivent dans #list, un CONTENEUR_AUTONOME.
+  // Ils étaient posés en dur, donc jamais traduits — d'où leur passage par t().
+  "Cette annonce bénéficie d'une mise en avant payante":'This listing is a paid promotion',
+  "Statut foncier déclaré par l'agence":'Land status as declared by the agency',
+  'Disponibilité confirmée':'Availability confirmed',
+  'Bien publié par une agence certifiée par PAB Immo':'Property listed by an agency certified by PAB Immo',
+  // Avis
+  'Ils nous ont fait confiance':'They trusted us',
+  'Avis de nos clients':'What our clients say',
+  'Laisser un avis':'Leave a review',
+  'Votre nom':'Your name', 'Votre note':'Your rating', 'Votre avis':'Your review',
+  "Votre avis sera relu par notre équipe avant d'apparaître ici.":'Your review will be checked by our team before it appears here.',
+  // Alertes de nouveaux biens
+  'Alerte nouveaux biens':'New property alerts',
+  "Aucun bien ne correspond aujourd'hui ?":'Nothing matching today?',
+  'Être alerté(e) de nouveaux biens':'Get alerts for new properties',
+  "Laissez votre email, on vous préviendra dès qu'un bien correspond.":"Leave your email and we'll let you know as soon as a property matches.",
+  'vous@email.com':'you@email.com',
+  'Type de bien':'Property type', 'Vente ou location':'Sale or rental',
+  "M'inscrire aux alertes":'Sign me up',
+  // Formulaire collaborateur
+  // Espace INSÉCABLE avant le « ? », comme le veut la typographie française et
+  // comme l'écrit le HTML. Avec une espace ordinaire, la clé ne correspondait
+  // à rien et la phrase restait en français.
+  'Vous êtes une agence ?':'Are you an agency?',
+  'Publiez vos biens sur PAB Immo.':'List your properties on PAB Immo.',
+  "Nom de l'agence":'Agency name', 'Téléphone ou email':'Phone or email',
+  "Zone d'activité":'Area covered', 'Nombre de biens':'Number of properties',
+  'Non précisé':'Not specified',
+  '1 à 5':'1 to 5', '6 à 20':'6 to 20', '21 à 50':'21 to 50', 'Plus de 50':'Over 50',
 };
 
 // L'ORIGINAL FRANÇAIS est mémorisé sur chaque nœud au premier passage
@@ -1948,6 +2003,11 @@ function definirLangue(lang){
     btn.textContent = lang === 'en' ? 'EN' : 'FR';
     btn.setAttribute('aria-label', lang === 'en' ? 'Passer en français' : 'Switch to English');
     btn.setAttribute('title', lang === 'en' ? 'Passer en français' : 'Switch to English');
+    // Le libellé reste dans la langue qu'il propose — un bouton vers le
+    // français s'annonce en français. Encore faut-il le dire : sans ce lang,
+    // un lecteur d'écran en mode anglais prononce « Passer en français » à
+    // l'anglaise. On le déclare donc pour ce seul élément.
+    btn.setAttribute('lang', lang === 'en' ? 'fr' : 'en');
   }
   document.documentElement.lang = lang;
   traduireDans(document.body);
@@ -1976,10 +2036,18 @@ function definirLangue(lang){
   // casserait toute l'initialisation de la langue. Le test porte donc sur le
   // DOM, jamais sur la variable.
   const listeAvis = document.getElementById('avisListe');
-  if(listeAvis && listeAvis.children.length) renderAvisListe();
+  if(listeAvis && listeAvis.children.length){ renderAvisResume(); renderAvisListe(); }
+  // Les listes de la recherche avancée sont reconstruites en JS : leurs deux
+  // libellés de repli (« Toutes régions », « Tous départements ») suivent donc
+  // la langue par ce rappel, et non par le passage générique. La fonction
+  // conserve les valeurs sélectionnées, elle est sans effet sur le filtrage.
+  if(PROPERTIES.length) populateAdvSearchOptions();
   majLibellesEtoiles();
   // « Voir 18 biens » se compose aussi autour d'un chiffre.
   majLibelleBoutonRechercher();
+  // Les compteurs du bandeau (« 13 clients accompagnés ») sont eux aussi
+  // assemblés autour d'un chiffre : sans ce rappel, ils restent en français.
+  majLibellesConfiance();
 
   // Même raison pour le tiroir de détail, resté ouvert pendant la bascule :
   // son contenu ne se traduisait qu'à la prochaine ouverture. Le lien « voir
@@ -2812,7 +2880,7 @@ function renderFeatured(){
       <div class="bien-tile-photo"${cover?'':` style="background:linear-gradient(135deg, ${TYPE_COLOR[p.type]}, #161B22);"`}>
         ${cover ? `<img src="${cover}" alt="" loading="lazy" decoding="async" onerror="photoFallback(this)">` : `<span class="card-photo-ico">${typeIcon(p.type)}</span>`}
         <div class="bien-tile-etiq">
-          ${p.sponsorisee ? `<span class="pill" style="background:var(--night);color:var(--accent);border:1px solid rgba(242,174,5,.45);" title="Cette annonce bénéficie d'une mise en avant payante">${t('Sponsorisé')}</span>`
+          ${p.sponsorisee ? `<span class="pill" style="background:var(--night);color:var(--accent);border:1px solid rgba(242,174,5,.45);" title="${t("Cette annonce bénéficie d'une mise en avant payante")}">${t('Sponsorisé')}</span>`
             : estRecent(p) ? `<span class="pill" style="background:rgba(37,99,235,0.94);color:#fff;">${t('Nouveau')}</span>` : ''}
           ${p.verified_at ? `<span class="pill" style="background:rgba(255,255,255,0.94);color:#256540;">✓ ${t('Vérifiée')}</span>` : ''}
         </div>
@@ -2918,7 +2986,11 @@ function refreshDepartementOptions(){
   } else {
     options = uniqueSorted('departement').length ? uniqueSorted('departement') : Object.values(DEPARTEMENTS_PAR_REGION).flat();
   }
-  depSel.innerHTML = '<option value="">Tous départements</option>' + options.map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join('');
+  // Cette liste est reconstruite à chaque changement de région, donc APRÈS le
+  // passage de traduction : posé en dur, le libellé de repli repassait en
+  // français au premier filtrage. Les noms de départements, eux, sont des noms
+  // propres et restent tels quels.
+  depSel.innerHTML = `<option value="">${t('Tous départements')}</option>` + options.map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join('');
   depSel.value = currentDep;
 }
 
@@ -3281,7 +3353,7 @@ function renderList(){
         <button type="button" class="fav-btn ${isFav(p.id)?'active':''}" data-fav-id="${p.id}" aria-pressed="${isFav(p.id)}" aria-label="${isFav(p.id)?t('Retirer des favoris'):t('Ajouter aux favoris')}">${favIconSvg(isFav(p.id))}</button>
         <span class="pill" style="position:absolute;bottom:10px;left:10px;background:${STATUS_COLOR[p.status]};color:#fff;">${t(STATUS_LABEL[p.status])}</span>
         <span class="pill" style="position:absolute;top:10px;left:10px;background:rgba(255,255,255,0.92);color:var(--ink);">${t(p.operation)}</span>
-        ${p.sponsorisee ? `<span class="pill pill-sponso" title="Cette annonce bénéficie d'une mise en avant payante">${t('Sponsorisé')}</span>` : ''}
+        ${p.sponsorisee ? `<span class="pill pill-sponso" title="${t("Cette annonce bénéficie d'une mise en avant payante")}">${t('Sponsorisé')}</span>` : ''}
       </div>
       <div class="card-body">
         <div class="card-top">
@@ -3294,10 +3366,10 @@ function renderList(){
         </div>
         ${(p.verified_at || dispoFraiche(p) || p.agence_verifiee || p.statutFoncier) ? `
         <div class="trust-row">
-          ${p.verified_at ? `<span class="trust-badge verifiee" title="Documents et existence du bien contrôlés par PAB Immo"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>${t('Vérifiée')}</span>` : ''}
-          ${p.statutFoncier ? `<span class="trust-badge foncier" title="Statut foncier déclaré par l'agence">${esc(t(p.statutFoncier))}</span>` : ''}
-          ${dispoFraiche(p) ? `<span class="trust-badge dispo" title="Disponibilité confirmée ${esc(dispoLabel(p))}">${state.lang==='en'?'Avail.':'Dispo.'} ${esc(dispoLabel(p))}</span>` : ''}
-          ${p.agence_verifiee ? `<span class="trust-badge agence" title="Bien publié par une agence certifiée par PAB Immo">${t('Agence vérifiée')}</span>` : ''}
+          ${p.verified_at ? `<span class="trust-badge verifiee" title="${t('Documents et existence du bien contrôlés par PAB Immo')}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>${t('Vérifiée')}</span>` : ''}
+          ${p.statutFoncier ? `<span class="trust-badge foncier" title="${t("Statut foncier déclaré par l'agence")}">${esc(t(p.statutFoncier))}</span>` : ''}
+          ${dispoFraiche(p) ? `<span class="trust-badge dispo" title="${t('Disponibilité confirmée')} ${esc(dispoLabel(p))}">${state.lang==='en'?'Avail.':'Dispo.'} ${esc(dispoLabel(p))}</span>` : ''}
+          ${p.agence_verifiee ? `<span class="trust-badge agence" title="${t('Bien publié par une agence certifiée par PAB Immo')}">${t('Agence vérifiée')}</span>` : ''}
         </div>` : ''}
         <label class="compare-check${(!isCompare(p.id) && COMPARE.length>=COMPARE_MAX)?' is-disabled':''}">
           <input type="checkbox" data-compare-id="${p.id}"${isCompare(p.id)?' checked':''}${(!isCompare(p.id) && COMPARE.length>=COMPARE_MAX)?' disabled':''} aria-label="${t('Comparer')} ${esc(t(p.type))} — ${esc(p.commune)}" />
@@ -3614,9 +3686,9 @@ function openDrawer(p){
       </div>
       <div class="subform-panel" id="panel-message">
         <label class="sf-label" for="msg_name">${state.lang==='en'?'Name':'Nom'}</label>
-        <input class="sf-input" id="msg_name" placeholder="${state.lang==='en'?'Your name':'Votre nom'}"/>
+        <input class="sf-input" id="msg_name" autocomplete="name" placeholder="${state.lang==='en'?'Your name':'Votre nom'}"/>
         <label class="sf-label" for="msg_contact">${state.lang==='en'?'Phone or email':'Téléphone ou email'}</label>
-        <input class="sf-input" id="msg_contact" placeholder="${state.lang==='en'?'So we can reply':'Pour vous répondre'}"/>
+        <input class="sf-input" id="msg_contact" autocomplete="tel" placeholder="${state.lang==='en'?'So we can reply':'Pour vous répondre'}"/>
         <label class="sf-label" for="msg_text">${state.lang==='en'?'Message':'Message'}</label>
         <textarea class="sf-textarea" id="msg_text" placeholder="${state.lang==='en'?'Your question about this property…':'Votre question sur ce bien…'}"></textarea>
         <div class="hp-field" aria-hidden="true"><label for="msg_website">Site web</label><input type="text" id="msg_website" name="website" tabindex="-1" autocomplete="off"/></div>
@@ -3625,9 +3697,9 @@ function openDrawer(p){
       </div>
       <div class="subform-panel hidden" id="panel-rdv">
         <label class="sf-label" for="rdv_name">${state.lang==='en'?'Name':'Nom'}</label>
-        <input class="sf-input" id="rdv_name" placeholder="${state.lang==='en'?'Your name':'Votre nom'}"/>
+        <input class="sf-input" id="rdv_name" autocomplete="name" placeholder="${state.lang==='en'?'Your name':'Votre nom'}"/>
         <label class="sf-label" for="rdv_contact">${state.lang==='en'?'Phone or email':'Téléphone ou email'}</label>
-        <input class="sf-input" id="rdv_contact" placeholder="${state.lang==='en'?'To confirm the appointment':'Pour vous confirmer le RDV'}"/>
+        <input class="sf-input" id="rdv_contact" autocomplete="tel" placeholder="${state.lang==='en'?'To confirm the appointment':'Pour vous confirmer le RDV'}"/>
         <div class="sf-row2">
           <div><label class="sf-label" for="rdv_date">${state.lang==='en'?'Preferred date':'Date souhaitée'}</label><input class="sf-input" id="rdv_date" type="date" min="${dateDuJour()}" style="margin-bottom:0;"/></div>
           <div><label class="sf-label" for="rdv_time">${state.lang==='en'?'Time slot':'Créneau'}</label>
@@ -4131,21 +4203,33 @@ document.getElementById('vedettesVoirTout').onclick = () => {
 // base ; celui des clients de la constante ci-dessus. Chaque bloc n'affiche
 // un nombre que s'il en existe un réel : un « 0 agence vérifiée » sur une
 // page d'accueil dessert plus qu'il ne rassure.
-(async () => {
-  const poser = (id, nombre, gabarit) => {
+// Composés autour d'un chiffre, ces deux libellés échappent au dictionnaire.
+// On les refabrique depuis les valeurs déjà mémorisées, ce qui permet aussi de
+// les rejouer à chaque changement de langue. La sélection porte sur data-stat
+// et non sur l'identifiant : les copies du carrousel n'ont plus d'id, mais
+// gardent l'attribut — sans quoi le bandeau mêlait français et anglais.
+function majLibellesConfiance(){
+  const poser = (cle, nombre, gabarit) => {
     if(!nombre) return;                       // ni 0 ni null : on garde le libellé seul
-    const el = document.querySelector('#' + id + ' strong');
-    if(el) el.textContent = gabarit(nombre);
+    document.querySelectorAll('[data-stat="' + cle + '"] strong')
+      .forEach(el => { el.textContent = gabarit(nombre); });
   };
+  const en = state.lang === 'en';
+  poser('clients', STATS_CLIENTS,
+        n => en ? `${n} clients supported` : `${n} clients accompagnés`);
+  poser('agences', STATS_AGENCES,
+        n => en ? (n > 1 ? `${n} trusted partners` : '1 trusted partner')
+                : (n > 1 ? `${n} collaborateurs de confiance` : '1 collaborateur de confiance'));
+}
+
+(async () => {
   try {
     const { data } = await db.from('public_stats')
       .select('agences_verifiees, clients_accompagnes').single();
     if(data){
-      poser('trustClients', data.clients_accompagnes, n => `${n} clients accompagnés`);
-      poser('trustAgences', data.agences_verifiees,
-            n => n > 1 ? `${n} collaborateurs de confiance` : '1 collaborateur de confiance');
       STATS_AGENCES = data.agences_verifiees;
       STATS_CLIENTS = data.clients_accompagnes;
+      majLibellesConfiance();
       tryRenderStatsBand();
     }
   } catch(e){ /* chiffres indisponibles : les libellés seuls restent justes */ }
@@ -4384,6 +4468,14 @@ document.getElementById('collabForm').onsubmit = async (e) => {
     errEl.textContent = "Le nom de l'agence, votre nom et un moyen de vous joindre sont nécessaires.";
     return;
   }
+  // Seul formulaire des trois à ne vérifier que le non-vide : « xx » passait,
+  // et la candidature arrivait sans aucun moyen de rappeler l'agence. Même
+  // contrôle que le message et le rendez-vous.
+  if(!contactValide(contact)){
+    errEl.textContent = messageContactInvalide();
+    document.getElementById('collab_contact').focus();
+    return;
+  }
 
   btn.disabled = true; btn.textContent = 'Envoi…';
   // Pas de .select() après l'insertion : une candidature est lisible par le
@@ -4413,9 +4505,16 @@ document.getElementById('collabForm').onsubmit = async (e) => {
 // n'apparaît sur la vitrine qu'une fois publié depuis le portefeuille. La vue
 // public_reviews ne renvoie que les avis publiés.
 
+// Deux glyphes distincts, et non deux teintes du même : l'étoile pleine ★ et
+// l'étoile creuse ☆ se lisent à la forme. Avec un seul glyphe coloré, une
+// personne daltonienne voyait cinq étoiles identiques — la note disparaissait.
+// La couleur reste, elle ne porte plus l'information à elle seule.
 function etoilesHtml(n){
   let s = '';
-  for(let i = 1; i <= 5; i++) s += `<span class="star ${i <= n ? 'on' : ''}">★</span>`;
+  for(let i = 1; i <= 5; i++){
+    const pleine = i <= n;
+    s += `<span class="star ${pleine ? 'on' : ''}">${pleine ? '★' : '☆'}</span>`;
+  }
   return s;
 }
 
@@ -4441,16 +4540,26 @@ async function loadReviews(){
     return;
   }
 
+  renderAvisResume();
+  renderAvisListe();
+}
+
+// Le résumé vit dans sa propre fonction pour être rejoué au changement de
+// langue : « sur 3 avis » s'assemble autour d'un chiffre, donc hors dictionnaire.
+// Laissé dans loadReviews(), il restait figé dans la langue du chargement.
+function renderAvisResume(){
+  if(!AVIS.length) return;
   // Moyenne, arrondie au dixième — calculée sur TOUS les avis, pas seulement
   // ceux affichés.
   const moyenne = AVIS.reduce((t, a) => t + a.rating, 0) / AVIS.length;
-  const resume = document.getElementById('avisResume');
-  document.getElementById('avisMoyenne').textContent = moyenne.toFixed(1).replace('.', ',');
+  const en = state.lang === 'en';
+  document.getElementById('avisMoyenne').textContent =
+    en ? moyenne.toFixed(1) : moyenne.toFixed(1).replace('.', ',');
   document.getElementById('avisEtoilesMoy').innerHTML = etoilesHtml(Math.round(moyenne));
-  document.getElementById('avisCompte').textContent = `sur ${AVIS.length} avis`;
-  resume.hidden = false;
-
-  renderAvisListe();
+  document.getElementById('avisCompte').textContent = en
+    ? `out of ${AVIS.length} review${AVIS.length > 1 ? 's' : ''}`
+    : `sur ${AVIS.length} avis`;
+  document.getElementById('avisResume').hidden = false;
 }
 
 function renderAvisListe(){
@@ -4459,11 +4568,11 @@ function renderAvisListe(){
   const aMontrer = avisDeplie ? AVIS : AVIS.slice(0, AVIS_APERCU);
   liste.innerHTML = aMontrer.map(a => `
     <div class="avis-carte">
-      <div class="a-etoiles" aria-label="${a.rating} ${t('étoiles sur 5')}">${etoilesHtml(a.rating)}</div>
+      <div class="a-etoiles" role="img" aria-label="${a.rating} ${t('étoiles sur 5')}">${etoilesHtml(a.rating)}</div>
       <p class="a-texte">${esc(a.comment)}</p>
       <div class="a-bas">
         <span class="a-nom">${esc(a.author_name)}${a.property_label ? `<span class="a-bien-tag">${esc(a.property_label)}</span>` : ''}</span>
-        <span class="a-date">${new Date(a.created_at).toLocaleDateString('fr-FR', {month:'long', year:'numeric'})}</span>
+        <span class="a-date">${new Date(a.created_at).toLocaleDateString(state.lang==='en'?'en-GB':'fr-FR', {month:'long', year:'numeric'})}</span>
       </div>
     </div>`).join('');
 
