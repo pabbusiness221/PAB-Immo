@@ -884,22 +884,25 @@
 
   /* Vedettes : même contenu que les cartes du catalogue (prix, badges,
      favori, fiche), en format compact et glissable plutôt qu'une grille. */
-  .bien-tile{flex:0 0 264px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow);scroll-snap-align:start;transition:transform .3s var(--ease);}
+  /* Vignettes doublees : 264 -> 520 px, photo 168 -> 320. La typographie suit
+     a la meme echelle, sans quoi le contenu flotterait dans un cadre trop
+     grand et donnerait l'impression d'une petite carte etiree. */
+  .bien-tile{flex:0 0 520px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow);scroll-snap-align:start;transition:transform .3s var(--ease);}
   .bien-tile:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);}
-  .bien-tile-photo{position:relative;height:168px;background:var(--surface-alt);overflow:hidden;}
+  .bien-tile-photo{position:relative;height:320px;background:var(--surface-alt);overflow:hidden;}
   .bien-tile-photo img{width:100%;height:100%;object-fit:cover;display:block;}
   .bien-tile-photo .card-photo-ico{display:flex;align-items:center;justify-content:center;height:100%;}
   .bien-tile-etiq{position:absolute;top:11px;left:11px;display:flex;gap:5px;flex-wrap:wrap;max-width:calc(100% - 54px);}
   .bien-tile-etiq .pill{position:static;}
-  .bien-tile-corps{padding:13px 14px 14px;}
-  .bien-tile-prix{font-family:'Manrope',sans-serif;font-weight:800;font-size:17px;color:var(--ink);letter-spacing:-.5px;}
-  .bien-tile-prix small{font-size:11px;font-weight:600;color:var(--ink-soft);letter-spacing:0;}
-  .bien-tile-titre{background:none;border:0;padding:0;margin:7px 0 4px;font:inherit;text-align:left;cursor:pointer;font-size:13px;font-weight:700;color:var(--ink);display:block;width:100%;}
+  .bien-tile-corps{padding:18px 20px 20px;}
+  .bien-tile-prix{font-family:'Manrope',sans-serif;font-weight:800;font-size:22px;color:var(--ink);letter-spacing:-.5px;}
+  .bien-tile-prix small{font-size:13px;font-weight:600;color:var(--ink-soft);letter-spacing:0;}
+  .bien-tile-titre{background:none;border:0;padding:0;margin:7px 0 4px;font:inherit;text-align:left;cursor:pointer;font-size:16.5px;font-weight:700;color:var(--ink);display:block;width:100%;}
   .bien-tile-titre:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px;}
-  .bien-tile-lieu{display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--ink-soft);}
-  .bien-tile-faits{display:flex;gap:12px;margin-top:10px;padding-top:10px;border-top:1px solid var(--filet);font-size:11px;color:var(--ink-soft);}
+  .bien-tile-lieu{display:flex;align-items:center;gap:5px;font-size:13.5px;color:var(--ink-soft);}
+  .bien-tile-faits{display:flex;gap:16px;margin-top:13px;padding-top:13px;border-top:1px solid var(--filet);font-size:13px;color:var(--ink-soft);}
   .bien-tile-faits b{color:var(--ink);font-weight:700;}
-  .bien-tile-cta{display:block;width:100%;margin-top:11px;padding:10px;border:none;border-radius:var(--radius-sm);background:var(--night);color:#fff;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:700;cursor:pointer;transition:background .2s var(--ease);}
+  .bien-tile-cta{display:block;width:100%;margin-top:16px;padding:13px;border:none;border-radius:var(--radius-sm);background:var(--night);color:#fff;font-family:'Inter',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s var(--ease);}
   .bien-tile-cta:hover{background:var(--primary-dark);}
   .bien-tile-cta:focus-visible, .bien-tile .fav-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 
@@ -1163,7 +1166,11 @@
     .rail-scroll{padding:2px 16px 8px;margin:0 -16px;}
     .cat-tile{flex:0 0 128px;height:142px;}
     .cat-tile-nom{font-size:12px;}
-    .bien-tile{flex:0 0 236px;}
+    /* Sur telephone la vignette reste etroite a dessein : plus large que
+       l'ecran, elle masquerait la suivante et l'on ne devinerait plus qu'il y
+       a un rail a faire defiler. */
+    .bien-tile{flex:0 0 300px;}
+    .bien-tile-photo{height:200px;}
     .stats-band{padding:0 16px;}
     .stats-inner{grid-template-columns:repeat(2,1fr);gap:20px 10px;padding:24px 20px;}
   }
@@ -3027,27 +3034,12 @@ function renderFeatured(){
   const host = document.getElementById('vedettesRail');
   const section = document.getElementById('vedettesSection');
   if(!host || !section) return;
-  const estRecent = p => { const j = joursDepuis(p.created_at); return j !== null && j <= 14; };
-  // Ce rail affichait « ordonner(PROPERTIES).slice(0, 8) » — c'est-à-dire
-  // exactement les huit premiers de la liste située juste en dessous, avec le
-  // même tri. Le visiteur faisait défiler deux fois le même contenu, et sur
-  // ordinateur cela repoussait le premier bien à plus de 1 500 px.
-  //
-  // Le rail ne montre donc que des biens qui portent une distinction —
-  // sponsorisé, vérifié, ou publié depuis moins de quinze jours. « Sélection du
-  // moment » redevient vrai, et l'étiquette de chaque vignette dit pourquoi le
-  // bien s'y trouve.
-  //
-  // Il avait aussi été masqué sous une page de catalogue, au motif qu'une
-  // sélection n'apprend rien quand la liste entière tient sous les yeux. Ce
-  // seuil est retiré : le rail est un point d'entrée visuel, pas seulement un
-  // raccourci de navigation, et il doit rester présent dès qu'il y a de quoi le
-  // remplir. Trois biens distingués suffisent — en dessous, ce serait une
-  // vitrine plus vide que la liste qu'elle annonce.
-  const distingues = PROPERTIES.filter(p => p.sponsorisee || p.verified_at || estRecent(p));
-  const items = distingues.length >= 3 ? ordonner(distingues).slice(0, 8) : [];
+  // Même ordre que la liste principale : les mises en avant payantes d'abord,
+  // puis les plus récentes — pas de deuxième tri inventé pour ce rail.
+  const items = ordonner(PROPERTIES).slice(0, 8);
   section.hidden = !items.length;
   if(!items.length) return;
+  const estRecent = p => { const j = joursDepuis(p.created_at); return j !== null && j <= 14; };
   host.innerHTML = items.map(p=>{
     const cover = coverUrl(p, 420, 68);
     return `
