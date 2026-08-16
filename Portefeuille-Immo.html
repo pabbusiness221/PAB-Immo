@@ -12,6 +12,59 @@
      pages, pour ne pas les laisser diverger. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://avanktgaxepzpqmsiauz.supabase.co https://*.tile.openstreetmap.org https://server.arcgisonline.com https://cdn.jsdelivr.net; connect-src 'self' https://avanktgaxepzpqmsiauz.supabase.co https://nominatim.openstreetmap.org https://fonts.googleapis.com https://fonts.gstatic.com; object-src 'none'; base-uri 'self';" />
 <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+
+<!-- ============================================================
+     Refus d'être affiché dans le cadre d'un autre site
+     ============================================================
+     La vraie protection contre le détournement de clic est l'en-tête
+     frame-ancestors (ou X-Frame-Options). Deux raisons de ne pas s'y fier ici :
+     GitHub Pages ne permet aucun en-tête personnalisé, et frame-ancestors est
+     IGNORÉ dans une balise <meta> — la spécification l'exige. Ce bout de code
+     est donc le seul recours tant que le site n'a pas de CDN devant lui.
+
+     L'enjeu est cette page-ci, pas la vitrine : un administrateur connecté
+     qu'on amène à cliquer au bon endroit dans un cadre invisible déclenche
+     l'action de l'application — supprimer un message, changer un statut.
+
+     POURQUOI CACHER D'ABORD, PUIS MONTRER
+     Le réflexe est d'écrire « si je suis dans un cadre, je m'en échappe ». Un
+     attaquant le neutralise avec <iframe sandbox="allow-scripts"> : les scripts
+     tournent, mais la navigation du parent est interdite, et la page reste
+     affichée dans le cadre. En partant caché, ce contournement laisse un cadre
+     vide : il n'y a plus rien sur quoi faire cliquer.
+     Même raisonnement si les scripts sont bloqués purement et simplement — la
+     page reste alors invisible, ce qui n'ôte rien puisqu'elle est entièrement
+     pilotée par JavaScript.
+
+     Placé avant toute feuille de style et tout contenu : au moment où le
+     navigateur lit ces lignes, il n'a encore rien à peindre. -->
+<style id="gardeCadre">html{display:none !important;}</style>
+<script>
+  (function(){
+    var garde = document.getElementById('gardeCadre');
+    var dansUnCadre;
+    // L'accès à window.top lève une SecurityError entre origines différentes,
+    // ce qui est en soi la preuve qu'on est encadré par un autre site.
+    try { dansUnCadre = (window.self !== window.top); }
+    catch (e) { dansUnCadre = true; }
+
+    if (!dansUnCadre) {
+      garde.parentNode.removeChild(garde);
+      return;
+    }
+    // Encadré : on tente de reprendre la fenêtre entière. Si le cadre est
+    // verrouillé (sandbox sans allow-top-navigation), l'appel échoue — et la
+    // page reste cachée, ce qui était le but.
+    try { window.top.location = window.self.location; } catch (e) { /* on reste caché */ }
+  })();
+</script>
+<!-- Sans JavaScript, le script ci-dessus ne s'exécute jamais et la page
+     resterait blanche sans que rien ne l'explique. On la réaffiche donc, et le
+     message dit pourquoi elle est vide. Aucun risque de détournement de clic
+     dans ce cas : sans JavaScript, cette page ne charge aucune donnée et aucun
+     de ses boutons n'agit — il n'y a rien à faire cliquer. -->
+<noscript><style>html{display:block !important;}</style></noscript>
+
 <link rel="icon" type="image/png" href="assets/logo.png">
 <title>PAB Immo - Mon Portefeuille - Immobilier</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous" />
@@ -474,6 +527,15 @@
 </style>
 </head>
 <body>
+<noscript>
+  <p style="max-width:640px;margin:60px auto;padding:20px 24px;border:1px solid #E4E9F2;
+            border-radius:14px;background:#fff;font-family:'Inter',sans-serif;
+            font-size:15px;line-height:1.6;color:#111827;">
+    Cet espace de gestion fonctionne entièrement avec JavaScript : sans lui,
+    aucune donnée ne peut être chargée ni enregistrée. Activez JavaScript pour
+    votre navigateur, puis rechargez la page.
+  </p>
+</noscript>
 
 <div class="auth-overlay" id="authOverlay">
   <div class="auth-box">
