@@ -145,7 +145,14 @@
   .toolbar{max-width:1400px;margin:0 auto;padding:20px 20px 0;}
   .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;}
   .chip{flex-shrink:0;border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:9px 17px;font-size:12.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;white-space:nowrap;transition:all .22s var(--ease);font-family:'Inter',sans-serif;}
-  .chip .count{opacity:.6;font-weight:600;margin-left:4px;}
+  /* L'opacité de 0,6 ramenait #5A6B84 à #9CA6B5 sur blanc, soit 2,46:1 — sous le
+     seuil de 4,5:1. La graisse suffit à garder le compte secondaire. */
+  .chip .count{font-weight:600;margin-left:4px;}
+  /* Puce « À valider ». La couleur du texte n'est posée que sur l'état inactif :
+     une puce active a un fond bleu nuit et son propre texte blanc, qu'un brun
+     foncé en ligne écrasait à 2,1:1. */
+  .chip-attente{border-color:#E0A200;font-weight:800;}
+  .chip-attente:not(.active){color:#7A4F01;}
 
   .stats{display:flex;gap:12px;overflow-x:auto;margin:18px 0 6px;padding-bottom:4px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;}
   /* Le bandeau est devenu focalisable pour être parcouru aux flèches. La règle
@@ -193,6 +200,11 @@
   .saut-contenu{position:absolute;left:-9999px;top:0;z-index:9999;background:var(--primary);color:#fff;
     padding:12px 20px;border-radius:0 0 var(--radius-sm) 0;font-size:14px;font-weight:700;text-decoration:none;}
   .saut-contenu:focus{left:0;}
+  /* Nom accessible sans étiquette visible. Nécessaire pour le motif de refus :
+     l'espace n'admet qu'un placeholder, que les lecteurs d'écran n'annoncent pas
+     tous et qui disparaît dès la première frappe. */
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+    overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
   .card-top h3{font-size:15px;font-weight:800;margin:0;letter-spacing:-0.012em;}
   /* Le bouton hérite tout du titre : il ouvre le bien au clavier sans rien
      changer à l'apparence. */
@@ -239,6 +251,12 @@
   .confiance-ligne .btn{flex-shrink:0;padding:9px 16px;font-size:12.5px;min-height:0;}
   .confiance-etat{flex-shrink:0;font-size:11.5px;font-weight:700;color:var(--ink-soft);background:var(--surface-alt);border-radius:999px;padding:6px 12px;}
   .confiance-etat.ok{color:var(--success);background:rgba(47,122,78,0.12);}
+  /* État de publication. Les couleurs sont posées en ligne par etatPastille()
+     pour que la règle et sa teinte restent au même endroit ; ici seule la forme. */
+  .etat-pastille{display:inline-block;font-size:10.5px;font-weight:800;padding:4px 10px;border-radius:999px;white-space:nowrap;letter-spacing:0.01em;}
+  .valider-ligne{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;}
+  .valider-motif{flex:1 1 200px;min-width:0;font-family:inherit;font-size:12.5px;padding:9px 11px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--ink);}
+  .valider-motif:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
   @keyframes pulse{
     0%{box-shadow:0 0 0 0 rgba(242,174,5,0.55),0 3px 10px rgba(0,0,0,0.28);}
     70%{box-shadow:0 0 0 16px rgba(242,174,5,0),0 3px 10px rgba(0,0,0,0.28);}
@@ -819,6 +837,15 @@ function mapRow(r){
     status: r.status, desc: r.description || '', lat: Number(r.lat), lng: Number(r.lng),
     date: r.date_acquisition || '',
     is_published: !!r.is_published,
+    // La mise en ligne est réservée à l'administrateur. etat_publication est une
+    // colonne générée par la base — « En ligne », « En attente », « Refusé » ou
+    // « Brouillon » — pour que la page et la base ne puissent pas diverger sur
+    // la règle. Voir la fonction SQL etat_publication().
+    etat_publication: r.etat_publication || (r.is_published ? 'En ligne' : 'Brouillon'),
+    soumis_le: r.soumis_le || null,
+    valide_le: r.valide_le || null,
+    refuse_le: r.refuse_le || null,
+    motif_refus: r.motif_refus || '',
     archived_at: r.archived_at || null,
     owner_id: r.owner_id,
     created_at: r.created_at,
@@ -894,7 +921,7 @@ async function loadProperties(){
 
 
 
-let state = { type:'Tous', status:'Tous', search:'', selected:null, showArchived:false, page:1 };
+let state = { type:'Tous', status:'Tous', search:'', selected:null, showArchived:false, page:1, aValider:false };
 // Les fiches du portefeuille sont en une colonne : dix par page = dix lignes.
 const PER_PAGE = 10;
 let markers = {};
@@ -962,6 +989,7 @@ function rebuildMarkers(list){
 // ---- Filtrage ----
 function filtered(){
   return baseSet().filter(p=>{
+    if(state.aValider && !etatEnAttente(p)) return false;
     if(state.type!=='Tous' && p.type!==state.type) return false;
     if(state.status!=='Tous' && p.status!==state.status) return false;
     if(state.search){
@@ -983,11 +1011,28 @@ function renderChips(){
   const counts = {Terrain:0,Maison:0,Appartement:0,Studio:0,'Champ agricole':0};
   set.forEach(p=>counts[p.type]++);
   const el = document.getElementById('chips');
-  el.innerHTML = NAV.map(([key,label])=>{
+
+  // « À valider » en tête, et seulement quand il y a quelque chose à valider :
+  // une puce à zéro occuperait de la place sans rien dire. Réservée à
+  // l'administrateur, seul à pouvoir autoriser.
+  const attente = biensAValider().length;
+  const chipAttente = (IS_ADMIN && attente > 0)
+    ? `<button class="chip chip-attente ${state.aValider?'active':''}" data-a-valider="1">
+         À valider <span class="count">${attente}</span>
+       </button>`
+    : '';
+
+  el.innerHTML = chipAttente + NAV.map(([key,label])=>{
     const c = key==='Tous' ? set.length : counts[key];
-    return `<button class="chip ${state.type===key?'active':''}" data-type="${key}">${label} <span class="count">${c}</span></button>`;
+    return `<button class="chip ${(!state.aValider && state.type===key)?'active':''}" data-type="${key}">${label} <span class="count">${c}</span></button>`;
   }).join('');
-  el.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{ state.type=b.dataset.type; render(); });
+
+  el.querySelectorAll('[data-type]').forEach(b=>b.onclick=()=>{
+    state.type = b.dataset.type; state.aValider = false; state.page = 1; render();
+  });
+  el.querySelectorAll('[data-a-valider]').forEach(b=>b.onclick=()=>{
+    state.aValider = !state.aValider; state.type = 'Tous'; state.status = 'Tous'; state.page = 1; render();
+  });
 }
 
 // ---- Stats ----
@@ -1005,6 +1050,13 @@ function renderStats(){
     ['Vendus / Loués', clot, '#8B9199'],
     ['Valeur (ventes)', fcfa(valeur), '#B24A2C'],
   ];
+  // Une demande de publication en attente est la seule de ces mesures qui
+  // appelle un geste. Elle n'apparaît donc que lorsqu'il y en a, et seulement
+  // pour qui peut l'accorder — sinon c'est un chiffre de plus à ignorer.
+  const attente = biensAValider().length;
+  if(IS_ADMIN && attente > 0){
+    items.push(['À valider', attente, '#E0A200']);
+  }
   document.getElementById('stats').innerHTML = items.map(([lbl,val,col])=>`
     <div class="stat">
       <div class="stat-dot" style="background:${col}22"></div>
@@ -1047,7 +1099,10 @@ function renderList(){
                  double ouverture. -->
             <h3><button type="button" class="card-open">${p.type} — ${esc(p.commune)}</button></h3>
           </div>
-          <span class="pill" style="background:${STATUS_COLOR[p.status]}22;color:${STATUS_COLOR[p.status]}">${p.status}</span>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
+            <span class="pill" style="background:${STATUS_COLOR[p.status]}22;color:${STATUS_COLOR[p.status]}">${p.status}</span>
+            ${etatPastille(p)}
+          </div>
         </div>
         <div class="card-meta">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5C6470" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -1130,8 +1185,11 @@ function openDrawer(p){
   d.innerHTML = `
     <div class="drawer-banner" style="background:${cover?`center/cover no-repeat url('${cover}')`:`linear-gradient(135deg, ${TYPE_COLOR[p.type]}, #161B22)`}">
       ${cover?'':typeIcon(p.type, 30)}
-      <button class="drawer-close" id="drawerClose">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#161B22" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <!-- Le nom manquait : au lecteur d'écran ce bouton s'annonçait « bouton »,
+           sans dire qu'il ferme la fiche. Défaut antérieur, invisible aux scans
+           précédents qui ne mesuraient pas ce tiroir ouvert. -->
+      <button class="drawer-close" id="drawerClose" aria-label="Fermer la fiche du bien">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#161B22" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
       <span class="pill" style="position:absolute;left:16px;bottom:-13px;background:${STATUS_COLOR[p.status]};color:#fff;box-shadow:var(--shadow)">${p.status}</span>
     </div>
@@ -1154,6 +1212,37 @@ function openDrawer(p){
       <div class="section-title">Statut du bien</div>
       <div class="status-switch">
         ${STATUS_OPTIONS[p.operation].map(s=>`<button class="status-btn ${p.status===s?'active':''}" style="--sc:${STATUS_COLOR[s]}" data-status="${s}">${s}</button>`).join('')}
+      </div>
+
+      <div class="section-title">Publication</div>
+      <div class="confiance-bloc">
+        <div class="confiance-ligne">
+          <div class="confiance-txt">
+            <strong>${p.etat_publication}</strong>
+            <span>${(() => {
+              if(p.etat_publication === 'En ligne')
+                return p.valide_le ? 'Visible sur la vitrine, autorisée le ' + dateCourte(p.valide_le)
+                                   : 'Visible sur la vitrine';
+              if(p.etat_publication === 'En attente')
+                return 'Demandée le ' + dateCourte(p.soumis_le) + ' — absente de la vitrine tant qu\'elle n\'est pas autorisée';
+              if(p.etat_publication === 'Refusé')
+                return 'Refusée le ' + dateCourte(p.refuse_le);
+              return "Jamais soumise à la publication";
+            })()}</span>
+            ${p.etat_publication === 'Refusé' && p.motif_refus
+              ? `<span style="margin-top:5px;color:var(--danger);">Motif : ${esc(p.motif_refus)}</span>` : ''}
+          </div>
+          ${IS_ADMIN
+            ? `<button type="button" class="btn ${p.is_published ? 'btn-outline' : 'btn-primary'}" data-publier="${p.is_published ? '0' : '1'}">${p.is_published ? 'Retirer de la vitrine' : 'Autoriser'}</button>`
+            : `<span class="confiance-etat ${p.etat_publication === 'En ligne' ? 'ok' : ''}">${p.etat_publication === 'En ligne' ? 'En ligne' : 'Réservé à l’administrateur'}</span>`}
+        </div>
+        ${IS_ADMIN && !p.is_published ? `
+        <div class="valider-ligne">
+          <label for="motifRefus" class="sr-only">Motif du refus, communiqué au collaborateur</label>
+          <input type="text" id="motifRefus" class="valider-motif" maxlength="300"
+                 placeholder="Motif du refus, lu par le collaborateur" value="${esc(p.motif_refus)}" />
+          <button type="button" class="btn btn-outline" data-refuser="1">Refuser</button>
+        </div>` : ''}
       </div>
 
       <div class="section-title">Confiance</div>
@@ -1194,6 +1283,9 @@ function openDrawer(p){
           </div>
           ${IS_ADMIN ? `
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <!-- Champ sans étiquette : un lecteur d'écran n'annonçait qu'« date ».
+                   Même antériorité que le bouton de fermeture ci-dessus. -->
+              <label for="sponsoDate" class="sr-only">Date de fin de la mise en avant</label>
               <input type="date" class="sf-input" id="sponsoDate" style="margin-bottom:0;width:auto;"
                      min="${new Date(Date.now()+86400000).toISOString().slice(0,10)}"
                      value="${p.sponsored_until ? p.sponsored_until.slice(0,10) : ''}" />
@@ -1269,6 +1361,12 @@ function openDrawer(p){
   });
   d.querySelectorAll('[data-sponsoriser]').forEach(btn=>{
     btn.onclick = () => setSponsoring(p.id, btn.dataset.sponsoriser === '1');
+  });
+  d.querySelectorAll('[data-publier]').forEach(btn=>{
+    btn.onclick = () => setPublication(p.id, btn.dataset.publier === '1');
+  });
+  d.querySelectorAll('[data-refuser]').forEach(btn=>{
+    btn.onclick = () => refuserPublication(p.id);
   });
   document.getElementById('drawer').classList.add('open');
   document.getElementById('overlay').classList.add('open');
@@ -1357,6 +1455,39 @@ function sponsoActif(p){
   return !!p.sponsored_until && new Date(p.sponsored_until) > new Date();
 }
 
+// ---------------------------------------------------------------------------
+// Validation avant publication.
+//
+// L'état ne se calcule pas ici : il vient de la colonne générée
+// properties.etat_publication, donc de la fonction SQL du même nom. Dupliquer la
+// règle en JavaScript garantirait qu'un jour les deux ne disent plus la même
+// chose — et c'est la base qui a le dernier mot, puisque c'est elle qui refuse.
+// ---------------------------------------------------------------------------
+function etatEnAttente(p){ return p && p.etat_publication === 'En attente'; }
+function etatRefuse(p){    return p && p.etat_publication === 'Refusé'; }
+
+function biensAValider(){
+  return PROPERTIES.filter(p => etatEnAttente(p) && !p.archived_at);
+}
+
+// Pastille d'état. Le brouillon n'en reçoit pas : c'est l'état normal d'un bien
+// qu'on saisit, le signaler ajouterait du bruit sur presque chaque fiche.
+function etatPastille(p){
+  const etats = {
+    'En ligne':   { fond:'#E6F4EA', texte:'#1B5E20', libelle:'En ligne' },
+    'En attente': { fond:'#FDF3E3', texte:'#7A4F01', libelle:'En attente de validation' },
+    'Refusé':     { fond:'#FDECEC', texte:'#8A1C1C', libelle:'Publication refusée' }
+  };
+  const e = etats[p.etat_publication];
+  if(!e) return '';
+  return `<span class="etat-pastille" style="background:${e.fond};color:${e.texte};">${e.libelle}</span>`;
+}
+
+function dateCourte(iso){
+  if(!iso) return '';
+  return new Date(iso).toLocaleDateString('fr-FR', {day:'2-digit', month:'long', year:'numeric'});
+}
+
 // Nombre de places en tête de vitrine. Doit rester accordé à SPONSO_MAX de la
 // vitrine, qui vaut sa taille de page : vendre une 21e mise en avant reviendrait
 // à encaisser pour une place qui n'existe pas.
@@ -1415,6 +1546,55 @@ async function setVerified(id, verifie){
   }
   Object.assign(prop, mapRow(data));
   render();
+  openDrawer(prop);
+}
+
+// Autoriser ou retirer la mise en ligne. Le bouton n'est affiché qu'à
+// l'administrateur, mais c'est le déclencheur enforce_publication_rights() qui
+// refuse : cacher le bouton ne protège rien, il évite seulement de proposer un
+// geste qui échouerait.
+async function setPublication(id, autoriser){
+  const prop = PROPERTIES.find(x=>String(x.id)===String(id));
+  if(!prop) return;
+  if(!autoriser && !confirm("Retirer ce bien de la vitrine ? Il ne sera plus visible par les visiteurs.")) return;
+
+  const { data, error } = await db.from('properties')
+    .update({ is_published: autoriser })
+    .eq('id', prop.id).select('*, property_photos(*)').single();
+  if(error){
+    alert((autoriser ? "L'autorisation" : "Le retrait") + " a échoué : " + error.message);
+    return;
+  }
+  Object.assign(prop, mapRow(data));
+  render();
+  renderStats();
+  openDrawer(prop);
+}
+
+// Refus motivé. La date et l'auteur du refus sont posés par la base, jamais
+// ici : c'est la seule façon qu'ils soient exacts même si l'appel vient
+// d'ailleurs que de cette page.
+async function refuserPublication(id){
+  const prop = PROPERTIES.find(x=>String(x.id)===String(id));
+  if(!prop) return;
+  const champ = document.getElementById('motifRefus');
+  const motif = champ ? champ.value.trim() : '';
+  if(!motif){
+    alert("Indiquez le motif du refus : c'est ce que le collaborateur lira pour corriger son annonce.");
+    if(champ) champ.focus();
+    return;
+  }
+
+  const { data, error } = await db.from('properties')
+    .update({ motif_refus: motif })
+    .eq('id', prop.id).select('*, property_photos(*)').single();
+  if(error){
+    alert("Le refus a échoué : " + error.message);
+    return;
+  }
+  Object.assign(prop, mapRow(data));
+  render();
+  renderStats();
   openDrawer(prop);
 }
 
@@ -1887,9 +2067,27 @@ function openForm(existing){
       <div id="locationSection"></div>
 
       <div class="toggle-row">
-        <input type="checkbox" id="f_published" ${p.is_published?'checked':''} />
-        <label for="f_published" style="font-size:12.5px;">Publier sur la vitrine client</label>
+        <!-- Cochée dès que le propriétaire veut le bien en ligne, qu'il le soit
+             déjà ou qu'il attende l'accord. La décocher pour une annonce en
+             ligne serait sinon le réglage par défaut, et un simple
+             enregistrement l'aurait retirée de la vitrine sans intention. -->
+        <input type="checkbox" id="f_published"
+               ${(p.is_published || etatEnAttente(p)) ? 'checked' : ''} />
+        <label for="f_published" style="font-size:12.5px;">
+          ${IS_ADMIN ? 'Publier sur la vitrine client' : 'Demander la publication sur la vitrine'}
+        </label>
       </div>
+      ${IS_ADMIN ? '' : `
+        <p style="font-size:11.5px;color:var(--ink-soft);margin:-4px 0 0;padding-left:2px;">
+          La mise en ligne est autorisée par l'administrateur&nbsp;: votre demande lui est
+          signalée, et le bien n'apparaît sur la vitrine qu'après son accord. Modifier le
+          prix, la description ou les photos d'une annonce en ligne la renvoie en validation.
+          Décocher cette case retire votre annonce de la vitrine.
+        </p>`}
+      ${isEdit && p.etat_publication === 'Refusé' && p.motif_refus ? `
+        <div class="form-error" role="alert" style="margin:8px 0 0;padding:10px 12px;background:#FDECEC;border-radius:10px;">
+          <strong>Publication refusée.</strong> ${esc(p.motif_refus)}
+        </div>` : ''}
 
       <div class="section-title">Photos</div>
       <div class="photo-grid" id="photoGrid"></div>
