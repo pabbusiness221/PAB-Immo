@@ -376,6 +376,35 @@
   .view-toggle button{border:none;background:transparent;border-radius:999px;padding:9px 20px;font-size:12.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s var(--ease);}
   .view-toggle button.active{background:var(--primary);color:#fff;box-shadow:0 6px 14px -8px rgba(15,39,71,0.8);}
 
+  /* ---------- Résumé des résultats ---------- */
+  /* Aligné sur .split : même largeur maximale, même retrait, pour que le
+     décompte tombe à l'aplomb de la première carte. */
+  .resume-resultats{max-width:1400px;margin:26px auto 0;padding:0 20px;
+    display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;}
+  .resume-compte{margin:0;font-family:'Manrope',sans-serif;font-weight:800;
+    font-size:19px;color:var(--ink);}
+  .resume-filtres{display:flex;flex-wrap:wrap;gap:7px;align-items:center;}
+  /* Chaque filtre actif est un bouton qui le retire : le lire et l'annuler
+     sont le même geste. */
+  .resume-filtre{display:inline-flex;align-items:center;gap:6px;cursor:pointer;
+    background:var(--accent-soft);color:var(--ink);border:1px solid var(--border);
+    border-radius:999px;padding:5px 10px 5px 12px;font-size:12.5px;font-weight:700;
+    font-family:'Manrope',sans-serif;transition:background .15s var(--ease);
+    min-height:32px;}
+  .resume-filtre:hover{background:var(--accent-clair);}
+  .resume-filtre:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .resume-filtre .x{font-size:15px;line-height:1;opacity:.65;}
+  .resume-filtre:hover .x{opacity:1;}
+  .resume-note{width:100%;margin:0;font-size:12.5px;color:var(--ink-soft);}
+  .resume-tout{background:none;border:0;cursor:pointer;font-size:12.5px;font-weight:700;
+    color:var(--gold);text-decoration:underline;padding:6px 4px;min-height:32px;
+    font-family:'Manrope',sans-serif;}
+  .resume-tout:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px;}
+  @media (max-width: 640px){
+    .resume-resultats{margin-top:18px;gap:8px 10px;}
+    .resume-compte{font-size:16.5px;width:100%;}
+  }
+
   /* ---------- Liste + carte ---------- */
   .split{max-width:1400px;margin:22px auto 48px;padding:0 20px;display:flex;gap:20px;align-items:flex-start;}
   /* Deux annonces par ligne, comme sur téléphone : dans les ~605 px de la
@@ -393,6 +422,20 @@
     grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:16px;align-content:start;}
   .panel-list .empty{grid-column:1/-1;}
   .panel-map{flex:0 0 clamp(340px,32%,500px);position:-webkit-sticky;position:sticky;top:86px;align-self:flex-start;height:calc(100vh - 108px);min-height:440px;border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--border);z-index:1;}
+  /* Masqué par défaut ; la règle sous 1024 px en vue carte le fait paraître.
+     z-index au-dessus des contrôles Leaflet (400) pour rester atteignable. */
+  /* En haut et non en bas : la légende des types occupe le coin inférieur
+     gauche et le pavé était posé dessus, masquant « Champ agricole ». Le
+     bandeau supérieur est libre entre le zoom (à gauche) et les calques
+     (à droite), et un retour se cherche naturellement en haut. */
+  .carte-retour{display:none;position:absolute;left:50%;transform:translateX(-50%);
+    top:12px;z-index:500;align-items:center;gap:8px;cursor:pointer;
+    background:var(--night);color:#fff;border:1px solid rgba(255,255,255,0.28);
+    border-radius:999px;padding:11px 18px;font-family:'Manrope',sans-serif;
+    font-weight:800;font-size:13.5px;box-shadow:0 6px 20px rgba(15,39,71,0.34);
+    min-height:44px;}
+  .carte-retour:hover{background:#1A3A63;}
+  .carte-retour:focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
 
   /* ---------- Carte d'annonce ---------- */
   .card{position:relative;background:var(--surface);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow);cursor:pointer;transition:transform .28s var(--ease), box-shadow .28s var(--ease), border-color .28s var(--ease);border:1px solid var(--border);}
@@ -599,6 +642,13 @@
   .subform-panel{margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;}
   .subform-panel.hidden{display:none;}
   .sf-label{font-size:11px;font-weight:800;color:var(--ink-soft);margin:0 0 5px;display:block;letter-spacing:.02em;}
+  /* Les trois champs des formulaires étaient tous obligatoires, sans que rien
+     ne le dise : on ne l'apprenait qu'en échouant à envoyer. L'astérisque est
+     doublé d'un mot pour les lecteurs d'écran, un signe seul ne se lisant pas.
+     Bronze et non or : sur fond clair, l'or du logo ne fait que 1,9:1. */
+  .oblig{color:var(--accent-bronze);margin-left:2px;font-weight:800;}
+  .sf-legende{font-size:11px;color:var(--ink-soft);margin:0 0 12px;}
+  .sf-legende .oblig{margin-left:0;}
   .sf-input, .sf-select, .sf-textarea{width:100%;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;font-size:13.5px;font-family:'Inter',sans-serif;color:var(--ink);outline:none;background:#fff;margin-bottom:9px;transition:border-color .2s var(--ease), box-shadow .2s var(--ease);}
   .sf-input::placeholder, .sf-textarea::placeholder{color:#A6ADA9;}
   .sf-input:focus, .sf-select:focus, .sf-textarea:focus{border-color:var(--accent);box-shadow:var(--focus-ring);}
@@ -924,6 +974,10 @@
     .view-toggle{display:flex;}
     .split[data-view="list"] .panel-map{display:none;}
     .split[data-view="map"] .panel-list{display:none;}
+    /* Le retour à la liste ne sert que là où la vue carte existe seule, donc
+       sous 1024 px. Au-dessus, les deux panneaux cohabitent et la liste est
+       déjà à l'écran. Posé au-dessus de la carte, jamais rogné par elle. */
+    .split[data-view="map"] .carte-retour{display:inline-flex;}
     .chips-row{flex-direction:column;align-items:stretch;gap:16px;}
     .divider{display:none;}
     .chip-group{width:100%;}
@@ -1501,10 +1555,32 @@
   <div class="rail-scroll" id="vedettesRail"></div>
 </section>
 
+<!-- Le décompte et les filtres actifs, écrits à l'écran. Ils n'existaient que
+     dans #annonceResultats, réservé aux lecteurs d'écran : une personne
+     voyante filtrait sur « Maisons » et se retrouvait devant une carte seule,
+     sans un mot pour dire combien de biens restaient ni ce qui filtrait. Placé
+     avant .split, le résumé vaut pour la liste comme pour la carte. -->
+<div class="resume-resultats" id="resumeResultats" hidden>
+  <p class="resume-compte" id="resumeCompte"></p>
+  <div class="resume-filtres" id="resumeFiltres"></div>
+  <!-- Quand un montant a été reconnu dans la recherche libre, on dit comment
+       il a été compris : sans cela, « moins de 50 millions » filtrerait sans
+       que rien ne l'explique. -->
+  <p class="resume-note" id="resumeNote" hidden></p>
+</div>
+
 <div class="split" id="split" data-view="list">
   <div class="panel-list" id="list"></div>
   <div class="panel-map">
     <div id="map"></div>
+    <!-- Retour à la liste depuis la carte. En vue carte sur téléphone, la carte
+         occupe 59 % de l'écran en touch-action:none — elle capte donc le geste
+         de défilement — et la bascule Liste/Carte se retrouve à près de 700 px
+         au-dessus. Il ne restait qu'une bande étroite pour remonter. -->
+    <button type="button" class="carte-retour" id="carteRetourListe">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      <span id="carteRetourTexte">Voir la liste</span>
+    </button>
     <div class="legend">
       <div class="legend-row"><span class="legend-dot" style="background:#B24A2C"></span>Terrain</div>
       <div class="legend-row"><span class="legend-dot" style="background:#2E4A61"></span>Maison</div>
@@ -1652,23 +1728,24 @@
   </div>
 
   <form class="collab-form hidden" id="collabForm" novalidate>
+    <p class="sf-legende"><span class="oblig" aria-hidden="true">*</span> Champs obligatoires</p>
     <div class="collab-grid">
       <div class="form-field">
-        <label class="sf-label" for="collab_agence">Nom de l'agence</label>
-        <input class="sf-input" id="collab_agence" style="margin-bottom:0;" autocomplete="organization" />
+        <label class="sf-label" for="collab_agence">Nom de l'agence<span class="oblig" aria-hidden="true">*</span><span class="sr-only"> (obligatoire)</span></label>
+        <input class="sf-input" id="collab_agence" required aria-required="true" style="margin-bottom:0;" autocomplete="organization" />
       </div>
       <div class="form-field">
-        <label class="sf-label" for="collab_nom">Votre nom</label>
-        <input class="sf-input" id="collab_nom" style="margin-bottom:0;" autocomplete="name" />
+        <label class="sf-label" for="collab_nom">Votre nom<span class="oblig" aria-hidden="true">*</span><span class="sr-only"> (obligatoire)</span></label>
+        <input class="sf-input" id="collab_nom" required aria-required="true" style="margin-bottom:0;" autocomplete="name" />
       </div>
       <div class="form-field">
-        <label class="sf-label" for="collab_contact">Téléphone ou email</label>
+        <label class="sf-label" for="collab_contact">Téléphone ou email<span class="oblig" aria-hidden="true">*</span><span class="sr-only"> (obligatoire)</span></label>
         <!-- Champ à double usage : aucun jeton autocomplete ne couvre
              « téléphone ou email ». On retient tel, cas de loin le plus
              fréquent ici, plutôt que de laisser le champ muet au remplissage
              automatique — c'est lui qui sert les personnes pour qui saisir
              coûte le plus. -->
-        <input class="sf-input" id="collab_contact" autocomplete="tel" style="margin-bottom:0;" placeholder="Pour vous répondre" />
+        <input class="sf-input" id="collab_contact" required aria-required="true" autocomplete="tel" style="margin-bottom:0;" placeholder="Pour vous répondre" />
       </div>
       <div class="form-field">
         <label class="sf-label" for="collab_zone">Zone d'activité</label>
@@ -1924,6 +2001,9 @@ const I18N_EN = {
   'Laisser un avis':'Leave a review',
   'Votre nom':'Your name', 'Votre note':'Your rating', 'Votre avis':'Your review',
   "Votre avis sera relu par notre équipe avant d'apparaître ici.":'Your review will be checked by our team before it appears here.',
+  // Résumé des résultats et vue carte
+  'Voir la liste':'View the list',
+  'Champs obligatoires':'Required fields',
   // Alertes de nouveaux biens
   'Alerte nouveaux biens':'New property alerts',
   "Aucun bien ne correspond aujourd'hui ?":'Nothing matching today?',
@@ -2377,8 +2457,19 @@ async function loadProperties(){
   renderFeatured();
   tryRenderStatsBand();
   initAdvancedSearch();
+  // L'URL peut déjà porter une recherche : lien partagé, favori du navigateur,
+  // ou simple rechargement de la page. On la relit APRÈS initAdvancedSearch(),
+  // qui vient de remplir les listes déroulantes — poser une valeur sur un
+  // <select> encore vide ne prendrait pas.
+  appliquerParams(new URLSearchParams(location.search));
+  const pageInitiale = state.page;
+  majEtiquettePrix();
+  updateAdvBadge();
   majBoutonFavoris();
   render();
+  // render() est reparti de la première page ; si l'adresse en désignait une
+  // autre, on la rétablit et on redessine la seule liste.
+  if(pageInitiale > 1){ state.page = pageInitiale; renderList(); }
   openPropertyFromURL();
   checkPhotoResize();
 }
@@ -2704,6 +2795,50 @@ function rebuildMarkers(list){
 // incohérence avec celle-ci. « appartement thies » trouve un appartement à
 // Thiès, « 3 chambres louer » un logement à louer de trois chambres.
 
+// ---- Le prix écrit en toutes lettres dans la recherche ---------------------
+// « 50 millions » ne donnait rien : la recherche comparait des chaînes, si
+// bien que seul « 50000000 » trouvait quelque chose — et par sous-chaîne, ce
+// qui ramenait aussi les biens à 150 et 250 millions. Ici on reconnaît le
+// montant, on l'applique comme une vraie borne, et le reste des mots continue
+// sa route en recherche libre.
+//
+// Les magnitudes sont écrites en toutes lettres à dessein. Un « m » collé au
+// nombre aurait été tentant, mais « 300 m² » se serait lu 300 millions.
+const RE_PRIX = new RegExp(
+  "(?:(moins de|jusqu'a|jusqua|au plus|maximum|max|budget|under|below|less than|up to)"
+  + "|(plus de|a partir de|au moins|minimum|min|from|over|above|at least))?"
+  + "\\s*(\\d+(?:[.,]\\d+)?)\\s*"
+  + "(milliards?|millions?|mille|k)\\b", "g");
+
+function analyserPrix(requete){
+  const brut = sansAccents(String(requete || '').replace(/[’‘]/g, "'"));
+  let min = null, max = null, trouve = false;
+  const reste = brut.replace(RE_PRIX, (tout, avantMax, avantMin, nombre, magnitude) => {
+    const n = parseFloat(nombre.replace(',', '.'));
+    if(!Number.isFinite(n)) return tout;
+    const facteur = /milliard/.test(magnitude) ? 1e9
+                  : /million/.test(magnitude) ? 1e6
+                  : 1e3;                                   // mille, k
+    const montant = Math.round(n * facteur);
+    trouve = true;
+    // Sans mot de comparaison, on lit un budget : « 50 millions » veut dire
+    // « pas plus de 50 millions », jamais « exactement ».
+    if(avantMin) min = min == null ? montant : Math.max(min, montant);
+    else max = max == null ? montant : Math.min(max, montant);
+    return ' ';
+  });
+  return { min, max, trouve, reste: reste.replace(/\s+/g, ' ').trim() };
+}
+
+// Libellé de la borne, pour la puce du résumé.
+function libellePrixRecherche(p){
+  if(p.min != null && p.max != null)
+    return `${fcfa(p.min)} – ${fcfa(p.max)}`;
+  if(p.min != null)
+    return (state.lang === 'en' ? 'from ' : 'à partir de ') + fcfa(p.min);
+  return (state.lang === 'en' ? 'up to ' : "jusqu'à ") + fcfa(p.max);
+}
+
 function filtered(){
   return PROPERTIES.filter(p=>{
     if(state.favOnly && !isFav(p.id)) return false;
@@ -2724,8 +2859,13 @@ function filtered(){
     // le comportement attendu.
     if(state.chambresMin !== '' && !(p.rooms && p.rooms.chambres >= Number(state.chambresMin))) return false;
     if(state.search){
+      // Le montant éventuellement écrit dans la recherche devient une vraie
+      // borne ; seuls les mots restants sont cherchés dans le texte.
+      const prix = analyserPrix(state.search);
+      if(prix.min != null && p.price < prix.min) return false;
+      if(prix.max != null && p.price > prix.max) return false;
       const hay = texteRecherche(p);
-      const mots = sansAccents(state.search).split(/\s+/).filter(Boolean);
+      const mots = prix.reste.split(/\s+/).filter(Boolean);
       if(!mots.every(m => hay.includes(m))) return false;
     }
     return true;
@@ -3292,6 +3432,80 @@ function majEtiquettePrix(){
 
 
 
+// ---- Filtres actifs --------------------------------------------------------
+// Une seule source pour le résumé affiché et pour le rappel de la liste vide.
+// Chaque entrée sait se nommer ET se retirer : la puce lue est le bouton qui
+// l'annule, sans table de correspondance à tenir à jour à côté.
+function filtresActifs(){
+  const l = [];
+  const champ = document.getElementById('search');
+  if(state.search) l.push({ libelle: `« ${state.search} »`,
+    retirer(){ state.search = ''; if(champ) champ.value = ''; } });
+  if(state.type !== 'Tous') l.push({ libelle: t(state.type),
+    retirer(){ state.type = 'Tous'; } });
+  if(state.op !== 'Tous') l.push({ libelle: t(state.op),
+    retirer(){ state.op = 'Tous'; } });
+  if(state.favOnly) l.push({ libelle: t('Mes favoris'),
+    retirer(){ state.favOnly = false; majBoutonFavoris(); } });
+  if(state.centerLat != null && state.radiusKm) l.push({
+    libelle: (state.lang === 'en' ? 'Within ' : 'À moins de ') + state.radiusKm + ' km',
+    retirer(){ clearSearchZone(); } });
+  ADV_CRITERES.forEach(c => {
+    if(!critereActif(c)) return;
+    l.push({ libelle: c.resume(state[c.cle]),
+      retirer(){ state[c.cle] = '';
+        const el = document.getElementById(c.champ); if(el) el.value = '';
+        majEtiquettePrix(); updateAdvBadge(); } });
+  });
+  return l;
+}
+
+// Le décompte et les filtres, écrits à l'écran. #annonceResultats disait déjà
+// tout cela, mais aux seuls lecteurs d'écran : une personne voyante n'avait
+// aucun moyen de savoir combien de biens restaient, ni ce qui filtrait.
+function renderResume(nb){
+  const bloc = document.getElementById('resumeResultats');
+  if(!bloc) return;
+  const filtres = filtresActifs();
+  // Catalogue entier et aucun filtre : la liste se suffit, on n'ajoute pas
+  // une ligne de bruit au-dessus.
+  if(!filtres.length){ bloc.hidden = true; return; }
+  bloc.hidden = false;
+  document.getElementById('resumeCompte').textContent = nb === 0
+    ? (state.lang === 'en' ? 'No property' : 'Aucun bien')
+    : bienLabel(nb);
+  const zone = document.getElementById('resumeFiltres');
+  const retirerLabel = state.lang === 'en' ? 'Remove filter' : 'Retirer le filtre';
+  zone.innerHTML = filtres.map((f, i) =>
+    `<button type="button" class="resume-filtre" data-filtre="${i}"
+             aria-label="${esc(retirerLabel + ' : ' + f.libelle)}">${esc(f.libelle)}<span class="x" aria-hidden="true">×</span></button>`
+  ).join('') + (filtres.length > 1
+    ? `<button type="button" class="resume-tout" id="resumeToutEffacer">${state.lang === 'en' ? 'Clear all' : 'Tout effacer'}</button>`
+    : '');
+  zone.querySelectorAll('.resume-filtre').forEach(b => {
+    b.onclick = () => {
+      filtres[Number(b.dataset.filtre)].retirer();
+      renderChips(); renderCategories(); render();
+    };
+  });
+  const tout = document.getElementById('resumeToutEffacer');
+  // Depuis le résumé, on ne remonte pas en haut : on regarde les résultats,
+  // on veut les voir se rouvrir sous les yeux.
+  if(tout) tout.onclick = () => reinitialiserRecherche({ remonterEnHaut: false });
+
+  // Ce que la recherche a compris du montant écrit en toutes lettres.
+  const note = document.getElementById('resumeNote');
+  const prix = state.search ? analyserPrix(state.search) : { trouve: false };
+  if(prix.trouve){
+    note.hidden = false;
+    note.textContent = (state.lang === 'en' ? 'Price read as: ' : 'Prix compris comme : ')
+      + libellePrixRecherche(prix);
+  } else {
+    note.hidden = true;
+    note.textContent = '';
+  }
+}
+
 function renderList(){
   // Les mises en avant réordonnent le résultat des filtres, elles ne le
   // contournent pas : une annonce sponsorisée qui ne correspond pas à la
@@ -3308,21 +3522,16 @@ function renderList(){
       : (state.lang==='en' ? `${items.length} propert${items.length > 1 ? 'ies' : 'y'} match the criteria.`
                             : `${items.length} bien${items.length > 1 ? 's' : ''} correspond${items.length > 1 ? 'ent' : ''} aux critères.`);
   }
+  renderResume(items.length);
   if(items.length===0){
     // Un cul-de-sac sans bouton : le message conseillait « élargissez votre
     // recherche » sans donner de quoi le faire, et la liste vide se trouve à
     // plus de mille pixels sous la barre de recherche. Sur téléphone, où le
     // menu des catégories est masqué, il ne restait plus rien de cliquable à
     // l'écran. On nomme donc ce qui filtre, et on offre le geste.
-    const criteresActifs = [];
-    if(state.search) criteresActifs.push(`« ${esc(state.search)} »`);
-    if(state.type !== 'Tous') criteresActifs.push(esc(t(state.type)));
-    if(state.op !== 'Tous') criteresActifs.push(esc(t(state.op)));
-    if(state.favOnly) criteresActifs.push(t('Mes favoris'));
-    const nbAvances = ADV_CRITERES.filter(c => state[c.cle]).length;
-    if(nbAvances) criteresActifs.push(state.lang==='en'
-      ? `${nbAvances} advanced filter${nbAvances>1?'s':''}`
-      : `${nbAvances} filtre${nbAvances>1?'s':''} avancé${nbAvances>1?'s':''}`);
+    // Les critères viennent de filtresActifs(), la même source que le résumé :
+    // les deux listes ne peuvent plus diverger.
+    const criteresActifs = filtresActifs().map(f => esc(f.libelle));
 
     const rappel = criteresActifs.length
       ? (state.lang==='en' ? `Active right now: ${criteresActifs.join(' · ')}.`
@@ -3685,23 +3894,25 @@ function openDrawer(p){
         <button type="button" class="subform-tab" data-tab="rdv">${state.lang==='en'?'Book a visit':'Prendre rendez-vous'}</button>
       </div>
       <div class="subform-panel" id="panel-message">
-        <label class="sf-label" for="msg_name">${state.lang==='en'?'Name':'Nom'}</label>
-        <input class="sf-input" id="msg_name" autocomplete="name" placeholder="${state.lang==='en'?'Your name':'Votre nom'}"/>
-        <label class="sf-label" for="msg_contact">${state.lang==='en'?'Phone or email':'Téléphone ou email'}</label>
-        <input class="sf-input" id="msg_contact" autocomplete="tel" placeholder="${state.lang==='en'?'So we can reply':'Pour vous répondre'}"/>
-        <label class="sf-label" for="msg_text">${state.lang==='en'?'Message':'Message'}</label>
-        <textarea class="sf-textarea" id="msg_text" placeholder="${state.lang==='en'?'Your question about this property…':'Votre question sur ce bien…'}"></textarea>
+        ${legendeObligatoire()}
+        <label class="sf-label" for="msg_name">${state.lang==='en'?'Name':'Nom'}${OBLIGATOIRE()}</label>
+        <input class="sf-input" id="msg_name" required aria-required="true" autocomplete="name" placeholder="${state.lang==='en'?'Your name':'Votre nom'}"/>
+        <label class="sf-label" for="msg_contact">${state.lang==='en'?'Phone or email':'Téléphone ou email'}${OBLIGATOIRE()}</label>
+        <input class="sf-input" id="msg_contact" required aria-required="true" autocomplete="tel" placeholder="${state.lang==='en'?'So we can reply':'Pour vous répondre'}"/>
+        <label class="sf-label" for="msg_text">${state.lang==='en'?'Message':'Message'}${OBLIGATOIRE()}</label>
+        <textarea class="sf-textarea" id="msg_text" required aria-required="true" placeholder="${state.lang==='en'?'Your question about this property…':'Votre question sur ce bien…'}"></textarea>
         <div class="hp-field" aria-hidden="true"><label for="msg_website">Site web</label><input type="text" id="msg_website" name="website" tabindex="-1" autocomplete="off"/></div>
         <button class="btn btn-primary sf-submit" id="msgSubmitBtn">${state.lang==='en'?'Send message':'Envoyer le message'}</button>
         <p class="sf-error" role="alert" id="msgError"></p>
       </div>
       <div class="subform-panel hidden" id="panel-rdv">
-        <label class="sf-label" for="rdv_name">${state.lang==='en'?'Name':'Nom'}</label>
-        <input class="sf-input" id="rdv_name" autocomplete="name" placeholder="${state.lang==='en'?'Your name':'Votre nom'}"/>
-        <label class="sf-label" for="rdv_contact">${state.lang==='en'?'Phone or email':'Téléphone ou email'}</label>
-        <input class="sf-input" id="rdv_contact" autocomplete="tel" placeholder="${state.lang==='en'?'To confirm the appointment':'Pour vous confirmer le RDV'}"/>
+        ${legendeObligatoire()}
+        <label class="sf-label" for="rdv_name">${state.lang==='en'?'Name':'Nom'}${OBLIGATOIRE()}</label>
+        <input class="sf-input" id="rdv_name" required aria-required="true" autocomplete="name" placeholder="${state.lang==='en'?'Your name':'Votre nom'}"/>
+        <label class="sf-label" for="rdv_contact">${state.lang==='en'?'Phone or email':'Téléphone ou email'}${OBLIGATOIRE()}</label>
+        <input class="sf-input" id="rdv_contact" required aria-required="true" autocomplete="tel" placeholder="${state.lang==='en'?'To confirm the appointment':'Pour vous confirmer le RDV'}"/>
         <div class="sf-row2">
-          <div><label class="sf-label" for="rdv_date">${state.lang==='en'?'Preferred date':'Date souhaitée'}</label><input class="sf-input" id="rdv_date" type="date" min="${dateDuJour()}" style="margin-bottom:0;"/></div>
+          <div><label class="sf-label" for="rdv_date">${state.lang==='en'?'Preferred date':'Date souhaitée'}${OBLIGATOIRE()}</label><input class="sf-input" id="rdv_date" required aria-required="true" type="date" min="${dateDuJour()}" style="margin-bottom:0;"/></div>
           <div><label class="sf-label" for="rdv_time">${state.lang==='en'?'Time slot':'Créneau'}</label>
             <select class="sf-select" id="rdv_time" style="margin-bottom:0;">
               <option value="Matin">${state.lang==='en'?'Morning':'Matin'}</option>
@@ -3752,7 +3963,16 @@ function openDrawer(p){
     const contact = document.getElementById('msg_contact').value.trim();
     const message = document.getElementById('msg_text').value.trim();
     const errEl = document.getElementById('msgError');
-    if(!name || !contact || !message){ errEl.textContent = state.lang==='en'?'Please fill in all fields.':'Merci de remplir tous les champs.'; return; }
+    const manquant = premierChampManquant([
+      { id:'msg_name',    libelle: state.lang==='en'?'Name':'Nom' },
+      { id:'msg_contact', libelle: state.lang==='en'?'Phone or email':'Téléphone ou email' },
+      { id:'msg_text',    libelle: state.lang==='en'?'Message':'Message' },
+    ]);
+    if(manquant){
+      errEl.textContent = messageChampManquant(manquant.libelle);
+      document.getElementById(manquant.id).focus();
+      return;
+    }
     if(!contactValide(contact)){
       errEl.textContent = messageContactInvalide();
       document.getElementById('msg_contact').focus();
@@ -3776,7 +3996,16 @@ function openDrawer(p){
     const time = document.getElementById('rdv_time').value;
     const message = document.getElementById('rdv_message').value.trim();
     const errEl = document.getElementById('rdvError');
-    if(!name || !contact || !date){ errEl.textContent = state.lang==='en'?'Please fill in at least the name, contact and date.':'Merci de remplir au moins le nom, le contact et la date.'; return; }
+    const manquant = premierChampManquant([
+      { id:'rdv_name',    libelle: state.lang==='en'?'Name':'Nom' },
+      { id:'rdv_contact', libelle: state.lang==='en'?'Phone or email':'Téléphone ou email' },
+      { id:'rdv_date',    libelle: state.lang==='en'?'Preferred date':'Date souhaitée' },
+    ]);
+    if(manquant){
+      errEl.textContent = messageChampManquant(manquant.libelle);
+      document.getElementById(manquant.id).focus();
+      return;
+    }
     if(!contactValide(contact)){
       errEl.textContent = messageContactInvalide();
       document.getElementById('rdv_contact').focus();
@@ -4028,6 +4257,73 @@ function initDrawerMap(p){
 }
 document.getElementById('overlay').onclick = closeDrawer;
 
+// ---- L'état de la recherche dans l'URL -------------------------------------
+// Le bien ouvert y figurait déjà (?bien=REF), les filtres non. Deux
+// conséquences : depuis une liste filtrée, le bouton Retour du navigateur
+// quittait le site au lieu d'annuler le filtre ; et une recherche ne se
+// partageait ni ne se mettait en favori. Les clés avancées se déduisent de
+// ADV_CRITERES, pour qu'un futur filtre soit repris sans rien ajouter ici.
+function etatVersParams(){
+  const p = new URLSearchParams();
+  const bien = new URLSearchParams(location.search).get('bien');
+  if(bien) p.set('bien', bien);                 // le tiroir garde sa place
+  if(state.type !== 'Tous') p.set('type', state.type);
+  if(state.op !== 'Tous') p.set('op', state.op);
+  if(state.search) p.set('q', state.search);
+  if(state.favOnly) p.set('fav', '1');
+  ADV_CRITERES.forEach(c => { if(critereActif(c)) p.set(c.cle.toLowerCase(), state[c.cle]); });
+  if(state.centerLat != null && state.radiusKm){
+    p.set('lat', Number(state.centerLat).toFixed(5));
+    p.set('lng', Number(state.centerLng).toFixed(5));
+    p.set('rayon', state.radiusKm);
+  }
+  if(state.page > 1) p.set('page', state.page);
+  return p;
+}
+
+function appliquerParams(p){
+  state.type = p.get('type') || 'Tous';
+  state.op = p.get('op') || 'Tous';
+  state.search = p.get('q') || '';
+  state.favOnly = p.get('fav') === '1';
+  const champ = document.getElementById('search');
+  if(champ) champ.value = state.search;
+  ADV_CRITERES.forEach(c => {
+    const v = p.get(c.cle.toLowerCase()) || '';
+    state[c.cle] = v;
+    const el = document.getElementById(c.champ);
+    if(el) el.value = v;
+  });
+  const lat = parseFloat(p.get('lat')), lng = parseFloat(p.get('lng')), rayon = parseFloat(p.get('rayon'));
+  if(Number.isFinite(lat) && Number.isFinite(lng) && Number.isFinite(rayon)){
+    state.centerLat = lat; state.centerLng = lng; state.radiusKm = rayon;
+  } else {
+    state.centerLat = null; state.centerLng = null; state.radiusKm = null;
+  }
+  // Le cercle et son libellé ne se déduisent pas de l'état tout seuls : sans
+  // ce rappel, une URL partagée filtrait sur une zone que la carte ne montrait
+  // pas.
+  if(typeof updateSearchCircle === 'function') updateSearchCircle();
+  if(typeof updateZoneUI === 'function') updateZoneUI(null);
+  const page = parseInt(p.get('page'), 10);
+  state.page = Number.isFinite(page) && page > 0 ? page : 1;
+}
+
+// Saisir dans la recherche remplace l'entrée courante ; tout le reste en
+// empile une nouvelle. Sans cette distinction, taper « Mermoz » laissait six
+// entrées dans l'historique et il fallait six retours pour en sortir.
+let derniereRecherche = null;
+function majURL(){
+  if(isRestoringFromURL) return;
+  const p = etatVersParams();
+  const q = p.toString();
+  const url = location.pathname + (q ? '?' + q : '');
+  if(url === location.pathname + location.search) return;
+  const enTrainDeTaper = derniereRecherche !== null && derniereRecherche !== state.search;
+  derniereRecherche = state.search;
+  history[enTrainDeTaper ? 'replaceState' : 'pushState']({ filtres: true }, '', url);
+}
+
 function render(){
   // Tout changement de filtre ou de recherche passe par ici : on repart de
   // la première page, sinon on peut se retrouver sur une page vide.
@@ -4036,6 +4332,7 @@ function render(){
   renderCategories(); // la tuile active doit suivre aussi un filtre choisi par les puces
   renderList();
   rebuildMarkers(filtered());
+  majURL();
 }
 // ---- Lien direct / partageable par bien ----
 // Message d'erreur destiné au visiteur. Le frein anti-abus renvoie le code
@@ -4055,6 +4352,31 @@ function messageErreurEnvoi(error, prefixe){
 // façons — 77 849 41 11, +221778494111, 00221 77-849-41-11 — et refuser une
 // forme valide serait pire que le mal : on exige donc au moins neuf chiffres,
 // ce qu'aucune saisie fantaisiste n'atteint par hasard.
+// « Merci de remplir tous les champs » obligeait à relire les trois champs
+// pour trouver lequel manquait. On nomme le premier vide, et on y place le
+// curseur : le message et le geste désignent le même endroit.
+function premierChampManquant(champs){
+  return champs.find(c => {
+    const el = document.getElementById(c.id);
+    return el && !el.value.trim();
+  }) || null;
+}
+function messageChampManquant(libelle){
+  return state.lang === 'en'
+    ? `Please fill in the “${libelle}” field.`
+    : `Merci de renseigner le champ « ${libelle} ».`;
+}
+
+// Marque un champ obligatoire. L'astérisque est doublé d'un mot : un signe de
+// ponctuation seul n'est pas annoncé par les lecteurs d'écran, et rien ne dit
+// à personne ce qu'il signifie tant qu'une légende ne l'explique pas.
+function OBLIGATOIRE(){
+  return `<span class="oblig" aria-hidden="true">*</span><span class="sr-only"> (${state.lang === 'en' ? 'required' : 'obligatoire'})</span>`;
+}
+function legendeObligatoire(){
+  return `<p class="sf-legende"><span class="oblig" aria-hidden="true">*</span> ${state.lang === 'en' ? 'Required fields' : 'Champs obligatoires'}</p>`;
+}
+
 function contactValide(v){
   const t = (v || '').trim();
   if(t.includes('@')) return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(t);
@@ -4173,8 +4495,24 @@ function signalerBienIntrouvable(ref){
 }
 
 window.addEventListener('popstate', () => {
-  const ref = new URLSearchParams(window.location.search).get('bien');
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get('bien');
   isRestoringFromURL = true;
+  // Les filtres reviennent avec l'entrée d'historique. Sans cela, un retour
+  // depuis une liste filtrée redessinait l'ancienne URL mais les mêmes
+  // résultats — l'adresse et l'écran se contredisaient.
+  appliquerParams(params);
+  const pageVoulue = state.page;
+  renderChips();
+  renderCategories();
+  majEtiquettePrix();
+  updateAdvBadge();
+  majBoutonFavoris();
+  // On n'appelle pas render() : il remet la pagination à la première page,
+  // ce qui perdrait le ?page= que l'on vient justement de relire.
+  state.page = pageVoulue;
+  renderList();
+  rebuildMarkers(filtered());
   if(ref){
     const p = PROPERTIES.find(x => x.ref === ref);
     if(p) openDrawer(p); else closeDrawer();
@@ -4464,8 +4802,14 @@ document.getElementById('collabForm').onsubmit = async (e) => {
   }
 
   const agence = val('collab_agence'), nom = val('collab_nom'), contact = val('collab_contact');
-  if(!agence || !nom || !contact){
-    errEl.textContent = "Le nom de l'agence, votre nom et un moyen de vous joindre sont nécessaires.";
+  const manquant = premierChampManquant([
+    { id:'collab_agence',  libelle: "Nom de l'agence" },
+    { id:'collab_nom',     libelle: 'Votre nom' },
+    { id:'collab_contact', libelle: 'Téléphone ou email' },
+  ]);
+  if(manquant){
+    errEl.textContent = messageChampManquant(manquant.libelle);
+    document.getElementById(manquant.id).focus();
     return;
   }
   // Seul formulaire des trois à ne vérifier que le non-vide : « xx » passait,
@@ -4712,6 +5056,14 @@ document.querySelectorAll('#viewToggle button').forEach(b=>{
     defilerVersResultats();
   };
 });
+
+// Retour à la liste depuis la carte. La bascule Liste/Carte se retrouve à près
+// de 700 px au-dessus une fois la carte affichée, et la carte capte le geste
+// de défilement (touch-action:none) : sans ce bouton, il ne restait qu'une
+// bande étroite sous la carte pour remonter.
+document.getElementById('carteRetourListe').onclick = () => {
+  document.getElementById('viewToggle').querySelector('[data-view="list"]').click();
+};
 </script>
 <script>
 /* Micro-animations d'ambiance — présentation pure, aucune logique métier.
