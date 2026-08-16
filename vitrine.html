@@ -250,7 +250,12 @@
   .hero-search .searchbar{max-width:760px;}
   .searchbar{display:flex;align-items:center;gap:14px;background:var(--surface);border-radius:999px;padding:12px 12px 12px 28px;flex:1;min-width:220px;width:100%;box-shadow:0 20px 45px -14px rgba(15,39,71,0.45), var(--shadow-lg);border:1px solid rgba(255,255,255,0.6);transition:box-shadow .2s var(--ease), transform .2s var(--ease);}
   .searchbar:focus-within{box-shadow:var(--focus-ring), 0 20px 45px -14px rgba(15,39,71,0.45), var(--shadow-lg);transform:translateY(-1px);}
-  .searchbar input{border:none;outline:none;font-size:16px;width:100%;background:transparent;font-family:'Inter',sans-serif;color:var(--ink);}
+  /* align-self:stretch — le champ occupe toute la hauteur utile de la barre.
+     Sans cela il ne faisait que 21 px de haut : sa zone cliquable réelle
+     passait sous le minimum de 24 px, et un clic dans le haut de la barre
+     n'atteignait pas le champ (vérifié par sondage de points). Le texte d'un
+     champ d'une seule ligne reste centré verticalement de lui-même. */
+  .searchbar input{border:none;outline:none;font-size:16px;width:100%;align-self:stretch;background:transparent;font-family:'Inter',sans-serif;color:var(--ink);}
   .searchbar input::placeholder{color:#93A1B2;}
   /* Recherche avancée : rassemblée dans la barre de recherche plutôt que
      laissée en puce séparée dans la barre de filtres — un seul endroit pour

@@ -264,6 +264,30 @@ function activerGlisserPourDefiler(el){
 // ramène à la fermeture, comme pour le tiroir de fiche.
 let elementAvantGalerie = null;
 
+// Annonce discrète pour les lecteurs d'écran, hors de tout contenu reconstruit.
+// La galerie réécrit son HTML entier à chaque photo : une région live placée
+// à l'intérieur serait détruite puis recréée à chaque fois, et une région
+// live neuve n'annonce pas son contenu initial. D'où ce conteneur unique,
+// attaché au body une seule fois et jamais remplacé — seul son texte change.
+// Styles en ligne : commun.js sert les deux pages et .sr-only n'existe que
+// sur la vitrine.
+function annoncerPoliment(texte){
+  let zone = document.getElementById('annonceurPartage');
+  if(!zone){
+    zone = document.createElement('p');
+    zone.id = 'annonceurPartage';
+    zone.setAttribute('role', 'status');
+    zone.setAttribute('aria-live', 'polite');
+    zone.style.cssText = 'position:absolute;width:1px;height:1px;padding:0;margin:-1px;' +
+      'overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;';
+    document.body.appendChild(zone);
+  }
+  // Même texte deux fois de suite : sans ce passage par une chaîne vide, la
+  // seconde annonce n'aurait pas lieu, faute de changement détecté.
+  if(zone.textContent === texte) zone.textContent = '';
+  zone.textContent = texte;
+}
+
 function openPhotoGallery(p, startIndex = 0){
   const photos = getPropertyPhotos(p);
   if(!photos.length) return;
@@ -338,6 +362,12 @@ function openPhotoGallery(p, startIndex = 0){
                 : foyer==='index' ? modal.querySelector('[data-index].active')
                 : null;
     (cible || modal.querySelector('[data-action="close"]')).focus();
+
+    // Le compteur « 3/4 » change à l'écran sans que rien ne le dise. On ne
+    // l'annonce qu'à la NAVIGATION (foyer non nul) : à l'ouverture, le nom du
+    // dialogue porte déjà le numéro de la photo, et doubler l'information
+    // ferait bavarder pour rien.
+    if(foyer) annoncerPoliment(`Photo ${currentIndex + 1} sur ${photos.length}`);
   }
 
   // Le retrait de « hidden » doit précéder renderGallery() : tant que la
