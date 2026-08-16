@@ -16,3 +16,11 @@ sauvegardes/
 # Fichiers compilés Python, produits par les scripts de outils/
 __pycache__/
 *.pyc
+
+# Maquette locale de la vue mobile de la vitrine. Elle recopie le balisage et les
+# styles de vitrine.html au lieu de les partager : versionnée, elle prendrait
+# l'apparence d'une référence tout en dérivant à chaque retouche de la vraie
+# page — et c'est la copie périmée qu'on finirait par croire.
+# Aucun secret ni donnée personnelle dedans, vérifié : le sujet est la dérive,
+# pas la confidentialité. À garder en local le temps d'un travail de maquette.
+apercu-mobile.html

@@ -1,6 +1,6 @@
 # Guide d'utilisation — PAB Immo
 
-Dernière mise à jour : **7 août 2026**
+Dernière mise à jour : **16 août 2026**
 
 Ce guide explique comment faire fonctionner le site au quotidien. Il s'adresse à
 vous, sans supposer de connaissances techniques. Les sujets purement techniques
@@ -42,15 +42,21 @@ Pour quitter, le lien **Déconnexion** en haut à droite.
 
 ### Deux niveaux de compte
 
-- **Administrateur** (vous) : accès à tout.
+- **Administrateur** (vous) : accès à tout, et **seul à pouvoir mettre un bien en
+  ligne** — voir « Publier ou garder en brouillon » plus bas.
 - **Collaborateur** (une agence partenaire) : voit et gère **ses propres biens**
   et les demandes qui les concernent, mais pas la boîte de réception globale, ni
   le journal, ni les agences, ni les prospects. Les statistiques qu'un
-  collaborateur voit ne portent que sur ses biens.
+  collaborateur voit ne portent que sur ses biens. Il **demande** la publication,
+  il ne la décide pas.
 
 Cette séparation n'est pas un réglage d'affichage : elle est imposée par la base
 de données. Un collaborateur ne peut pas voir les biens d'un autre, même en
 contournant la page.
+
+Trois marques publiques sont réservées à l'administrateur, et là aussi la base
+refuse, pas seulement l'écran : la **mise en ligne**, le badge **« Annonce
+vérifiée »** et la **mise en avant** (sponsoring).
 
 ---
 
@@ -123,8 +129,40 @@ redimensionnées automatiquement : inutile de les alléger avant.
 
 ### Publier ou garder en brouillon
 
-La case **« Publié »** décide si le bien paraît sur la vitrine. Un bien non
-publié reste visible pour vous seul, le temps de le compléter.
+**Si vous êtes administrateur**, la case **« Publier sur la vitrine client »**
+décide seule si le bien paraît. Un bien non publié reste visible pour vous seul,
+le temps de le compléter.
+
+**Si vous êtes collaborateur**, la case s'intitule **« Demander la publication »**
+et c'est bien une demande : le bien passe **« En attente de validation »** et
+n'apparaît pas sur la vitrine avant l'accord de l'administrateur, qui reçoit un
+email. Rien n'est perdu ni bloqué — simplement, la mise en ligne effective n'est
+jamais automatique.
+
+Quatre états sont possibles, affichés sur chaque fiche et sur sa pastille dans la
+liste :
+
+| État | Ce qu'il veut dire |
+|---|---|
+| **Brouillon** | Jamais soumis. Visible de vous seul. |
+| **En attente de validation** | Soumis, l'administrateur ne s'est pas encore prononcé. Absent de la vitrine. |
+| **En ligne** | Autorisé, visible du public. |
+| **Publication refusée** | L'administrateur a refusé, en indiquant un motif que vous lisez sur la fiche. Corrigez, puis redemandez. |
+
+> **Modifier une annonce déjà en ligne la renvoie en validation** — si vous êtes
+> collaborateur. Cela vaut pour ce qu'un visiteur voit : prix, description,
+> photos, superficie, pièces, localisation. Les notes internes et la date
+> d'acquisition passent directement, et faire passer un bien en « Loué » ou
+> « Vendu » aussi, puisque cela ne fait que le retirer de la vitrine.
+>
+> La raison : sans cela, il suffirait de faire valider une annonce correcte, puis
+> d'en changer le prix. La validation ne protégerait alors que le premier jour.
+
+**Côté administrateur**, un compteur **« À valider »** apparaît dans la barre de
+chiffres et une puce du même nom en tête des filtres, **uniquement s'il y a
+quelque chose à valider**. La fiche d'un bien en attente offre deux boutons :
+**Autoriser**, et **Refuser** — ce dernier exige un motif, puisque c'est ce que
+le collaborateur lira pour corriger.
 
 ### Modifier, archiver
 

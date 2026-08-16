@@ -1,6 +1,6 @@
 # Mise en ligne — procédure
 
-Dernière mise à jour : **7 août 2026**
+Dernière mise à jour : **16 août 2026**
 
 Le site est actuellement **en maintenance**. Ce document décrit la bascule vers
 le site public, dans l'ordre. Il existe parce que la bascule touche cinq
@@ -26,10 +26,37 @@ le vrai portefeuille. Attention : quelques-uns portent une référence ou une
 région de test (« THIES », « Région de Dakar », réf. `…-test`) — ils partent avec
 le reste au nettoyage.
 
+État mesuré le 16 août 2026, sur les **18 biens publiés** :
+
+| Constat | Chiffre |
+|---|---:|
+| Sans aucune photo | **4** |
+| Description de moins de 40 caractères | **15** |
+| Description à l'encodage corrompu (caractère « � ») | **5** |
+| Vente affichée sous 1 000 000 FCFA | **2** *(la plus basse à 45 000 FCFA)* |
+
+Autrement dit : **15 annonces sur 18 n'ont pas de description réelle**. Ce n'est
+pas un détail à corriger après l'ouverture — c'est ce qu'un visiteur voit en
+premier, et l'impression ne se rattrape pas. C'est la raison principale pour
+laquelle la bascule n'a pas encore eu lieu, bien avant toute considération
+technique.
+
 > **Prérequis d'hébergement** (à régler avant l'annonce publique) : passer le
 > projet **Supabase en plan Pro** (le gratuit se met en pause et plafonne le
 > trafic) et **vérifier le domaine d'envoi chez Resend** pour des e-mails d'alerte
 > fiables. Voir aussi [NOM-DE-DOMAINE.md](NOM-DE-DOMAINE.md).
+
+> **Prérequis d'authentification** : dans Supabase, *Authentication → Sign In /
+> Providers*, **décocher « Allow new users to sign up »**. Le réglage est
+> aujourd'hui à `disable_signup: false`, donc n'importe qui peut se créer un
+> compte. Cela n'expose aucune donnée — vérifié : un compte ordinaire ne lit
+> aucune ligne des tables sensibles — mais c'est une porte sans usage, le site
+> n'ayant aucun espace visiteur. Elle deviendrait dangereuse le jour où une
+> fonction serait accordée au rôle `authenticated`.
+>
+> **Cela ne casse pas l'accueil des agences** : l'invitation passe par
+> `POST /auth/v1/invite`, réservé à la clé de service, un chemin distinct de
+> l'inscription publique. Vérifié — l'appel avec la clé publique répond 401.
 
 > **Prérequis IA** : les fonctions Edge `generer-description` (rédaction
 > assistée, admin) et `traduire-description` (traduction anglaise à la volée,
@@ -48,9 +75,12 @@ le reste au nettoyage.
 Depuis `Portefeuille-Immo.html` :
 
 - supprimer les 24 biens fictifs ;
-- saisir les biens réels, avec **au moins une photo chacun** — près de la
-  moitié des biens d'essai n'en avaient aucune, et une fiche sans photo
+- saisir les biens réels, avec **au moins une photo chacun** et **une vraie
+  description** — voir le tableau mesuré plus haut : 4 des 18 biens publiés
+  n'ont aucune photo et 15 n'ont pas de description. Une fiche sans photo
   n'intéresse ni un acheteur ni Google ;
+- **relire les prix** : deux ventes s'affichent aujourd'hui sous 1 000 000 FCFA,
+  dont une à 45 000 FCFA. Un prix invraisemblable discrédite tout le catalogue ;
 - veiller à la **cohérence des lieux** : une même commune doit toujours porter
   la même région et la même orthographe. Google s'appuie sur ces mentions pour
   la recherche locale, deux réponses différentes le désorientent.
@@ -182,3 +212,67 @@ git add -A && git commit -m "Actualiser les fiches" && git push
 Elle ne touche jamais aux réglages : `EN_MAINTENANCE`, les balises `noindex`,
 le renommage de `vitrine.html`. La bascule décrite plus haut reste un geste
 volontaire, à faire une seule fois.
+
+---
+
+## Les biens des agences attendent votre accord
+
+Depuis le 16 août 2026, un collaborateur ne met plus un bien en ligne lui-même :
+il le **demande**, et vous recevez un email. Tant que vous n'avez pas autorisé, le
+bien n'existe pas pour le public — ni sur la vitrine, ni dans le sitemap, ni dans
+les emails d'alerte aux abonnés.
+
+Conséquence à retenir pour l'exploitation : **une annonce d'agence qui « n'apparaît
+pas » n'est pas un bug.** Ouvrez le portefeuille, la puce **« À valider »** en tête
+des filtres indique le nombre en attente.
+
+Modifier le prix, la description ou les photos d'une annonce déjà en ligne la
+renvoie aussi en validation — même raison : sans cela, il suffirait de faire
+valider une annonce correcte puis d'en changer le prix.
+
+Le détail du fonctionnement est dans
+[GUIDE-UTILISATION.md](GUIDE-UTILISATION.md), section « Publier ou garder en
+brouillon ».
+
+---
+
+## Pièges connus
+
+### Ne pas retirer `blob:` de la politique de sécurité du portefeuille
+
+`Portefeuille-Immo.html` autorise `blob:` dans sa directive `img-src`. Ce n'est pas
+un oubli de durcissement : le formulaire redimensionne chaque photo avant envoi en
+la lisant via `URL.createObjectURL()`, donc une adresse `blob:`, et il affiche les
+aperçus des photos en attente de la même façon.
+
+Cela s'est déjà produit. La politique ajoutée le **2 août 2026** ne contenait pas
+`blob:` : pendant deux semaines, la compression retombait silencieusement sur le
+fichier d'origine et les aperçus restaient vides. Aucune erreur visible, sauf en
+console. Résultat mesurable en base — un PNG de 2,5 Mo déposé trois jours plus
+tard, alors qu'aucune photo passée par la conversion ne dépasse 820 Ko.
+
+Une adresse `blob:` est fabriquée par la page elle-même et n'ouvre aucune porte
+vers l'extérieur. La vitrine, qui n'envoie rien, garde une `img-src` sans `blob:`.
+
+### Les 24 photos déposées avant le 16 août 2026 sont lourdes
+
+Elles totalisent **17 Mo**, pour une moyenne de 708 Ko et un maximum de 3,9 Mo.
+Le correctif de compression ne vaut que pour les envois suivants, et leur en-tête
+de cache est resté à une heure au lieu d'un an.
+
+Sans objet si l'étape 1 est suivie — elles partent avec les biens d'essai. Si l'on
+souhaitait néanmoins les conserver, il faudrait les retélécharger et les
+réenvoyer pour qu'elles repassent dans le pipeline : mesuré, les 17 Mo tombent
+autour de 2,5 Mo.
+
+### Le catalogue est chargé en entier, sans pagination
+
+La vitrine récupère tous les biens publiés d'un coup et filtre côté navigateur.
+C'est ce qui rend la recherche instantanée — mesuré à 0,3 ms — et évite tout
+aller-retour réseau à la frappe.
+
+Mesuré par simulation : le procédé tient sans peine jusqu'à ~500 biens, reste
+acceptable vers 5 000, et devient inutilisable vers 50 000 (128 ms de filtrage par
+frappe, 6 Mo à télécharger). **Seuil de vigilance : ~1 500 biens publiés.** Au-delà,
+il faudra une pagination serveur et un index sur le prédicat de publication. Ne
+rien anticiper avant : aujourd'hui, ce serait une complication pour rien.
