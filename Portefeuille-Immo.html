@@ -143,6 +143,12 @@
   .chip .count{opacity:.6;font-weight:600;margin-left:4px;}
 
   .stats{display:flex;gap:12px;overflow-x:auto;margin:18px 0 6px;padding-bottom:4px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;}
+  /* Le bandeau est devenu focalisable pour être parcouru aux flèches. La règle
+     de focus générale ne vise que les contrôles (button, a, input…) : sans
+     celle-ci, il n'héritait que du filet de 0,67 px du navigateur, invisible.
+     Même traitement que le reste du site : anneau or plus halo. */
+  .stats:focus-visible{outline:2px solid var(--accent);outline-offset:3px;
+    border-radius:var(--radius-sm);box-shadow:var(--focus-ring);}
   .stat{flex:0 0 auto;min-width:132px;background:var(--surface);border-radius:var(--radius-md);padding:15px 18px;box-shadow:var(--shadow);display:flex;align-items:center;gap:13px;scroll-snap-align:start;overflow:hidden;border:1px solid var(--border);transition:transform .2s var(--ease), box-shadow .2s var(--ease);}
   .stat:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
   .stat-dot{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -160,6 +166,14 @@
   .rdv-view-toggle{display:flex;gap:6px;background:var(--surface-alt);border:1px solid var(--border);border-radius:999px;padding:4px;width:fit-content;}
   .view-toggle button, .rdv-view-toggle button{border:none;background:transparent;border-radius:999px;padding:8px 18px;font-size:12.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s var(--ease);}
   .view-toggle button.active, .rdv-view-toggle button.active{background:var(--primary);color:#fff;box-shadow:0 6px 14px -8px rgba(15,39,71,0.8);}
+  /* L'indicateur de focus général (commun.css) pose outline:none et repose
+     entièrement sur box-shadow. L'ombre décorative de l'état actif, plus
+     spécifique, l'écrasait : ces boutons ne montraient plus rien au clavier.
+     Un outline ne peut pas être efface par une ombre — d'où ce rattrapage.
+     Mesuré : 2 éléments sur 18 étaient concernés, tous des états « actif ». */
+  .view-toggle button:focus-visible, .rdv-view-toggle button:focus-visible,
+  .chip:focus-visible, .btn:focus-visible, .pager-btn:focus-visible{
+    outline:2px solid var(--accent);outline-offset:2px;}
 
   /* ---------- Liste + carte ---------- */
   .split{max-width:1400px;margin:18px auto 48px;padding:0 20px;display:flex;gap:20px;align-items:flex-start;}
@@ -650,7 +664,16 @@
 
 <div class="toolbar">
   <div class="chips" id="chips"></div>
-  <div class="stats" id="stats"></div>
+  <!-- tabindex="0" : ce bandeau défile horizontalement (overflow-x:auto) mais
+       ne contient aucun élément focalisable. À la souris on le fait glisser ;
+       au clavier seul, les chiffres hors cadre étaient inatteignables — 860 px
+       de contenu dans 576 px de cadre lors de l'audit. Focalisable, il se
+       parcourt aux flèches.
+       role="region" accompagne l'aria-label : ARIA interdit de nommer un
+       élément générique, et un conteneur focalisable sans nom ne dirait pas
+       sur quoi le focus vient d'arriver. -->
+  <div class="stats" id="stats" tabindex="0" role="region"
+       aria-label="Chiffres du portefeuille"></div>
   <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
     <div class="view-toggle" id="viewToggle">
       <button data-view="list" class="active">Liste</button>
@@ -691,22 +714,22 @@
 </div>
 
 <div class="overlay" id="overlay"></div>
-<div class="drawer" id="drawer" role="dialog" aria-modal="true"></div>
+<div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Détail du bien"></div>
 <div class="overlay" id="formOverlay"></div>
-<div class="drawer" id="formDrawerPanel" role="dialog" aria-modal="true"></div>
+<div class="drawer" id="formDrawerPanel" role="dialog" aria-modal="true" aria-label="Fiche du bien"></div>
 <div class="gallery-modal hidden" id="galleryModal"></div>
 
 <div class="overlay" id="inboxOverlay"></div>
-<div class="drawer" id="inboxDrawer" role="dialog" aria-modal="true"></div>
+<div class="drawer" id="inboxDrawer" role="dialog" aria-modal="true" aria-label="Boîte de réception"></div>
 <div class="overlay" id="journalOverlay"></div>
-<div class="drawer" id="journalDrawer" role="dialog" aria-modal="true"></div>
+<div class="drawer" id="journalDrawer" role="dialog" aria-modal="true" aria-label="Journal d'activité"></div>
 <div class="overlay" id="agencesOverlay"></div>
-<div class="drawer" id="agencesDrawer" role="dialog" aria-modal="true"></div>
+<div class="drawer" id="agencesDrawer" role="dialog" aria-modal="true" aria-label="Agences collaboratrices"></div>
 <div class="overlay" id="prospectsOverlay"></div>
-<div class="drawer" id="prospectsDrawer" role="dialog" aria-modal="true"></div>
+<div class="drawer" id="prospectsDrawer" role="dialog" aria-modal="true" aria-label="Prospects"></div>
 <div class="overlay" id="avisOverlay"></div>
-<div class="drawer" id="avisDrawer" role="dialog" aria-modal="true"></div>
-<div class="analytics-overlay hidden" id="analyticsOverlay" role="dialog" aria-modal="true"></div>
+<div class="drawer" id="avisDrawer" role="dialog" aria-modal="true" aria-label="Avis clients"></div>
+<div class="analytics-overlay hidden" id="analyticsOverlay" role="dialog" aria-modal="true" aria-label="Statistiques"></div>
 
 <!-- Versions figées (pas juste « @2 ») et intégrité vérifiée (SRI) : sans
      cela, jsDelivr peut servir une version mineure différente d'un jour à
