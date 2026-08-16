@@ -541,6 +541,10 @@
   .trust-ico.vieux{background:var(--surface-alt);color:var(--ink-soft);}
 
   .empty{background:var(--surface);border-radius:var(--radius-lg);padding:56px 24px;text-align:center;box-shadow:var(--shadow);border:1px solid var(--border);position:relative;animation:fadeInUp .35s var(--ease);}
+  /* Trois issues au lieu d'une : élargir d'un cran, tout effacer, être
+     prévenu. Elles s'empilent sur téléphone plutôt que de se serrer. */
+  .empty-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:6px;}
+  @media (max-width: 520px){ .empty-actions{flex-direction:column;align-items:stretch;} }
   /* Avertissement affiché quand un lien partagé pointe vers un bien retiré. */
   .avis-retire{
     display:flex; align-items:flex-start; gap:12px;
@@ -1342,7 +1346,12 @@
          Persistée (voir definirLangue) pour ne pas revenir au français à
          chaque visite d'un lecteur anglophone. -->
     <button type="button" class="btn-icon-header lang-btn" id="langToggleBtn" aria-label="Switch to English" title="Switch to English">FR</button>
-    <a class="btn btn-whatsapp" href="https://wa.me/221778494111" target="_blank" rel="noopener" aria-label="Contacter par WhatsApp">
+    <!-- Sur téléphone, ce bouton reste sous le pouce alors que celui de la
+         fiche demande plus de deux écrans de défilement : c'est donc lui qu'on
+         touche en consultant un bien. Il partait sans message, et l'agence
+         recevait un « bonjour » sans savoir de quel bien il s'agissait.
+         majWhatsappEnTete() lui donne la référence du bien ouvert. -->
+    <a class="btn btn-whatsapp" id="whatsappEnTete" href="https://wa.me/221778494111" target="_blank" rel="noopener" aria-label="Contacter par WhatsApp">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M20.5 3.5A11 11 0 003.6 17.3L2 22l4.9-1.6A11 11 0 1020.5 3.5zM12 20a8 8 0 01-4.1-1.1l-.3-.2-3 1 1-2.9-.2-.3A8 8 0 1112 20zm4.4-5.9c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.6.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1-1.3-.6-2.2-1.1-3.1-2.6-.2-.4.2-.4.6-1.2.1-.2 0-.4 0-.5-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.2-1 1-1 2.4s1 2.8 1.1 3c.1.2 2 3 4.8 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1 0-.1-.2-.2-.4-.3z"/></svg>
       <span class="btn-label">WhatsApp</span>
     </a>
@@ -2472,6 +2481,7 @@ async function loadProperties(){
   // qui vient de remplir les listes déroulantes — poser une valeur sur un
   // <select> encore vide ne prendrait pas.
   appliquerParams(new URLSearchParams(location.search));
+  urlInitialeLue = true;   // à partir d'ici, majURL() peut écrire sans rien perdre
   const pageInitiale = state.page;
   majEtiquettePrix();
   updateAdvBadge();
@@ -3017,12 +3027,25 @@ function renderFeatured(){
   const host = document.getElementById('vedettesRail');
   const section = document.getElementById('vedettesSection');
   if(!host || !section) return;
-  // Même ordre que la liste principale : les mises en avant payantes d'abord,
-  // puis les plus récentes — pas de deuxième tri inventé pour ce rail.
-  const items = ordonner(PROPERTIES).slice(0, 8);
+  const estRecent = p => { const j = joursDepuis(p.created_at); return j !== null && j <= 14; };
+  // Ce rail affichait « ordonner(PROPERTIES).slice(0, 8) » — c'est-à-dire
+  // exactement les huit premiers de la liste située juste en dessous, avec le
+  // même tri. Le visiteur faisait défiler deux fois le même contenu, et sur
+  // ordinateur cela repoussait le premier bien à plus de 1 500 px.
+  //
+  // Deux conditions désormais :
+  //   - le rail ne montre que des biens qui portent une distinction
+  //     (sponsorisé, vérifié, ou récent) : « Sélection du moment » redevient
+  //     vrai, et la vignette dit pourquoi le bien s'y trouve ;
+  //   - il ne paraît que si le catalogue dépasse une page. En deçà, la liste
+  //     entière tient sous les yeux : une sélection n'apprend rien et coûte un
+  //     écran. Le seuil suit PER_PAGE, donc le rail reviendra de lui-même
+  //     quand le portefeuille grandira.
+  const distingues = PROPERTIES.filter(p => p.sponsorisee || p.verified_at || estRecent(p));
+  const merite = PROPERTIES.length > PER_PAGE && distingues.length >= 3;
+  const items = merite ? ordonner(distingues).slice(0, 8) : [];
   section.hidden = !items.length;
   if(!items.length) return;
-  const estRecent = p => { const j = joursDepuis(p.created_at); return j !== null && j <= 14; };
   host.innerHTML = items.map(p=>{
     const cover = coverUrl(p, 420, 68);
     return `
@@ -3446,28 +3469,70 @@ function majEtiquettePrix(){
 // Une seule source pour le résumé affiché et pour le rappel de la liste vide.
 // Chaque entrée sait se nommer ET se retirer : la puce lue est le bouton qui
 // l'annule, sans table de correspondance à tenir à jour à côté.
+// Chaque entrée sait se nommer, se retirer (avec ses effets sur le DOM), et se
+// NEUTRALISER sur un état donné — cette dernière sert à compter ce que
+// donnerait un retrait, sans rien toucher à l'écran.
 function filtresActifs(){
   const l = [];
   const champ = document.getElementById('search');
-  if(state.search) l.push({ libelle: `« ${state.search} »`,
-    retirer(){ state.search = ''; if(champ) champ.value = ''; } });
-  if(state.type !== 'Tous') l.push({ libelle: t(state.type),
-    retirer(){ state.type = 'Tous'; } });
+  // intention : ce que le filtre dit du besoin. Les mots tapés et le type de
+  // bien portent la demande elle-même ; l'opération, le prix ou la surface la
+  // précisent. On s'en sert pour choisir quoi proposer de retirer face à une
+  // liste vide — voir meilleurElargissement().
+  if(state.search) l.push({ libelle: `« ${state.search} »`, intention: 'forte',
+    retirer(){ state.search = ''; if(champ) champ.value = ''; },
+    neutraliser(e){ e.search = ''; } });
+  if(state.type !== 'Tous') l.push({ libelle: t(state.type), intention: 'forte',
+    retirer(){ state.type = 'Tous'; },
+    neutraliser(e){ e.type = 'Tous'; } });
   if(state.op !== 'Tous') l.push({ libelle: t(state.op),
-    retirer(){ state.op = 'Tous'; } });
+    retirer(){ state.op = 'Tous'; },
+    neutraliser(e){ e.op = 'Tous'; } });
   if(state.favOnly) l.push({ libelle: t('Mes favoris'),
-    retirer(){ state.favOnly = false; majBoutonFavoris(); } });
+    retirer(){ state.favOnly = false; majBoutonFavoris(); },
+    neutraliser(e){ e.favOnly = false; } });
   if(state.centerLat != null && state.radiusKm) l.push({
     libelle: (state.lang === 'en' ? 'Within ' : 'À moins de ') + state.radiusKm + ' km',
-    retirer(){ clearSearchZone(); } });
+    retirer(){ clearSearchZone(); },
+    neutraliser(e){ e.centerLat = null; e.centerLng = null; e.radiusKm = null; } });
   ADV_CRITERES.forEach(c => {
     if(!critereActif(c)) return;
     l.push({ libelle: c.resume(state[c.cle]),
       retirer(){ state[c.cle] = '';
         const el = document.getElementById(c.champ); if(el) el.value = '';
-        majEtiquettePrix(); updateAdvBadge(); } });
+        majEtiquettePrix(); updateAdvBadge(); },
+      neutraliser(e){ e[c.cle] = ''; } });
   });
   return l;
+}
+
+// Face à une liste vide, « Voir tous les biens » efface TOUT — c'est perdre son
+// travail pour un critère de trop. On calcule donc ce que donnerait le retrait
+// de chaque filtre pris isolément, et on propose le plus généreux. Mesuré sur
+// le cas type « Maison » + « Vente » : zéro résultat, alors qu'une maison
+// existe en location et quatorze biens sont à vendre.
+function meilleurElargissement(){
+  const filtres = filtresActifs();
+  // Un seul filtre actif : le retirer revient à tout effacer, le bouton
+  // existant suffit et une seconde proposition ferait doublon.
+  if(filtres.length < 2) return null;
+  const sauvegarde = { ...state };
+  const candidats = [];
+  filtres.forEach(f => {
+    f.neutraliser(state);
+    const n = filtered().length;
+    Object.assign(state, sauvegarde);
+    if(n > 0) candidats.push({ nb: n, filtre: f });
+  });
+  if(!candidats.length) return null;
+  // Le nombre ne décide pas seul. Sur « Maison » + « Vente », retirer le type
+  // rendait quatorze biens — mais aucune maison, c'est-à-dire précisément ce
+  // qu'on cherchait. Retirer l'opération n'en rend qu'une, et c'est la bonne.
+  // On écarte donc d'abord les critères à intention forte, et on ne s'y résout
+  // que si rien d'autre ne débloque la recherche.
+  const secondaires = candidats.filter(c => c.filtre.intention !== 'forte');
+  const pool = secondaires.length ? secondaires : candidats;
+  return pool.reduce((a, b) => b.nb > a.nb ? b : a);
 }
 
 // Le décompte et les filtres, écrits à l'écran. #annonceResultats disait déjà
@@ -3557,12 +3622,42 @@ function renderList(){
       ? (state.lang==='en' ? `Active right now: ${criteresActifs.join(' · ')}.`
                            : `Filtres actifs : ${criteresActifs.join(' · ')}.`)
       : '';
+    // La sortie la moins coûteuse d'abord : retirer UN critère plutôt que tous.
+    const elargir = meilleurElargissement();
+    const propositionElargir = elargir
+      ? `<button type="button" class="btn btn-primary" id="videElargirBtn">${
+          state.lang==='en'
+            ? `Drop “${esc(elargir.filtre.libelle)}” — ${elargir.nb} propert${elargir.nb>1?'ies':'y'}`
+            : `Sans « ${esc(elargir.filtre.libelle)} » : ${bienLabel(elargir.nb)}`}</button>`
+      : '';
+    // L'alerte existe précisément pour ce moment-là, mais elle vit à trois
+    // écrans plus bas (six sur téléphone) : personne ne l'atteignait depuis ici.
+    const propositionAlerte = `<button type="button" class="btn btn-outline" id="videAlerteBtn">${
+      state.lang==='en' ? 'Alert me when one matches' : "Me prévenir dès qu'un bien correspond"}</button>`;
+
     el.innerHTML = `<div class="empty">
       <h3>${state.lang==='en' ? 'No property matches' : 'Aucun bien ne correspond'}</h3>
       <p>${rappel || (state.lang==='en' ? 'Try widening your search.' : "Essayez d'élargir la recherche.")}</p>
-      <button type="button" class="btn btn-primary" id="videEffacerBtn">${state.lang==='en' ? 'View all properties' : 'Voir tous les biens'}</button>
+      <div class="empty-actions">
+        ${propositionElargir}
+        <button type="button" class="btn ${elargir ? 'btn-outline' : 'btn-primary'}" id="videEffacerBtn">${state.lang==='en' ? 'View all properties' : 'Voir tous les biens'}</button>
+        ${propositionAlerte}
+      </div>
     </div>`;
     document.getElementById('videEffacerBtn').onclick = () => reinitialiserRecherche({ remonterEnHaut: false });
+    if(elargir){
+      document.getElementById('videElargirBtn').onclick = () => {
+        elargir.filtre.retirer();
+        renderChips(); renderCategories(); render();
+      };
+    }
+    document.getElementById('videAlerteBtn').onclick = () => {
+      const forme = document.getElementById('alertForm');
+      if(forme.classList.contains('hidden')) document.getElementById('alertToggleBtn').click();
+      const doux = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+      document.querySelector('.alert-banner').scrollIntoView({ behavior: doux ? 'smooth' : 'auto', block: 'center' });
+      setTimeout(() => document.getElementById('alert_email')?.focus(), doux ? 600 : 0);
+    };
     return;
   }
   // Découpage en pages. La borne est resserrée ici plutôt qu'au moment du
@@ -3786,6 +3881,7 @@ function openDrawer(p){
   const photos = getPropertyPhotos(p);
   const d = document.getElementById('drawer');
   const waText = encodeURIComponent(`Bonjour, je suis intéressé(e) par le bien ${p.ref} — ${p.type} à ${p.commune}.`);
+  majWhatsappEnTete(waText);
   d.innerHTML = `
     <div class="drawer-banner" style="background:${cover?`center/cover no-repeat url('${cover}')`:`linear-gradient(135deg, ${TYPE_COLOR[p.type]}, #161B22)`}">
       ${cover?'':typeIcon(p.type, 34)}
@@ -4095,7 +4191,16 @@ async function demanderDescriptionAnglaise(p){
 // toute la liste pour retrouver l'annonce qu'on venait de consulter.
 let focusAvantTiroir = null;
 
+// Le WhatsApp de l'en-tête suit le bien ouvert. Sans texte, il redevient un
+// contact général — c'est ce qu'il doit être quand aucune fiche n'est ouverte.
+function majWhatsappEnTete(texte){
+  const a = document.getElementById('whatsappEnTete');
+  if(!a) return;
+  a.href = 'https://wa.me/221778494111' + (texte ? '?text=' + texte : '');
+}
+
 function closeDrawer(){
+  majWhatsappEnTete(null);
   document.getElementById('drawer').classList.remove('open');
   document.getElementById('drawer').setAttribute('aria-hidden', 'true');
   document.getElementById('overlay').classList.remove('open');
@@ -4341,8 +4446,17 @@ function appliquerParams(p){
 // empile une nouvelle. Sans cette distinction, taper « Mermoz » laissait six
 // entrées dans l'historique et il fallait six retours pour en sortir.
 let derniereRecherche = null;
+// Tant que l'URL de départ n'a pas été lue, on n'y touche pas. Sans ce verrou,
+// un premier render() déclenché avant appliquerParams() écrivait une adresse
+// vide et effaçait les filtres qu'on n'avait pas encore lus. Constaté avec
+// « ?type=Maison&op=Vente&lang=en » : definirLangue('en') s'exécute au
+// démarrage et appelle render(), alors que appliquerParams() attend encore le
+// chargement des biens — les deux filtres disparaissaient de l'adresse avant
+// d'avoir servi.
+let urlInitialeLue = false;
+
 function majURL(){
-  if(isRestoringFromURL) return;
+  if(isRestoringFromURL || !urlInitialeLue) return;
   const p = etatVersParams();
   const q = p.toString();
   const url = location.pathname + (q ? '?' + q : '');
