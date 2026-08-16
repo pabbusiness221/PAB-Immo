@@ -3033,17 +3033,19 @@ function renderFeatured(){
   // même tri. Le visiteur faisait défiler deux fois le même contenu, et sur
   // ordinateur cela repoussait le premier bien à plus de 1 500 px.
   //
-  // Deux conditions désormais :
-  //   - le rail ne montre que des biens qui portent une distinction
-  //     (sponsorisé, vérifié, ou récent) : « Sélection du moment » redevient
-  //     vrai, et la vignette dit pourquoi le bien s'y trouve ;
-  //   - il ne paraît que si le catalogue dépasse une page. En deçà, la liste
-  //     entière tient sous les yeux : une sélection n'apprend rien et coûte un
-  //     écran. Le seuil suit PER_PAGE, donc le rail reviendra de lui-même
-  //     quand le portefeuille grandira.
+  // Le rail ne montre donc que des biens qui portent une distinction —
+  // sponsorisé, vérifié, ou publié depuis moins de quinze jours. « Sélection du
+  // moment » redevient vrai, et l'étiquette de chaque vignette dit pourquoi le
+  // bien s'y trouve.
+  //
+  // Il avait aussi été masqué sous une page de catalogue, au motif qu'une
+  // sélection n'apprend rien quand la liste entière tient sous les yeux. Ce
+  // seuil est retiré : le rail est un point d'entrée visuel, pas seulement un
+  // raccourci de navigation, et il doit rester présent dès qu'il y a de quoi le
+  // remplir. Trois biens distingués suffisent — en dessous, ce serait une
+  // vitrine plus vide que la liste qu'elle annonce.
   const distingues = PROPERTIES.filter(p => p.sponsorisee || p.verified_at || estRecent(p));
-  const merite = PROPERTIES.length > PER_PAGE && distingues.length >= 3;
-  const items = merite ? ordonner(distingues).slice(0, 8) : [];
+  const items = distingues.length >= 3 ? ordonner(distingues).slice(0, 8) : [];
   section.hidden = !items.length;
   if(!items.length) return;
   host.innerHTML = items.map(p=>{
