@@ -797,10 +797,21 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
 <script>
 
-// Le vert « Disponible » sert à la fois d'encre et de fond (à 13 %) dans les
-// pastilles : à #3F7A49 le rapport tombait à 4,31:1, sous le seuil AA.
-// Assombri à teinte égale, il atteint 4,89:1.
-const STATUS_COLOR = { Disponible:'#397042', 'Réservé':'#B8842A', Vendu:'#8B9199', 'Loué':'#8B9199' };
+// Ces couleurs servent à la fois d'encre et de fond (à 13 %) dans les pastilles,
+// et de fond plein sous du texte blanc dans le bandeau du tiroir. Elles doivent
+// donc satisfaire 4,5:1 dans les deux sens, ce qui les contraint à être sombres.
+//
+// « Disponible » avait déjà été assombri pour cette raison : #3F7A49 tombait à
+// 4,31:1. Les trois autres n'avaient pas suivi, et restaient nettement sous le
+// seuil — mesuré : « Réservé » #B8842A à 2,88:1 sur sa pastille et 3,30:1 en
+// blanc sur fond plein, « Vendu »/« Loué » #8B9199 à 2,79:1 et 3,18:1. Or ces
+// pastilles font 10,5 px et les chiffres des statistiques 18 px : sous le seuil
+// de 18,66 px du « grand texte », donc 4,5:1 est bien exigé, pas 3:1.
+//
+// Assombries à teinte constante, les quatre tiennent maintenant entre 4,86 et
+// 4,89:1 — la famille est cohérente. Ne pas les éclaircir sans recalculer les
+// deux sens ; garder la liste identique à celle de vitrine.html.
+const STATUS_COLOR = { Disponible:'#397042', 'Réservé':'#845E1E', Vendu:'#60666E', 'Loué':'#60666E' };
 const STATUS_OPTIONS = { Vente:['Disponible','Réservé','Vendu'], Location:['Disponible','Réservé','Loué'] };
 
 // Un type absent de ICON_SVG faisait planter l'ouverture de la fiche : le
@@ -1060,8 +1071,8 @@ function renderStats(){
   const items = [
     ['Biens au total', total, '#1B4F91'],
     ['Disponibles', dispo, '#3F7A49'],
-    ['Réservés', res, '#B8842A'],
-    ['Vendus / Loués', clot, '#8B9199'],
+    ['Réservés', res, '#845E1E'],
+    ['Vendus / Loués', clot, '#60666E'],
     ['Valeur (ventes)', fcfa(valeur), '#B24A2C'],
   ];
   // Une demande de publication en attente est la seule de ces mesures qui
@@ -2515,7 +2526,11 @@ function renderInbox(){
   renderInboxList();
 }
 
-const RDV_STATUS_COLOR = { 'En attente':'#B8842A', 'Confirmé':'#16A34A', 'Réalisée':'#0F2747', 'Annulé':'#8B9199' };
+// Même contrainte que STATUS_COLOR : ces couleurs sont l'encre des puces du
+// calendrier sur un fond de la même teinte à 13 %. « Confirmé » #16A34A tombait
+// à 2,85:1, les deux autres reprenaient les valeurs fautives de STATUS_COLOR.
+// « Réalisée » était déjà conforme, et de loin — 11,53:1.
+const RDV_STATUS_COLOR = { 'En attente':'#845E1E', 'Confirmé':'#107334', 'Réalisée':'#0F2747', 'Annulé':'#60666E' };
 
 // Rendu réutilisable d'une liste de RDV (vue Liste ET détail du jour sélectionné en vue Calendrier)
 function renderRdvItems(container, items){

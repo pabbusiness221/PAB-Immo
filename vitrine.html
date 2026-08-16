@@ -2167,9 +2167,12 @@ function definirLangue(lang){
 }
 
 const STATUS_LABEL = { Disponible:'Disponible', 'Réservé':'Sous offre' };
-// Même vert que le portefeuille : il sert d'encre ET de fond (à 13 %) dans
-// les pastilles, où #3F7A49 ne donnait que 4,31:1. Ici : 4,89:1.
-const STATUS_COLOR = { Disponible:'#397042', 'Réservé':'#B8842A' };
+// Mêmes couleurs que le portefeuille, à garder identiques : voir le commentaire
+// détaillé à sa définition. Ici elles servent de fond plein sous du texte blanc
+// (pastille de la carte et du tiroir). « Réservé » passait de 3,30:1 à 5,83:1 en
+// étant assombri à teinte égale ; le vert avait déjà été corrigé de la même
+// façon, #3F7A49 ne donnant que 4,31:1.
+const STATUS_COLOR = { Disponible:'#397042', 'Réservé':'#845E1E' };
 
 // Repli si un type de bien n'a pas d'icône : le bandeau de la fiche appelle
 // .replace() sur l'icône, donc sur undefined si la clé manque.
