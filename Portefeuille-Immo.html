@@ -759,10 +759,10 @@
      l'autre sans qu'aucun commit ne change ici, et rien ne détecterait un
      fichier altéré côté CDN. -->
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.110.8" integrity="sha384-Tve8O+C6PBzsIMK/IRCwHbi8fyEzXIlIs6OfVBZHubplwYhaQF/4Mzxqgg+pp/oy" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3" integrity="sha384-l8ah+VgaWtk1mvOe9VC+OirC6qHFF4yH7l7mKRidV9MSti3E9F463bMp6ZVN4kuC" crossorigin="anonymous"></script>
 <!-- Code partage par les deux pages : voir l en-tete de commun.js -->
 <script src="commun.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" integrity="sha384-NrKB+u6Ts6AtkIhwPixiKTzgSKNblyhlk0Sohlgar9UHUBzai/sgnNNWWd291xqt" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
 <script>
 
 // Le vert « Disponible » sert à la fois d'encre et de fond (à 13 %) dans les
@@ -881,7 +881,7 @@ async function loadProperties(){
     .order('created_at', { ascending:false })
     .order('position', { foreignTable:'property_photos', ascending:true });
   if(error){
-    document.getElementById('list').innerHTML = `<div class="empty"><h3 style="margin:0 0 6px;font-size:15px;">Connexion à Supabase impossible</h3><p style="margin:0;color:var(--ink-soft);font-size:12.5px;">${error.message}</p></div>`;
+    document.getElementById('list').innerHTML = `<div class="empty"><h3 style="margin:0 0 6px;font-size:15px;">Connexion à Supabase impossible</h3><p style="margin:0;color:var(--ink-soft);font-size:12.5px;">${esc(error.message)}</p></div>`;
     return;
   }
   PROPERTIES = (data || []).map(mapRow);
@@ -3664,10 +3664,10 @@ function loadScriptOnce(src, empreinte){
 async function ensureChartJs(){
   if(typeof Chart !== 'undefined') return true;
   const sources = [
-    ['https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js',
-     'sha384-NrKB+u6Ts6AtkIhwPixiKTzgSKNblyhlk0Sohlgar9UHUBzai/sgnNNWWd291xqt'],
-    ['https://unpkg.com/chart.js@4.4.4/dist/chart.umd.js',
-     'sha384-G436+Z2nlA8+PNoeRvWdxKbvOf8E/y+lYxqht2iBwNHTQDV5CJr3+AGVj8fGZi5t'],
+    ['https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js',
+     'sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ'],
+    ['https://unpkg.com/chart.js@4.5.1/dist/chart.umd.js',
+     'sha384-hfkuqrKeWFmnTMWN31VWyoe8xgdTADD11kgxmdpx2uyE6j5Az5uZq6u6AKYYmAOw'],
   ];
   for(const [src, empreinte] of sources){
     try{ await loadScriptOnce(src, empreinte); if(typeof Chart !== 'undefined') return true; }
