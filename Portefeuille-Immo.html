@@ -992,7 +992,39 @@ function creerCarte(){
 // page en était exempte. Tout le code garde déjà « if(map) », donc différer la
 // création est sans effet de bord.
 const conteneurCarte = document.getElementById('map');
-if(conteneurCarte && conteneurCarte.offsetParent) creerCarte();
+
+// Créer la carte dès que son conteneur obtient une surface, quelle qu'en soit la
+// raison : chargement au-delà de 1024 px, passage sur la vue Carte, ou simple
+// agrandissement de la fenêtre.
+//
+// Ce dernier cas était une régression de la version précédente de ce garde. En
+// chargeant sous 1024 px puis en élargissant — tablette pivotée en paysage,
+// portable rebranché sur un écran, fenêtre redimensionnée — le panneau carte
+// redevenait visible alors que la carte n'avait jamais été créée : 664x789 px de
+// blanc, sans marqueur ni tuile, jusqu'au rechargement. La bascule ne pouvait pas
+// rattraper le coup, puisqu'elle n'est même plus affichée à cette largeur.
+function surveillerConteneurCarte(){
+  if(!conteneurCarte) return;
+  const tenter = () => {
+    if(map || !conteneurCarte.offsetParent || conteneurCarte.offsetWidth === 0) return false;
+    if(creerCarte()){
+      rebuildMarkers(filtered());
+      map.invalidateSize();
+      return true;
+    }
+    return false;
+  };
+  if(tenter()) return;                       // visible d'emblée : rien à surveiller
+  if(typeof ResizeObserver === 'function'){
+    const ro = new ResizeObserver(() => { if(tenter()) ro.disconnect(); });
+    ro.observe(conteneurCarte);
+  } else {
+    // Repli pour les navigateurs sans ResizeObserver.
+    const surRedimensionnement = () => { if(tenter()) window.removeEventListener('resize', surRedimensionnement); };
+    window.addEventListener('resize', surRedimensionnement);
+  }
+}
+surveillerConteneurCarte();
 
 
 
