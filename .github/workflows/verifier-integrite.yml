@@ -20,6 +20,7 @@ on:
   push:
     paths:
       - 'vitrine.html'
+      - 'Biens-Immo.html'
       - 'Portefeuille-Immo.html'
       - 'commun.js'
       - 'commun.css'
@@ -28,6 +29,7 @@ on:
   pull_request:
     paths:
       - 'vitrine.html'
+      - 'Biens-Immo.html'
       - 'Portefeuille-Immo.html'
       - 'commun.js'
       - 'commun.css'

@@ -37,7 +37,13 @@ import sys
 from html.parser import HTMLParser
 
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PAGES = ["vitrine.html", "Portefeuille-Immo.html"]
+# La vitrine s'appelle vitrine.html en maintenance et Biens-Immo.html une fois
+# en ligne : on prend celle qui existe, comme le font generer-pages.py et
+# verifier-mise-en-ligne.py. Sans cela, l'outil signalait une page absente
+# apres la bascule et ne verifiait plus la vitrine du tout.
+VITRINE = next((n for n in ("Biens-Immo.html", "vitrine.html")
+                if os.path.exists(os.path.join(RACINE, n))), "vitrine.html")
+PAGES = [VITRINE, "Portefeuille-Immo.html"]
 PARTAGES = ["commun.js", "commun.css"]
 
 # Champs saisis par un visiteur. Tout ce qui vient d'eux doit passer par esc()

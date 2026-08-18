@@ -59,7 +59,7 @@ GOOGLE_VERIFICATION = ""
 # Tant que la vitrine est derrière la page de maintenance, les pages générées
 # ne doivent pas être indexées : elles renverraient vers un site en travaux.
 # Passer à False le jour du retour en ligne, puis relancer le script.
-EN_MAINTENANCE = True
+EN_MAINTENANCE = False
 
 # Page d'accueil réelle du catalogue, selon l'état du site.
 ACCUEIL = "vitrine.html" if EN_MAINTENANCE else "Biens-Immo.html"
