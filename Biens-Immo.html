@@ -507,6 +507,9 @@
     background-size:5px 1px;background-repeat:repeat-x;}
   .card-foot > *{position:relative;background:var(--surface);}
   .surface-txt{padding-right:7px;}
+  /* « × 12 » et « l'unité » accompagnent la superficie et le prix d'un lot.
+     Volontairement discrets : ils precisent le chiffre, ils ne le concurrencent pas. */
+  .lot-mention{font-size:.82em;font-weight:600;color:var(--ink-soft);letter-spacing:0;}
   /* Chiffres alignés en colonne d'une carte à l'autre : on compare des prix,
      pas des mots. */
   .price{font-size:var(--t-lg);font-weight:800;color:var(--ink);font-family:'Manrope',sans-serif;letter-spacing:-0.015em;font-variant-numeric:tabular-nums;padding-left:7px;}
@@ -1967,6 +1970,8 @@ const I18N_EN = {
   'Nouveau':'New', 'Sponsorisé':'Sponsored', 'Vérifiée':'Verified', '✓ Vérifiée':'✓ Verified',
   'Disponible':'Available', 'Sous offre':'Under offer',
   'Comparer':'Compare', 'Vider':'Clear', 'mois':'mo', 'ch.':'bd.',
+  // Lot de terrains identiques : le prix et la superficie valent pour UN terrain.
+  'Lot':'Lot', 'terrains identiques':'identical plots', "l'unité":'each',
   'Statut juridique déclaré par l’agence':'Land title status declared by the agency',
   'Agence vérifiée':'Verified agency',
   'Publié par une agence dont l’identité a été contrôlée par PAB Immo':'Published by an agency whose identity was verified by PAB Immo',
@@ -2247,6 +2252,10 @@ function mapRow(r){
     availability_checked_at: r.availability_checked_at || null,
     agence_verifiee: !!r.agence_verifiee,
     statutFoncier: (r.statut_foncier && r.statut_foncier !== 'Non renseigné') ? r.statut_foncier : null,
+    // Lot de terrains identiques. Le prix et la superficie affiches restent
+    // ceux d'UN terrain : c'est la seule lecture qui reste juste quand il
+    // n'en reste qu'un seul a vendre.
+    lotNombre: (r.lot_nombre && r.lot_nombre >= 2) ? Number(r.lot_nombre) : null,
     // C'est le serveur qui a tranché si la mise en avant court encore :
     // l'horloge d'un visiteur peut être fausse, l'échéance ne doit pas en
     // dépendre.
@@ -3707,8 +3716,8 @@ function renderList(){
           <span>${t('Comparer')}</span>
         </label>
         <div class="card-foot">
-          <span class="surface-txt mono">${p.surface} ${surfaceUnit(p.type)}</span>
-          <span class="price mono">${fcfa(p.price)}${p.operation==='Location'?` /${t('mois')}`:''}</span>
+          <span class="surface-txt mono">${p.surface} ${surfaceUnit(p.type)}${p.lotNombre ? ` <span class="lot-mention">× ${p.lotNombre}</span>` : ''}</span>
+          <span class="price mono">${fcfa(p.price)}${p.operation==='Location'?` /${t('mois')}`:''}${p.lotNombre ? ` <span class="lot-mention">${t("l'unité")}</span>` : ''}</span>
         </div>
       </div>
     </div>`;
@@ -3823,7 +3832,7 @@ const CHAMPS_LISTE = [
   'lat','lng','surface','price','created_at','verified_at','availability_checked_at',
   'agence_verifiee','statut_foncier','sponsorisee','chambres','salons','salles_bain',
   'cuisine','equipements','meuble','charges','caution','etage','annee_construction',
-  'date_disponibilite'
+  'date_disponibilite','lot_nombre'
 ].join(',');
 
 // Descriptions récupérées à l'ouverture du tiroir, comme les photos complètes.
@@ -3946,8 +3955,9 @@ function openDrawer(p){
           </button>`).join('')}
       </div>` : ''}
       <div class="grid2">
-        <div class="info-box"><div class="k">${t('Superficie')}</div><div class="v mono">${p.surface} ${surfaceUnit(p.type)}</div></div>
-        <div class="info-box"><div class="k">${t(p.operation)}</div><div class="v mono" style="color:var(--gold)">${fcfa(p.price)}${p.operation==='Location'?'/'+t('mois'):''}</div><div class="v-secondaire mono">${prixSecondaire(p.price)}${p.operation==='Location'?'/'+t('mois'):''}</div></div>
+        ${p.lotNombre ? `<div class="info-box"><div class="k">${t('Lot')}</div><div class="v mono">${p.lotNombre} ${t('terrains identiques')}</div></div>` : ''}
+        <div class="info-box"><div class="k">${t('Superficie')}${p.lotNombre ? ` (${t("l'unité")})` : ''}</div><div class="v mono">${p.surface} ${surfaceUnit(p.type)}</div></div>
+        <div class="info-box"><div class="k">${t(p.operation)}${p.lotNombre ? ` (${t("l'unité")})` : ''}</div><div class="v mono" style="color:var(--gold)">${fcfa(p.price)}${p.operation==='Location'?'/'+t('mois'):''}</div><div class="v-secondaire mono">${prixSecondaire(p.price)}${p.operation==='Location'?'/'+t('mois'):''}</div></div>
         ${p.charges != null ? `<div class="info-box"><div class="k">${t('Charges')}</div><div class="v mono">${fcfa(p.charges)}/${t('mois')}</div></div>` : ''}
         ${p.caution != null ? `<div class="info-box"><div class="k">${t('Caution')}</div><div class="v mono">${fcfa(p.caution)}</div></div>` : ''}
       </div>

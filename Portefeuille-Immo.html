@@ -882,6 +882,9 @@ function mapRow(r){
     availability_checked_at: r.availability_checked_at || null,
     sponsored_until: r.sponsored_until || null,
     statut_foncier: r.statut_foncier || 'Non renseigné',
+    // Nombre de terrains identiques encore disponibles. NULL = bien unique.
+    // Le prix et la superficie restent ceux d'UN terrain, voir la migration.
+    lot_nombre: r.lot_nombre || null,
     meuble: r.meuble,
     charges: r.charges != null ? Number(r.charges) : null,
     caution: r.caution != null ? Number(r.caution) : null,
@@ -1727,11 +1730,42 @@ function renderRoomsSection(existingRooms){
   const el = document.getElementById('roomsSection');
   const r = existingRooms || {};
   if(type === 'Terrain' || type === 'Champ agricole'){
+    // Le lot n'est propose que pour les terrains. Un lotisseur vend souvent
+    // plusieurs parcelles identiques ; sans cette option il devait creer autant
+    // d'annonces jumelles, ce que le visiteur prend pour de la negligence.
+    const estTerrain = type === 'Terrain';
+    const lot = r.lot_nombre || null;
     el.innerHTML = `
     <div class="form-field full">
       <label class="form-label" for="f_equip">Équipements ou Contenus (séparés par des virgules)</label>
       <input class="form-input" id="f_equip" value="${esc((r.autres||[]).join(', '))}" placeholder="Clôturé, Puits, Arbres fruitiers, Accès route"/>
-    </div>`;
+    </div>
+    ${estTerrain ? `
+    <div class="toggle-row" style="margin-top:14px;">
+      <input type="checkbox" id="f_est_lot" ${lot ? 'checked' : ''} />
+      <label for="f_est_lot" style="font-size:12.5px;">Il s'agit d'un lot de terrains identiques</label>
+    </div>
+    <div class="form-field full" id="f_lot_bloc" style="${lot ? '' : 'display:none;'}margin-top:8px;">
+      <label class="form-label" for="f_lot_nombre">Nombre de terrains disponibles dans ce lot</label>
+      <input class="form-input" id="f_lot_nombre" type="number" min="2" max="500" step="1"
+             value="${lot || ''}" placeholder="12" />
+      <p style="font-size:11.5px;color:var(--ink-soft);margin:6px 0 0;">
+        La superficie et le prix saisis plus haut sont ceux d'<strong>un seul terrain</strong>.
+        La vitrine annoncera « à partir de … l'unité ». Quand il n'en reste qu'un,
+        décochez la case&nbsp;: l'annonce redevient un terrain seul sans qu'il y ait
+        de prix à corriger.
+      </p>
+    </div>` : ''}`;
+
+    if(estTerrain){
+      const caseLot = document.getElementById('f_est_lot');
+      const bloc = document.getElementById('f_lot_bloc');
+      const champ = document.getElementById('f_lot_nombre');
+      caseLot.onchange = () => {
+        bloc.style.display = caseLot.checked ? '' : 'none';
+        if(caseLot.checked){ if(!champ.value) champ.value = 2; champ.focus(); }
+      };
+    }
     return;
   }
   el.innerHTML = `
@@ -2217,7 +2251,9 @@ function openForm(existing){
       <button class="btn btn-primary" id="formSave" style="width:100%;justify-content:center;margin-top:16px;">${isEdit ? 'Enregistrer les modifications' : 'Ajouter ce bien'}</button>
     </div>`;
 
-  renderRoomsSection(p.rooms ? { ...p.rooms, etage: p.etage, annee_construction: p.annee_construction } : { etage: p.etage, annee_construction: p.annee_construction });
+  renderRoomsSection(p.rooms
+    ? { ...p.rooms, etage: p.etage, annee_construction: p.annee_construction, lot_nombre: p.lot_nombre }
+    : { etage: p.etage, annee_construction: p.annee_construction, lot_nombre: p.lot_nombre });
   renderLocationSection(p);
   renderPhotoGrid();
   initFormMap(parseFloat(p.lat), parseFloat(p.lng));
@@ -2364,6 +2400,16 @@ async function saveProperty(existing){
   if(!payload.ref || !payload.commune || !payload.region || !payload.departement || isNaN(payload.lat) || isNaN(payload.lng) || isNaN(payload.surface) || isNaN(payload.price)){
     errEl.textContent = 'Merci de renseigner tous les champs obligatoires (référence, commune, région, département, latitude, longitude, superficie, prix).';
     return;
+  }
+
+  // Le lot n'existe que pour les terrains. Decocher la case remet NULL, ce qui
+  // ramene l'annonce a un terrain unique sans toucher au prix.
+  if(type === 'Terrain'){
+    const caseLot = document.getElementById('f_est_lot');
+    const n = parseInt(document.getElementById('f_lot_nombre')?.value, 10);
+    payload.lot_nombre = (caseLot && caseLot.checked && n >= 2) ? n : null;
+  } else {
+    payload.lot_nombre = null;
   }
 
   if(type !== 'Terrain' && type !== 'Champ agricole'){
